@@ -2310,7 +2310,7 @@ let bookIO=null, bookSaveT=0;
 function bookHTML(){
   const n=BOOK.n, cur=Math.min(n,Math.max(1,ST.bookPage||1));
   return head()+`<div class="wrap"><div class="ptitle"><div><h1>หนังสือ</h1><p>${esc(BOOK.title)} · ${n} หน้า · แตะหน้าเพื่อขยาย</p></div>
-     <details class="dlmenu"><summary class="btn ghost rp">${I.dl}ดาวน์โหลด PDF</summary><div class="dlbox">${BOOK.pdf.map(x=>`<a class="dlrow rp" href="${x.f}" download>${I.dl}<span>${x.n}</span><small class="num">${x.mb} MB</small></a>`).join('')}</div></details></div></div>
+     <button class="btn ghost rp" data-pxdl="1">${I.dl}ดาวน์โหลด PDF</button></div></div>
    <div class="bk-top"><div class="wrap bk-bar"><div class="bk-chs" aria-label="ไปยังบท">${BOOK.ch.map(c=>`<button class="bk-ch rp ${pageCh(cur)===c.id?'on':''}" data-bkch="${c.p}" style="${CHV(c.id)}" data-soft="1"><span>${chIco(c.id)}</span>บทที่ ${c.id}</button>`).join('')}</div><span class="bk-cnt num" id="bk-cnt">หน้า <b>${cur}</b>/${n}</span></div></div>
    <div class="wrap"><div class="bk-pages" id="bk-pages">${Array.from({length:n},(_,i)=>`<figure class="bk-pg" id="pg-${i+1}" data-p="${i+1}"><button class="bk-img rp" data-zoom="${i+1}" data-silent="1" aria-label="ขยายหน้า ${i+1}"><img alt="หน้า ${i+1}" decoding="async" width="1100" height="1556"></button><figcaption class="num">หน้า ${i+1} · บทที่ ${pageCh(i+1)}</figcaption></figure>`).join('')}</div></div>`;
 }
