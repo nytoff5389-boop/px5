@@ -1958,7 +1958,7 @@ ST.startScreen=false;
 try{const _t=localStorage.getItem('px5.theme');ST.theme=(_t==='light'||_t==='dark')?_t:'dark';}catch(e){ST.theme='dark';}
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); localStorage.setItem('px5.theme',ST.theme); }catch(e){} }
 function applyTheme(){ const r=document.documentElement; if(r.dataset.theme!==ST.theme) r.dataset.theme=ST.theme;
-  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#06070C':'#F4F5F9'; }
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#0E1014':'#F5F6F8'; }
 applyTheme();
 const LITE=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2);
 if(LITE) document.documentElement.classList.add('lite');
