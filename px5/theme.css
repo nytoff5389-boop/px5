@@ -1,0 +1,165 @@
+/* ===================== PX5 · ระบบดีไซน์กลางของทุกแอพ =====================
+   โหลดต่อจาก app.css ของแต่ละแอพ แล้วเขียนทับโทเค็นและหน้าตาคอมโพเนนต์
+   html[data-app="anatomy"|"calc"] เลือกสีประจำแอพ */
+html[data-app]{
+  --f-th:'Inter','Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
+  --f-cute:'Sora','Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
+  --r:20px; --r-sm:14px; --r-lg:28px; --nav-h:68px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+/* ---------- โหมดสว่าง ---------- */
+html[data-app][data-theme="light"]{
+  --bg:#F4F5F9; --bg-2:#ECEEF5; --surface:#FFFFFF; --surface-2:#F3F4F9; --surface-3:#E8EAF2;
+  --ink:#0C0E1A; --ink-2:#3B4058; --muted:#6C7290; --line:#E3E5EE; --line-2:#D2D6E3;
+  --good:#0E9F6E; --good-s:#E3F7EF; --bad:#E5484D; --bad-s:#FDECEC; --warn:#C27A0E;
+  --lv-easy:#0E9F6E; --lv-easy-s:#E3F7EF; --lv-mid:#B86E00; --lv-mid-s:#FFF2DC; --lv-hard:#D6336C; --lv-hard-s:#FDE7EF;
+  --leaf:#0E9F6E; --leaf-s:#E3F7EF; --sun:#F5A524;
+  --shadow:0 0 0 1px rgba(16,20,40,.06),0 1px 2px rgba(16,20,40,.04),0 12px 32px -18px rgba(16,20,40,.22);
+  --shadow-lg:0 0 0 1px rgba(16,20,40,.06),0 30px 60px -24px rgba(16,20,40,.35);
+  --glass:rgba(255,255,255,.72); --glow:.0;
+}
+/* ---------- โหมดมืด ---------- */
+html[data-app][data-theme="dark"]{
+  --bg:#06070C; --bg-2:#0A0C14; --surface:#0F121C; --surface-2:#151927; --surface-3:#1D2233;
+  --ink:#F3F5FB; --ink-2:#C6CBDB; --muted:#8890A8; --line:#1F2436; --line-2:#2B3248;
+  --good:#3DDC97; --good-s:#0F2A20; --bad:#FF6B6B; --bad-s:#2E1416; --warn:#F5B451;
+  --lv-easy:#3DDC97; --lv-easy-s:#0F2A20; --lv-mid:#F5B451; --lv-mid-s:#2C2010; --lv-hard:#FF7AA8; --lv-hard-s:#2E1222;
+  --leaf:#3DDC97; --leaf-s:#0F2A20; --sun:#FFC857;
+  --shadow:0 0 0 1px rgba(255,255,255,.06),0 18px 40px -22px rgba(0,0,0,.9);
+  --shadow-lg:0 0 0 1px rgba(255,255,255,.08),0 40px 80px -30px rgba(0,0,0,.95);
+  --glass:rgba(10,12,20,.62); --glow:1;
+}
+/* ---------- สีประจำแอพ ---------- */
+html[data-app="anatomy"][data-theme="light"]{
+  --brand:#E0336F; --brand-2:#B81E57; --brand-3:#7C4DFF; --brand-ink:#3D0A1E; --brand-soft:#FDE8F0; --on-brand:#fff;
+  --c1:#E0336F; --c2:#F0603A; --c3:#C98A00; --c4:#7C4DFF; --c5:#2F7FEA; --c6:#0E9F8A; --c7:#C2369C;
+  --c1s:#FDE8F0; --c2s:#FEEDE6; --c3s:#FFF4D6; --c4s:#EFE9FF; --c5s:#E6F0FE; --c6s:#E0F6F2; --c7s:#FBE6F5;
+}
+html[data-app="anatomy"][data-theme="dark"]{
+  --brand:#FF5C9A; --brand-2:#FF8BB8; --brand-3:#9B7BFF; --brand-ink:#2A0614; --brand-soft:#2A1220; --on-brand:#fff;
+  --c1:#FF6FA6; --c2:#FF8A62; --c3:#F5C04A; --c4:#A88BFF; --c5:#5CA8FF; --c6:#3DD9C1; --c7:#F07BD0;
+  --c1s:#2A1220; --c2s:#2B1710; --c3s:#2A2210; --c4s:#1E1736; --c5s:#0F1D33; --c6s:#0D2A26; --c7s:#2A1028;
+}
+html[data-app="calc"][data-theme="light"]{
+  --brand:#0A84D6; --brand-2:#066AAE; --brand-3:#5B5BF0; --brand-ink:#04263D; --brand-soft:#E3F2FC; --on-brand:#fff;
+}
+html[data-app="calc"][data-theme="dark"]{
+  --brand:#38BDF8; --brand-2:#7DD3FC; --brand-3:#818CF8; --brand-ink:#02121D; --brand-soft:#0C2232; --on-brand:#02121D;
+}
+
+/* ---------- พื้นหลัง ---------- */
+html[data-app] body{
+  font-family:var(--f-th); letter-spacing:-.005em; background:var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 8% -8%, color-mix(in srgb,var(--brand) 16%,transparent), transparent 70%),
+    radial-gradient(760px 480px at 105% 8%, color-mix(in srgb,var(--brand-3) 14%,transparent), transparent 70%),
+    linear-gradient(var(--bg),var(--bg));
+  background-size:auto; background-attachment:fixed;
+}
+html[data-app] body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background-image:linear-gradient(color-mix(in srgb,var(--ink) 4%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--ink) 4%,transparent) 1px,transparent 1px);
+  background-size:56px 56px; -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%); mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%)}
+html[data-app] h1,html[data-app] h2,html[data-app] h3{font-family:var(--f-cute);letter-spacing:-.02em;font-weight:700}
+html[data-app] :focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+html[data-app] ::selection{background:color-mix(in srgb,var(--brand) 35%,transparent)}
+
+/* ---------- โครงหลัก: แถบบน แถบล่าง แถบข้าง แบบกระจก ---------- */
+html[data-app] .top{background:var(--glass);backdrop-filter:saturate(1.6) blur(18px);-webkit-backdrop-filter:saturate(1.6) blur(18px);border-bottom:1px solid var(--line)}
+html[data-app] #tabs{background:var(--glass);backdrop-filter:saturate(1.6) blur(20px);-webkit-backdrop-filter:saturate(1.6) blur(20px);border-top:1px solid var(--line)}
+html[data-app] .tab{font-weight:500;letter-spacing:.01em}
+html[data-app] .tab.on{color:var(--ink)}
+html[data-app] .tab .ico{border-radius:999px;transition:background .25s var(--ease),color .25s}
+html[data-app] .tab.on .ico{background:linear-gradient(135deg,var(--brand),var(--brand-3));color:#fff;box-shadow:0 6px 18px -6px color-mix(in srgb,var(--brand) 70%,transparent)}
+@media (min-width:960px){
+  html[data-app] #side{background:color-mix(in srgb,var(--surface) 70%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--line)}
+}
+html[data-app] .si{border-radius:12px}
+html[data-app] .si.on,html[data-app][data-theme="dark"] .si.on{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--ink);box-shadow:inset 2px 0 0 var(--brand)}
+html[data-app] .si.on svg{color:var(--brand)}
+html[data-app] .scard{background:var(--surface-2);box-shadow:var(--shadow)}
+html[data-app] .iconbtn{border-radius:12px}
+html[data-app] .iconbtn:hover,html[data-app] .iconbtn.on{background:var(--surface-2)}
+
+/* ---------- แบรนด์ PX5 ในแอพ ---------- */
+html[data-app] .brand .mark{width:36px;height:36px}
+html[data-app] .word{font-family:var(--f-cute);font-weight:700;font-size:19px;letter-spacing:-.02em;color:var(--ink)}
+html[data-app] .word em{font-style:normal;background:linear-gradient(90deg,var(--brand),var(--brand-3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.px5-home{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px 0 8px;border-radius:999px;font:700 12px/1 'Sora',system-ui,sans-serif;letter-spacing:.08em;color:var(--ink);background:var(--surface-2);box-shadow:var(--shadow);text-decoration:none;white-space:nowrap;flex:none}
+.px5-home svg{width:14px;height:14px}
+.px5-home:hover{background:var(--surface-3)}
+.px5-side{display:flex;align-items:center;gap:8px;margin:0 0 4px;color:var(--muted);font:600 12px/1 'Sora',system-ui,sans-serif;letter-spacing:.12em;text-decoration:none;padding:6px 8px;border-radius:10px}
+.px5-side:hover{color:var(--ink);background:var(--surface-2)}
+.px5-side svg{width:14px;height:14px}
+
+/* ---------- ปุ่ม ---------- */
+html[data-app] .btn{border-radius:999px;height:46px;padding:0 22px;font-weight:600;letter-spacing:.005em;
+  background:linear-gradient(135deg,var(--brand),var(--brand-3));color:#fff;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 24px -10px color-mix(in srgb,var(--brand) 80%,transparent);transition:transform .15s var(--ease),box-shadow .2s,filter .2s}
+html[data-app] .btn:hover{filter:brightness(1.08);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 14px 30px -10px color-mix(in srgb,var(--brand) 90%,transparent)}
+html[data-app] .btn.sm{height:36px;padding:0 14px}
+html[data-app] .btn.lg{height:54px;padding:0 28px}
+html[data-app] .btn.ghost{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line-2) inset}
+html[data-app] .btn.ghost:hover{background:var(--surface-2);filter:none}
+html[data-app] .btn.bad{background:var(--bad);box-shadow:none}
+html[data-app] .btn:disabled{filter:grayscale(.6) opacity(.55);box-shadow:none}
+
+/* ---------- การ์ด/พื้นผิว ---------- */
+html[data-app] .hero-main{border-radius:var(--r-lg);background:
+   radial-gradient(120% 90% at 100% 0%, color-mix(in srgb,var(--brand) 22%,transparent), transparent 60%),
+   radial-gradient(90% 80% at 0% 100%, color-mix(in srgb,var(--brand-3) 16%,transparent), transparent 60%),
+   var(--surface)}
+html[data-app] .hero-main::after{display:none}
+html[data-app] .hl{background:linear-gradient(90deg,var(--brand),var(--brand-3));-webkit-background-clip:text;background-clip:text;color:transparent}
+html[data-app] .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;font-weight:600;color:var(--muted)}
+html[data-app] .chc,html[data-app] .tool,html[data-app] .kpi,html[data-app] .panel,html[data-app] .qcard,html[data-app] .bar,html[data-app] .trow{transition:transform .25s var(--ease),box-shadow .25s}
+html[data-app] .chc:hover,html[data-app] .tool:hover,html[data-app] .bar:hover{transform:translateY(-2px);box-shadow:0 0 0 1px color-mix(in srgb,var(--c,var(--brand)) 45%,transparent),0 20px 40px -24px color-mix(in srgb,var(--c,var(--brand)) 60%,transparent)}
+html[data-app] .meter{border-radius:999px}
+html[data-app] .meter i{border-radius:999px;background:linear-gradient(90deg,var(--c,var(--brand)),color-mix(in srgb,var(--c,var(--brand)) 50%,var(--brand-3)))}
+html[data-app] .sw.on{background:linear-gradient(135deg,var(--brand),var(--brand-3))}
+html[data-app] .toast{border-radius:999px;background:color-mix(in srgb,var(--ink) 92%,transparent);color:var(--bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+html[data-app] .dlg,html[data-app] .sheet{border-radius:var(--r-lg);box-shadow:var(--shadow-lg)}
+html[data-app] .scrim{background:rgba(4,6,12,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+html[data-app] .opt{border-radius:16px}
+html[data-app] .opt .k{border-radius:10px}
+html[data-app] .exb{border-radius:var(--r-lg)}
+
+/* ---------- ภาพประกอบ ---------- */
+html[data-app] .hero-cat,html[data-app] .empty-cat,html[data-app] .dlg-cat,html[data-app] .rest-cat,html[data-app] .exp-cat,html[data-app] .scat,html[data-app] .exb-cat{border:0;border-radius:0;box-shadow:none;background:none;object-fit:contain;filter:drop-shadow(0 18px 30px color-mix(in srgb,var(--brand) 35%,transparent))}
+
+/* หน้าเริ่มแบบคลิปเลิกใช้แล้ว */
+#start{display:none!important}
+html[data-app] .px5-mark{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:11px;flex:none;
+  background:linear-gradient(135deg,var(--brand),var(--brand-3));box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 8px 20px -8px color-mix(in srgb,var(--brand) 80%,transparent)}
+html[data-app] .px5-mark svg{width:20px;height:20px}
+
+.px5-home img{height:11px;width:auto;display:block}
+.px5-side img{height:12px;width:auto;display:block}
+html[data-theme="light"] .px5-home img,html[data-theme="light"] .px5-side img{filter:invert(1)}
+/* ป้ายนับถอยหลังสอบ (Anatomy) */
+html[data-app] .exb,html[data-app][data-theme="dark"] .exb{color:var(--ink);background:
+   radial-gradient(80% 120% at 0% 0%, color-mix(in srgb,var(--brand) 28%,transparent), transparent 60%),
+   radial-gradient(70% 120% at 100% 100%, color-mix(in srgb,var(--brand-3) 24%,transparent), transparent 60%),
+   var(--surface);box-shadow:var(--shadow-lg)}
+html[data-app] .exb::before{background-image:none}
+html[data-app] .exb-chip{background:color-mix(in srgb,var(--ink) 8%,transparent);box-shadow:inset 0 0 0 1px var(--line)}
+/* calc ใช้สีแบรนด์เป็นสีบท */
+html[data-app="calc"]{--c:var(--brand);--cs:var(--brand-soft)}
+@media (min-width:960px){.px5-home{display:none}}
+/* calc: แบนเนอร์และหัวโซน ให้เข้าชุด PX5 */
+html[data-app="calc"]{--sun:#8B9BFF}
+html[data-app="calc"][data-theme="light"]{--sun:#5B5BF0}
+html[data-app="calc"] .pban,html[data-app="calc"] .pmhero{background:
+   radial-gradient(100% 90% at 100% 0%, color-mix(in srgb,var(--brand) 55%,transparent), transparent 60%),
+   linear-gradient(135deg,#1E3A8A 0%,#3730A3 55%,#0E7490 120%);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 24px 50px -20px rgba(56,189,248,.55)}
+html[data-app="calc"] .pban:active{transform:translateY(2px)}
+html[data-app="calc"] .pban-t,html[data-app="calc"] .pmhero h1{text-shadow:none;letter-spacing:-.02em}
+html[data-app="calc"] .pban-k,html[data-app="calc"] .na-tag,html[data-app="calc"] .mc-tag,html[data-app="calc"] .bk-ch i,html[data-app="calc"] .th-ic{background:rgba(255,255,255,.16);color:#fff}
+html[data-app="calc"][data-theme="light"] .na-tag,html[data-app="calc"][data-theme="light"] .mc-tag,html[data-app="calc"][data-theme="light"] .bk-ch i,html[data-app="calc"][data-theme="light"] .th-ic{background:var(--brand-soft);color:var(--brand-2)}
+html[data-app="calc"] .pban-bar i{background:#fff}
+html[data-app="calc"] .pban-go{color:#1E3A8A;border-radius:999px;box-shadow:none}
+html[data-app="calc"] .thcard{border:1px solid color-mix(in srgb,var(--brand) 40%,transparent)}
+html[data-app="calc"] .zone{border-radius:20px;background:linear-gradient(135deg,var(--brand),var(--brand-3));color:#fff}
+html[data-app="calc"] .zone.z0{background:linear-gradient(135deg,#6366F1,#8B5CF6)}
+html[data-app="calc"] .zone.z2{background:linear-gradient(135deg,#10B981,#0EA5E9)}
+html[data-app="calc"] .zone.z3{background:var(--surface-3);color:var(--ink-2)}
+html[data-app="calc"] .pm.how{--c:var(--brand-3)}
