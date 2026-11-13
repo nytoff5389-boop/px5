@@ -15,7 +15,7 @@ html[data-app][data-theme="light"]{
   --leaf:#047857; --leaf-s:#ECFDF5; --sun:#B45309;
   --shadow:0 0 0 1px var(--line),0 4px 20px -2px rgba(148,163,184,.08);
   --shadow-lg:0 0 0 1px var(--line),0 18px 44px -14px rgba(15,23,42,.2);
-  --glass:rgba(248,250,252,.9);
+  --glass:#F8FAFC;
   --brand:#0284C7; --brand-2:#0369A1; --brand-3:#38BDF8; --brand-ink:#0C4A6E; --brand-soft:#F0F9FF; --on-brand:#fff;
 }
 html[data-app][data-theme="dark"]{
@@ -26,7 +26,7 @@ html[data-app][data-theme="dark"]{
   --leaf:#34D399; --leaf-s:#0C2A22; --sun:#FBBF24;
   --shadow:0 0 0 1px var(--line);
   --shadow-lg:0 0 0 1px var(--line-2),0 24px 60px -20px rgba(0,0,0,.8);
-  --glass:rgba(11,18,32,.9);
+  --glass:#0B1220;
   --brand:#38BDF8; --brand-2:#7DD3FC; --brand-3:#38BDF8; --brand-ink:#06202F; --brand-soft:#10263A; --on-brand:#06202F;
 }
 /* สีประจำบท (Anatomy) โทนสุภาพ */
@@ -47,8 +47,8 @@ html[data-app] :focus-visible{outline:2px solid var(--brand);outline-offset:3px}
 html[data-app] ::selection{background:color-mix(in srgb,var(--brand) 30%,transparent)}
 
 /* ---------- โครงหลัก ---------- */
-html[data-app] .top{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-html[data-app] #tabs{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+html[data-app] .top{background:var(--glass);border-bottom:1px solid var(--line)}
+html[data-app] #tabs{background:var(--glass);border-top:1px solid var(--line)}
 html[data-app] .tab{font-weight:500}
 html[data-app] .tab.on,html[data-app][data-theme="dark"] .tab.on{color:var(--brand)}
 html[data-app] .tab.on .ico{background:var(--brand-soft);color:var(--brand);box-shadow:none}
@@ -151,3 +151,8 @@ html[data-app="calc"] .zone :not(.zone-n){color:var(--ink)}
 #px-dl .pd-a svg{width:18px;height:18px}
 #px-dl .pd-note{margin:12px 0 0;font-size:14px;color:var(--good)}
 @media (max-width:400px){#px-dl .pd-a{padding:0 11px;font-size:14px}#px-dl .pd-a.icon{display:none}}
+
+/* ---------- ความลื่นไหล: ตัดเอฟเฟกต์เบลอพื้นหลังที่ทำให้เลื่อนกระตุก และให้หน้าหนังสือวาดเฉพาะที่มองเห็น ---------- */
+html[data-app] *,html[data-app] *::before,html[data-app] *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-app] .bk-top{background:var(--bg)}
+html[data-app] .bk-img{box-shadow:0 0 0 1px var(--line)}
