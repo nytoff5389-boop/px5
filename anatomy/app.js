@@ -1955,10 +1955,10 @@ try{ ST=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ ST={}; }
 ST=Object.assign({tp:{},best:0,answered:0,correct:0,sessions:[],wrong:[],sound:true,theme:'light',diff:'mix',
   rest:{on:true,min:45},timer:{min:25,kind:'read'},startScreen:false},ST);
 ST.startScreen=false;
-try{const _t=localStorage.getItem('px5.theme');ST.theme=(_t==='light'||_t==='dark')?_t:'dark';}catch(e){ST.theme='dark';}
-function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); localStorage.setItem('px5.theme',ST.theme); }catch(e){} }
+try{const _t=localStorage.getItem('payap.theme');ST.theme=(_t==='dark')?'dark':'light';}catch(e){ST.theme='light';}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); localStorage.setItem('payap.theme',ST.theme); }catch(e){} }
 function applyTheme(){ const r=document.documentElement; if(r.dataset.theme!==ST.theme) r.dataset.theme=ST.theme;
-  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#0E1014':'#F5F6F8'; }
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#0B1220':'#F8FAFC'; }
 applyTheme();
 const LITE=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2);
 if(LITE) document.documentElement.classList.add('lite');
@@ -2017,7 +2017,7 @@ const CHI={
 };
 const chIco=ch=>CHI[ch]||I.book;
 /* โลโก้: หน้าแมว */
-const MARK=`<span class="mark px5-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v6.5M7 10.2l5-1.4 5 1.4M9 20.5l3-6 3 6"/></svg></span>`;
+const MARK=`<span class="mark pk-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v6.5M7 10.2l5-1.4 5 1.4M9 20.5l3-6 3 6"/></svg></span>`;
 const WORD=`<span class="word">Anatomy</span>`;
 const IMG={cat1:'img/cat1.webp',cat2:'img/cat2.webp',cat3:'img/cat3.webp',yj:'img/youngj.webp'};
 
@@ -2214,7 +2214,7 @@ function setHTML(){
    <div class="sec"><div><h2>ทั่วไป</h2></div></div>
    <div class="panel">
     <div class="setrow col"><span><b>ระดับโจทย์เริ่มต้น</b><small>ใช้กับปุ่มเริ่มทำโจทย์ทุกที่</small></span>${lvSeg(ST.diff)}</div>
-    <div class="setrow"><span><b>โหมดมืด</b><small>ใช้ร่วมกันทุกแอพใน PX5</small></span><button class="sw rp ${ST.theme==='dark'?'on':''}" data-act="theme" role="switch" aria-label="โหมดมืด" aria-checked="${ST.theme==='dark'}"></button></div>
+    <div class="setrow"><span><b>โหมดมืด</b><small>ใช้ร่วมกันทั้งเว็บ PAYAPkuytok</small></span><button class="sw rp ${ST.theme==='dark'?'on':''}" data-act="theme" role="switch" aria-label="โหมดมืด" aria-checked="${ST.theme==='dark'}"></button></div>
     <div class="setrow"><span><b>เสียงตอนกด</b><small>เสียงสั้นๆ เมื่อกดปุ่มและตอบ</small></span><button class="sw rp ${ST.sound?'on':''}" data-act="sound" data-silent="1" role="switch" aria-label="เสียงตอนกด" aria-checked="${ST.sound}"></button></div>
    </div>
    <button class="danger rp" data-act="reset">${I.reset} ล้างคะแนน ประวัติ และข้อที่ผิดทั้งหมด</button></div>`;

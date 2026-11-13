@@ -53,10 +53,10 @@ try{ ST=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ ST={}; }
 ST=Object.assign({sound:true,theme:'light',bookPage:1,
   rest:{on:true,min:45},timer:{min:25,kind:'read'},startScreen:false},ST);
 ST.startScreen=false;
-try{const _t=localStorage.getItem('px5.theme');ST.theme=(_t==='light'||_t==='dark')?_t:'dark';}catch(e){ST.theme='dark';}
-function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); localStorage.setItem('px5.theme',ST.theme); }catch(e){} }
+try{const _t=localStorage.getItem('payap.theme');ST.theme=(_t==='dark')?'dark':'light';}catch(e){ST.theme='light';}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); localStorage.setItem('payap.theme',ST.theme); }catch(e){} }
 function applyTheme(){ const r=document.documentElement; if(r.dataset.theme!==ST.theme) r.dataset.theme=ST.theme;
-  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#0E1014':'#F5F6F8'; }
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=ST.theme==='dark'?'#0B1220':'#F8FAFC'; }
 applyTheme();
 const LITE=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2);
 if(LITE) document.documentElement.classList.add('lite');
@@ -108,7 +108,7 @@ const I={
   heart:sv('<path d="M12 19.5s-7.5-4.4-7.5-9.7A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.5 2.4c0 5.3-7.5 9.7-7.5 9.7z"/>')
 };
 /* โลโก้: มาสคอตย่อในกรอบมน */
-const MARK=`<span class="mark px5-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M7.5 4.5v6M4.5 7.5h6M14 7.5h6M5 15l5 5M10 15l-5 5M14 16h6M14 19.5h6"/></svg></span>`;
+const MARK=`<span class="mark pk-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round"><path d="M7.5 4.5v6M4.5 7.5h6M14 7.5h6M5 15l5 5M10 15l-5 5M14 16h6M14 19.5h6"/></svg></span>`;
 const WORD=`<span class="word">calc</span>`;
 const IMG={clip:'',poster:''};
 
@@ -1207,7 +1207,7 @@ function setHTML(){
    </div>
    <div class="sec"><div><h2>ทั่วไป</h2></div></div>
    <div class="panel">
-    <div class="setrow"><span><b>โหมดมืด</b><small>ใช้ร่วมกันทุกแอพใน PX5</small></span><button class="sw rp ${ST.theme==='dark'?'on':''}" data-act="theme" role="switch" aria-label="โหมดมืด" aria-checked="${ST.theme==='dark'}"></button></div>
+    <div class="setrow"><span><b>โหมดมืด</b><small>ใช้ร่วมกันทั้งเว็บ PAYAPkuytok</small></span><button class="sw rp ${ST.theme==='dark'?'on':''}" data-act="theme" role="switch" aria-label="โหมดมืด" aria-checked="${ST.theme==='dark'}"></button></div>
     <div class="setrow"><span><b>เสียงกดปุ่ม</b><small>เสียงคลิกสั้นๆ แบบไอโฟนเมื่อกดปุ่ม</small></span><button class="sw rp ${ST.sound?'on':''}" data-act="sound" data-silent="1" role="switch" aria-label="เสียงกดปุ่ม" aria-checked="${ST.sound}"></button></div>
    </div></div>`;
 }
