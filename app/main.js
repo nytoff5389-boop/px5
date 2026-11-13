@@ -31,8 +31,8 @@ const SUBJ={
   calc:{id:'calc',code:'PHT111',name:'calc',th:'การคำนวณทางเภสัชกรรม',en:'Pharmaceutical Calculations',img:'ui/img/b-calc1.jpg',
     desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 ระบบเลขโรมันและเลขนัยสำคัญ มีทั้งโจทย์ปรนัยและโจทย์เติมคำตอบ พร้อมวิธีคิดทีละขั้น',
     ch:1,chU:'บท',pages:16,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
-  chem:{id:'chem',code:'PHB102',name:'PhyChem',th:'ปริมาณสารสัมพันธ์',en:'Stoichiometry',img:'ui/img/b-chem1.jpg',
-    desc:'เคมีเชิงฟิสิกส์ บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
+  chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'ฟิสิกส์เคมี',th:'ฟิสิกส์เคมี',en:'บทที่ 1 ปริมาณสารสัมพันธ์ (Stoichiometry)',img:'ui/img/b-chem1.jpg',
+    desc:'ฟิสิกส์เคมี (Physical Chemistry) บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
     ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'}
 };
 const ORDER=['anatomy','calc','chem'];
@@ -55,7 +55,7 @@ const show=id=>FILTER==='all'||FILTER===id;
 function ring(p,size,cls,label){ const r=(size-10)/2, c=2*Math.PI*r;
   return `<div class="ring ${cls||''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="tr" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-p/100)).toFixed(1)}"/></svg><b style="font-size:${Math.round(size*.24)}px">${label!=null?label:p+'<small>%</small>'}</b></div>`; }
 const pills=()=>{ const cnt=k=>k==='all'?12:k==='anatomy'?8:2;
-  return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ</span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].name,SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
+  return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ</span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
   document.body.appendChild(d); d.addEventListener('click',e=>{ if(e.target===d||e.target.closest('[data-n]')) d.remove(); else if(e.target.closest('[data-y]')){ d.remove(); cb(); } }); $('[data-y]',d).focus(); }
@@ -105,16 +105,16 @@ function books(){
   L.push({s:'anatomy',code:'BI112',no:'Q',t:'ข้อสอบกายวิภาคศาสตร์',short:'ข้อสอบ Anatomy',en:'Anatomy question bank',kind:'ข้อสอบ',img:B+'anq.jpg',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',q:1});
   L.push({s:'calc',code:'PHT111',no:'01',t:'เลขโรมันและเลขนัยสำคัญ',short:'เลขโรมัน เลขนัยสำคัญ',en:'Roman numerals & Significant figures',kind:'บทที่ 1',img:B+'calc1.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz'});
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
-  L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Stoichiometry · Chapter 1',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
-  L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบปริมาณสารสัมพันธ์',short:'ข้อสอบ PhyChem',en:'Stoichiometry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
+  L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
+  L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบฟิสิกส์เคมี',short:'ข้อสอบ ฟิสิกส์เคมี',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
   return L.filter(x=>show(x.s));
 }
 function contCard(st){
   const l=DB.last; let s,t,sub,href,p,btn='อ่านต่อ';
   if(l&&l.k==='read'&&CHEM_SECTIONS.find(x=>x.id===l.sec)){ const c=CHEM_SECTIONS.find(x=>x.id===l.sec); s=SUBJ.chem; t=c.t; sub='ปริมาณสารสัมพันธ์ · หัวข้อ '+(CHEM_SECTIONS.indexOf(c)+1)+' จาก '+CHEM_SECTIONS.length; href='#/read/chem/'+c.id; p=st.chem.rd; }
-  else if(l&&l.k==='pages'){ s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='PHB102 · อ่านถึงหน้า '+(DB.chem.pg||1)+' จาก 28'; href='#/pages/chem'; p=st.chem.rd; }
+  else if(l&&l.k==='pages'){ s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='ฟิสิกส์เคมี PHB102 · อ่านถึงหน้า '+(DB.chem.pg||1)+' จาก 28'; href='#/pages/chem'; p=st.chem.rd; }
   else if(l&&l.k==='app'&&SUBJ[l.id]){ s=SUBJ[l.id]; t=s.th; sub=s.code+' · '+s.name; href=l.href||s.read; p=st[l.id].done; btn=l.mode==='exam'?'ทำข้อสอบต่อ':'อ่านต่อ'; }
-  else { s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='วิชาใหม่ · PHB102 · หนังสือ 28 หน้า'; href='#/pages/chem'; p=st.chem.rd; btn='เริ่มอ่าน'; }
+  else { s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='ฟิสิกส์เคมี · PHB102 · หนังสือ 28 หน้า'; href='#/pages/chem'; p=st.chem.rd; btn='เริ่มอ่าน'; }
   return `<div class="card cont"><div class="th" style="background-image:url(${s.img})"></div><div><span class="tag">${s.code}</span><h3>${esc(t)}</h3><p class="sub" style="font-size:13.5px">${esc(sub)}</p><div class="bar"><i style="width:${p}%"></i></div><p class="pc">คืบหน้า <b class="num">${p}%</b></p></div>
     <a class="btn lg" href="${href}" ${/^#/.test(href)?'':`data-app="${s.id}"`}>${ic('book_open')}${btn}</a></div>`;
 }
@@ -177,7 +177,7 @@ function rbar(sec,mode){ const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
     <button class="ibtn hm ${R.lh>1.8?'on':''}" data-act="lh" aria-label="ระยะบรรทัด" title="ระยะบรรทัด">${ic('align_justify')}</button>
     <button class="ibtn hm ${R.warm?'on':''}" data-act="warm" aria-label="พื้นกระดาษขาวหรือกระดาษอุ่น" title="สลับพื้นขาว / กระดาษอุ่น">${ic(R.warm?'sun':'file_text')}</button>
     <button class="ibtn ${bm?'on':''}" data-act="bmsec" data-v="${sec.id}" aria-label="บุ๊กมาร์กหัวข้อนี้" title="บุ๊กมาร์ก">${ic(bm?'bookmark_check':'bookmark')}</button>`
-    :`<button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้าหนังสือ" title="ขยายหรือย่อหน้าหนังสือ">${ic('zoom_in')}</button><a class="ibtn" href="chem/pdf/ch1.pdf" download="PHB102-Stoichiometry-ch1.pdf" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</a>`}</div>`; }
+    :`<button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้าหนังสือ" title="ขยายหรือย่อหน้าหนังสือ">${ic('zoom_in')}</button><a class="ibtn" href="chem/pdf/ch1.pdf" download="PHB102-Physical-Chemistry-ch1.pdf" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</a>`}</div>`; }
 function vRead(v,subj,id){
   const i=Math.max(0,CHEM_SECTIONS.findIndex(x=>x.id===id)), c=CHEM_SECTIONS[i], R=DB.rd, prev=CHEM_SECTIONS[i-1], next=CHEM_SECTIONS[i+1];
   v.dataset.title=c.t; DB.chem.sec=c.id; save();
@@ -197,11 +197,11 @@ function vRead(v,subj,id){
     addEventListener('scroll',spy,{passive:true}); spy(); cleanup.push(()=>removeEventListener('scroll',spy)); };
 }
 function vPages(v,subj,pg){
-  v.dataset.title='หนังสือ ปริมาณสารสัมพันธ์'; DB.last={k:'pages'}; save();
+  v.dataset.title='หนังสือ ฟิสิกส์เคมี'; DB.last={k:'pages'}; save();
   const start=Math.max(1,Math.min(28,+pg||DB.chem.pg||1));
   v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages')}
     <div class="pjump" aria-label="ข้ามไปหัวข้อ">${CHEM_SECTIONS.map(c=>`<button class="chip" data-act="pgo" data-v="${c.pg}">${esc(c.t.replace(/\s*\(.*\)/,''))}</button>`).join('')}<button class="chip" data-act="pgo" data-v="27">เฉลยโจทย์ฝึก</button></div>
-    <div class="pgs">${Array.from({length:28},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="chem/book/p-${String(i+1).padStart(3,'0')}.webp" alt="หนังสือปริมาณสารสัมพันธ์ หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / 28</figcaption></figure>`).join('')}</div></div>`;
+    <div class="pgs">${Array.from({length:28},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="chem/book/p-${String(i+1).padStart(3,'0')}.webp?r=2" alt="หนังสือฟิสิกส์เคมี บทที่ 1 หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / 28</figcaption></figure>`).join('')}</div></div>`;
   return ()=>{ const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
     const jump=n=>{ const f=figs[n-1]; if(f) scrollTo(0,f.getBoundingClientRect().top+scrollY-84); };
     if(start>1){ jump(start); setTimeout(()=>jump(start),60); }
@@ -216,7 +216,7 @@ function vPages(v,subj,pg){
 function vExams(v){
   v.dataset.title='ทำข้อสอบ'; const C=DB.cfg, st=stats(), T=CHEM_TOPICS, nw=DB.chem.wrong.length;
   let h=`${pills()}<div class="ph"><h1>ทำข้อสอบ</h1><p>Practice Exams · เลือกชุดข้อสอบ ตั้งค่าได้ว่าจะเฉลยทันทีหรือเฉลยตอนจบ</p></div>`;
-  if(show('chem')) h+=`<section class="group" style="margin-top:8px"><div class="gh"><div class="th" style="background-image:url(${SUBJ.chem.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>ปริมาณสารสัมพันธ์</h2><span class="tag">PHB102</span></div><p>ปรนัยทั้งหมด ไม่มีข้อเขียน · สุ่มตัวเลขใหม่ทุกครั้ง${st.chem.acc!=null?' · แม่นยำ '+st.chem.acc+'%':''}</p></div></div>
+  if(show('chem')) h+=`<section class="group" style="margin-top:8px"><div class="gh"><div class="th" style="background-image:url(${SUBJ.chem.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>ฟิสิกส์เคมี</h2><span class="tag">PHB102</span></div><p>บทที่ 1 ปริมาณสารสัมพันธ์ · ปรนัยทั้งหมด ไม่มีข้อเขียน · สุ่มตัวเลขใหม่ทุกครั้ง${st.chem.acc!=null?' · แม่นยำ '+st.chem.acc+'%':''}</p></div></div>
    <div class="cfg"><div class="card"><h2>สร้างชุดข้อสอบเอง</h2>
      <div class="fld"><span class="lb">หัวข้อ</span><div class="tpc"><button class="tp ${C.topic==='all'?'on':''}" data-act="cfg" data-k="topic" data-v="all"><b>คละทุกหัวข้อ</b><small>สุ่มจากทั้งบท</small></button>${Object.keys(T).map(k=>`<button class="tp ${C.topic===k?'on':''}" data-act="cfg" data-k="topic" data-v="${k}"><b>${esc(T[k].n)}</b><small>${esc(T[k].d)}</small></button>`).join('')}</div></div>
      <div class="fld"><span class="lb">ระดับความยาก</span><div class="chips">${[['mix','คละระดับ'],['easy','ง่าย'],['mid','ปานกลาง'],['hard','ยาก']].map(x=>`<button class="chip ${C.lv===x[0]?'on':''}" data-act="cfg" data-k="lv" data-v="${x[0]}">${x[1]}</button>`).join('')}</div></div>
@@ -321,9 +321,9 @@ function vProgress(v){
   <div class="grid3">${ORDER.filter(show).map(k=>{ const s=SUBJ[k], x=st[k]; return `<div class="card"><div class="row">${ring(x.ready,64)}<div class="grow"><span class="tag">${s.code}</span><h3 style="margin-top:4px">${esc(s.th)}</h3></div></div>
      <div class="brk" style="margin-top:16px"><div class="ln"><span>อ่านสรุป</span><div class="bar"><i style="width:${x.rd}%"></i></div><b>${x.rd}%</b></div><div class="ln"><span>ความแม่นยำ</span><div class="bar ok"><i style="width:${x.acc||0}%"></i></div><b>${x.acc==null?'–':x.acc+'%'}</b></div></div>
      <p class="sub" style="font-size:12.5px;margin-top:12px">ทำข้อสอบแล้ว ${x.ans.toLocaleString()} ข้อ ถูก ${x.ok.toLocaleString()} ข้อ</p></div>`; }).join('')}</div>
-  ${show('chem')?`<div class="grid2" style="margin-top:20px"><div class="card"><h2>ข้อที่ทำใน 7 วันล่าสุด</h2><p class="sub" style="font-size:12.5px">นับเฉพาะปริมาณสารสัมพันธ์</p><div class="week">${wk.map(x=>`<div><b>${x[1]||''}</b><i class="${x[1]?'':'z'}" style="height:${Math.round(x[1]/mx*78)}%"></i>${x[0]}</div>`).join('')}</div></div>
-   <div class="card"><h2 style="margin-bottom:14px">ปริมาณสารสัมพันธ์ รายหัวข้อ</h2><div class="brk">${Object.keys(CHEM_TOPICS).map(t=>{ const b=DB.chem.tp[t]||[0,0], a=pct(b[1],b[0]); return `<div class="ln"><span>${esc(CHEM_TOPICS[t].n)}</span><div class="bar ${a>=70?'ok':''}"><i style="width:${a}%"></i></div><b>${b[0]?a+'%':'–'}</b></div>`; }).join('')}</div></div></div>
-  <div class="sec-h"><div><h2>ประวัติการสอบ</h2><p>ปริมาณสารสัมพันธ์ · เก็บ 12 ครั้งล่าสุด</p></div></div>
+  ${show('chem')?`<div class="grid2" style="margin-top:20px"><div class="card"><h2>ข้อที่ทำใน 7 วันล่าสุด</h2><p class="sub" style="font-size:12.5px">นับเฉพาะฟิสิกส์เคมี</p><div class="week">${wk.map(x=>`<div><b>${x[1]||''}</b><i class="${x[1]?'':'z'}" style="height:${Math.round(x[1]/mx*78)}%"></i>${x[0]}</div>`).join('')}</div></div>
+   <div class="card"><h2 style="margin-bottom:14px">ฟิสิกส์เคมี รายหัวข้อ</h2><div class="brk">${Object.keys(CHEM_TOPICS).map(t=>{ const b=DB.chem.tp[t]||[0,0], a=pct(b[1],b[0]); return `<div class="ln"><span>${esc(CHEM_TOPICS[t].n)}</span><div class="bar ${a>=70?'ok':''}"><i style="width:${a}%"></i></div><b>${b[0]?a+'%':'–'}</b></div>`; }).join('')}</div></div></div>
+  <div class="sec-h"><div><h2>ประวัติการสอบ</h2><p>ฟิสิกส์เคมี · เก็บ 12 ครั้งล่าสุด</p></div></div>
   <div class="card" style="padding:8px 20px">${DB.chem.sessions.length?`<div class="hist">${DB.chem.sessions.map((R,i)=>`<a href="#/result/${i}"><span>${esc(R.title)}</span><small>${new Date(R.d).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small><small class="num">${clock(R.el)}</small><span class="tag ${pct(R.ok,R.n)>=70?'ok':pct(R.ok,R.n)<50?'no':''}">${R.ok}/${R.n}</span></a>`).join('')}</div>`:`<div class="empty">${ic('clipboard_check')}<h3>ยังไม่มีประวัติการสอบ</h3><p>ทำข้อสอบสักชุด แล้วผลจะมาแสดงที่นี่</p><a class="btn" href="#/exams">ไปทำข้อสอบ</a></div>`}</div>`:''}`;
 }
 
