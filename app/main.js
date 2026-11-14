@@ -55,7 +55,7 @@ const show=id=>FILTER==='all'||FILTER===id;
 function ring(p,size,cls,label){ const r=(size-10)/2, c=2*Math.PI*r;
   return `<div class="ring ${cls||''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="tr" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-p/100)).toFixed(1)}"/></svg><b style="font-size:${Math.round(size*.24)}px">${label!=null?label:p+'<small>%</small>'}</b></div>`; }
 const pills=()=>{ const cnt=k=>k==='all'?12:k==='anatomy'?8:2;
-  return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ</span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
+  return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ<small class="gh">แตะเพื่อกรองชั้นหนังสือตามวิชา</small></span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
   document.body.appendChild(d); d.addEventListener('click',e=>{ if(e.target===d||e.target.closest('[data-n]')) d.remove(); else if(e.target.closest('[data-y]')){ d.remove(); cb(); } }); $('[data-y]',d).focus(); }
@@ -109,6 +109,7 @@ function books(){
   L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบเคมีฟิสิกส์',short:'ข้อสอบ เคมีฟิสิกส์',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
   return L.filter(x=>show(x.s));
 }
+function contBtn(){ const m=contCard(stats()).match(/<a class="btn lg" href="([^"]*)"([^>]*)>[\s\S]*?<\/svg>([^<]*)<\/a>/); return m?`<a class="btn" href="${m[1]}"${m[2]}>${ic('play')}${m[3]}</a>`:''; }
 function contCard(st){
   const l=DB.last; let s,t,sub,href,p,btn='อ่านต่อ';
   if(l&&l.k==='read'&&CHEM_SECTIONS.find(x=>x.id===l.sec)){ const c=CHEM_SECTIONS.find(x=>x.id===l.sec); s=SUBJ.chem; t=c.t; sub='ปริมาณสารสัมพันธ์ · หัวข้อ '+(CHEM_SECTIONS.indexOf(c)+1)+' จาก '+CHEM_SECTIONS.length; href='#/read/chem/'+c.id; p=st.chem.rd; }
@@ -128,7 +129,7 @@ function vHome(v){
   v.dataset.title='';
   const st=stats(), sk=streak(), rd=readiness(st), h=new Date().getHours(), hi=h<12?'สวัสดีตอนเช้า':h<17?'สวัสดีตอนบ่าย':'สวัสดีตอนเย็น';
   const L=books();
-  v.innerHTML=`<section class="hello"><div class="card hi"><span class="eyebrow">PAYAPkuytok</span><h1>${hi}</h1><p>พร้อมอ่านต่อหรือยัง อ่านสรุปให้เข้าใจ แล้วลองทำข้อสอบได้ทันที ทุกวิชาอยู่ในที่เดียว</p></div>
+  v.innerHTML=`<section class="hello"><div class="card hi"><span class="eyebrow">PAYAPkuytok</span><h1>${hi}</h1><p>พร้อมอ่านต่อหรือยัง อ่านสรุปให้เข้าใจ แล้วลองทำข้อสอบได้ทันที ทุกวิชาอยู่ในที่เดียว</p><div class="cta">${contBtn()}<a class="btn sec" href="#/exams">${ic('clipboard_check')}ทำข้อสอบ</a></div></div>
     <div class="card stat"><span class="fl">${ic('flame')}</span><div><div class="k">อ่านต่อเนื่อง</div><div class="v">${sk}<small>วัน</small></div></div></div>
     <div class="card stat">${ring(rd,58)}<div><div class="k">ความพร้อมสอบ</div><div class="v" style="font-size:15px;font-family:var(--f);font-weight:500">${rd>=80?'พร้อมมาก':rd>=50?'กำลังไปได้ดี':rd>0?'เริ่มต้นแล้ว':'ยังไม่เริ่ม'}</div></div></div></section>
   ${pills()}
@@ -149,7 +150,7 @@ function sheetHTML(it,L,st){
     <h1><span class="ln"><span>${esc(it.t)}</span></span></h1><span class="ln"><span class="en">${esc(it.en||s.en)}</span></span>
     <div class="rule"></div><span class="ln"><p class="ds">${esc(s.desc)}</p></span>
     <span class="ln"><div class="facts"><div><small>เนื้อหา</small><b class="num">${s.ch}<span>${s.chU}</span></b></div><div><small>สมุดสรุป</small><b class="num">${s.pages}<span>หน้า</span></b></div><div><small>ความแม่นยำ</small><b class="num">${x.acc==null?'–':x.acc}<span>${x.acc==null?'ยังไม่ได้ทำ':'%'}</span></b></div></div></span>
-    <span class="ln"><div class="go"><a class="btn lg ${it.q?'sec':''}" href="${it.read}" ${ext(it.read)} data-mode="read" style="order:${it.q?2:1}">${ic('book_open')}อ่านหนังสือ</a><a class="btn lg ${it.q?'':'sec'}" href="${it.exam}" ${ext(it.exam)} data-mode="exam" style="order:${it.q?1:2}">${ic('clipboard_check')}ทำข้อสอบ</a></div></span>
+    <span class="ln"><div class="go"><a class="btn lg ${it.q?'sec':''}" href="${it.read}" ${ext(it.read)} data-mode="read" style="order:${it.q?2:1}">${ic('book_open')}อ่านหนังสือ</a><a class="btn lg ${it.q?'':'sec'}" href="${it.exam}" ${ext(it.exam)} data-mode="exam" style="order:${it.q?1:2}">${ic('clipboard_check')}ทำข้อสอบ</a>${it.s==='chem'&&!it.q?`<a class="btn lg soft" href="#/read/chem/${CHEM_SECTIONS[0].id}" style="order:3">${ic('file_text')}สรุปย่อ</a>`:''}</div></span>
     <ul class="toc">${sib.map(b=>`<li><a href="${b.q?b.exam:b.read}" ${ext(b.q?b.exam:b.read)}><span class="n num">${esc(b.no)}</span><span>${esc(b.t)}</span>${ic('arrow_right')}</a></li>`).join('')}</ul></div>
   <div class="ps"><svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="inkf" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".011 .017" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="110" xChannelSelector="R" yChannelSelector="G"/></filter><mask id="inkm" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="500"><g filter="url(#inkf)">${circ}</g></mask></defs>
     <image href="${it.img}" x="0" y="0" width="400" height="500" preserveAspectRatio="xMidYMid slice" mask="url(#inkm)"/></svg>${cr?`<span class="cr">ภาพ: ${esc(cr.by)} · ${esc(cr.lic)}</span>`:''}</div></div>`;

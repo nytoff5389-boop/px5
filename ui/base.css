@@ -521,3 +521,10 @@ body.focus .page{max-width:none;padding:0}
   .shelf{height:clamp(480px,74vh,640px)}}
 .credits summary{cursor:pointer;color:var(--ink-2)}
 .credits p{margin-top:8px}
+
+/* ---------- จาก Figma (2026-11-14) ---------- */
+.hello .hi .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.grp .gl .gh{font:400 12.5px/1.3 var(--f);color:var(--muted);margin-left:4px}
+.btn.soft{background:var(--pri-s);color:var(--pri-d);border:1px solid var(--line)}
+.btn.soft:hover{background:var(--pri-s);filter:brightness(.97)}
+@media (max-width:640px){.grp .gl .gh{display:none}}
