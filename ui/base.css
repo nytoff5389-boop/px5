@@ -528,3 +528,15 @@ body.focus .page{max-width:none;padding:0}
 .btn.soft{background:var(--pri-s);color:var(--pri-d);border:1px solid var(--line)}
 .btn.soft:hover{background:var(--pri-s);filter:brightness(.97)}
 @media (max-width:640px){.grp .gl .gh{display:none}}
+
+/* ---------- ชั้นหนังสือ 3D จริง (2026-11-15): ทุกหน้าวางที่จุดกึ่งกลางเล่ม แล้ว JS ใส่ transform เต็ม ---------- */
+.shelf .bk .f{left:0;top:0;transform-origin:0 0;backface-visibility:visible;contain:layout paint}
+.shelf .bk .sp{left:0;top:0;border-radius:3px;background:linear-gradient(90deg,rgba(0,0,0,.22),rgba(255,255,255,.14) 22%,rgba(255,255,255,0) 45%,rgba(0,0,0,.12) 80%,rgba(0,0,0,.28)),var(--c)}
+.shelf .bk .cv{left:0;top:0}
+.shelf .bk .sp::after,.shelf .bk .cv::after{display:none}
+.shelf .bk .f>.sd{position:absolute;inset:0;background:#0B1220;opacity:0;pointer-events:none;border-radius:inherit}
+.shelf .bk .pe{width:calc(var(--ws) - 4px);height:calc(var(--sh) - 6px);background:repeating-linear-gradient(90deg,#F7F3EA 0 1.5px,#E6DFCF 1.5px 2.5px);box-shadow:inset 0 0 0 1px rgba(120,100,70,.18)}
+.shelf .bk .bc{width:var(--cw);height:var(--sh);background:linear-gradient(90deg,rgba(0,0,0,.18),rgba(0,0,0,0) 8%),var(--c);border-radius:5px 2px 2px 5px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(var(--H)*.03)}
+.shelf .bk .bc span{font:600 calc(var(--H)*.016)/1 var(--fn);letter-spacing:.12em;color:var(--ct);opacity:.55}
+.shelf .bk .tp{width:calc(var(--cw) - 2px);height:calc(var(--ws) - 2px);background:linear-gradient(180deg,var(--c) 0 3px,transparent 3px calc(100% - 3px),var(--c) calc(100% - 3px)),repeating-linear-gradient(180deg,#F7F3EA 0 1.5px,#E6DFCF 1.5px 2.5px);border-radius:2px}
+.shelf .bk .cv{box-shadow:inset 0 0 0 1px rgba(15,23,42,.12),inset -2px 0 0 rgba(255,255,255,.25)}
