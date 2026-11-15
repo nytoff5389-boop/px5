@@ -33,7 +33,7 @@
       var cover='<div class="ph" style="background-image:url('+it.img+');background-position:'+(it.pos||'50% 50%')+'"></div><div class="hg"></div>'+
         '<div class="bd"><small>'+esc(it.code)+' · '+esc(it.kind)+'</small><b>'+esc(it.t)+'</b><i>PAYAPkuytok</i></div>';
       b.innerHTML='<div class="f sp"><span class="cd">'+esc(it.code)+'</span><span class="tt">'+esc(it.short||it.t)+'</span><span class="no">'+esc(it.no)+'</span><i class="sd"></i></div>'+
-        '<div class="f cv">'+cover+'<i class="sd"></i></div><div class="f pe"><i class="sd"></i></div><div class="f bc"><span>PAYAPkuytok</span><i class="sd"></i></div><div class="f tp"><i class="sd"></i></div>';
+        '<div class="f cv">'+cover+'<i class="sd"></i></div><div class="f pe"><i class="sd"></i></div><div class="f bc"><span>PAYAPkuytok</span><i class="sd"></i></div>';
       st.appendChild(b); return b;
     });
     var ticks=items.map(function(it,i){ var t=document.createElement('i'); if(groups.some(function(g){return g.i===i;})) t.className='mj'; rl.appendChild(t); return t; });
@@ -45,7 +45,7 @@
       H=el.clientHeight; W=el.clientWidth; if(!H) return;
       var narrow=W<560;
       sh=H*(narrow?.46:.5); ws=H*(narrow?.082:.09); cw=Math.min(sh*.7,W*.62); step=ws+H*.02; extra=(cw-ws)/2+H*.03; U=H*1.3;
-      el.style.setProperty('--H',H+'px'); el.style.setProperty('--ws',ws+'px'); el.style.setProperty('--sh',sh+'px'); el.style.setProperty('--cw',cw+'px'); el.style.setProperty('--cy',(H*(narrow?.36:.39))+'px'); PP=Math.max(1100,H*2.6); OY=-sh*.6;
+      el.style.setProperty('--H',H+'px'); el.style.setProperty('--ws',ws+'px'); el.style.setProperty('--sh',sh+'px'); el.style.setProperty('--cw',cw+'px'); el.style.setProperty('--cy',(H*(narrow?.36:.39))+'px'); PP=Math.max(1100,H*2.6); OY=-sh*.3; /* กล้องระดับกลางค่อนบน: เห็นปก สัน ขอบกระดาษเป็นกล่องเต็มตัว ไม่ใช้แผ่นด้านบนที่บางจนดูเป็นเส้น 2D บน Safari */
       DU=U/48; tab=[0]; for(var k=1;k<=48*8;k++){ tab.push(tab[k-1]+DU*(scl((k-1)*DU)+scl(k*DU))/2); }
       var rw=RW=rl.clientWidth; ticks.forEach(function(t,i){ t.style.left=(N>1?i/(N-1)*rw:rw/2)+'px'; });
       var px=-1e9; labs.forEach(function(u,k){ var x=Math.max(N>1?groups[k].i/(N-1)*rw:0,px+54); u.style.left=x+'px'; px=x; });
@@ -65,7 +65,7 @@
         var th=(1-o)*(90-sg*8*Math.min(1,ad))+o*18, /* เล่มที่เลือกเอียง 18° ให้เห็นสันและความหนา */ tr=th*Math.PI/180, Xw=x, Zw=0, Yw=sh/2-OY-sc*sh/2; /* ฐานหนังสือทุกเล่มวางบนแนวชั้นเดียวกัน เล่มไกลย่อด้วย scale3d (เบราว์เซอร์ raster เล็กลง ลื่นกว่าดันลึกด้วยแกน Z) */
         var base='translate3d(0,'+OY.toFixed(1)+'px,0) perspective('+PP.toFixed(0)+'px) translate3d('+Xw.toFixed(1)+'px,'+Yw.toFixed(1)+'px,'+Zw.toFixed(1)+'px) scale3d('+sc.toFixed(4)+','+sc.toFixed(4)+','+sc.toFixed(4)+') rotateY('+th.toFixed(2)+'deg) ';
         var dmv=Math.min(.6,Math.abs(u)/U*.62), T2=ws/2, F=c.f||(c.f=[{},{},{},{},{}]), kids=b.children;
-        for(var k=0;k<5;k++){
+        for(var k=0;k<4;k++){
           var e=kids[k], fc=F[k], phi, dist, w, h, ft, ny=0;
           if(k===0){ phi=-90; dist=cw/2; w=ws; h=sh; ft='rotateY(-90deg) translateZ('+dist.toFixed(1)+'px)'; }
           else if(k===1){ phi=0; dist=T2; w=cw; h=sh; ft='translateZ('+dist.toFixed(1)+'px)'; }
