@@ -1,5 +1,6 @@
 /* PAYAPkuytok: หน้าใส่รหัสเข้าใช้งานครั้งแรก (เก็บเฉพาะค่าแฮช ไม่เก็บรหัสจริง) */
 (function(){
+  var QR=(document.currentScript&&document.currentScript.src||'ui/gate.js').replace(/gate\.js.*$/,'img/contact-qr.jpg');
   var KEY='payap.auth', HASH='ece9c2bac263eb80e1de8aa2e5f5dc8d6999d61d978ed4de61cb5d10dace5380', SALT='payapkuytok|';
   function sha256(str){
     var K=[],H=[],i,j,n=2,c=0,isP;
@@ -35,6 +36,7 @@
    +'#gate .g-err{min-height:20px;margin:6px 0 8px;text-align:left;color:#EF4444;font-size:.82rem}'
    +'#gate .g-go{width:100%;height:50px;border:0;border-radius:12px;background:#0284C7;color:#fff;font:inherit;font-weight:600;font-size:1rem;cursor:pointer}#gate .g-go:active{transform:scale(.99)}'
    +'#gate small{display:block;margin-top:14px;color:#94A3B8;font-size:.78rem}'
+   +'#gate{overflow:auto}#gate .g-qr{display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:18px;border-top:1px solid #E2E8F0;text-align:left}#gate .g-qr img{width:132px;height:132px;border-radius:12px;border:1px solid #E2E8F0;flex:none}#gate .g-qr b{display:block;font-size:.9rem;margin-bottom:2px}#gate .g-qr span{color:#475569;font-size:.85rem;line-height:1.5}'
    +'@keyframes gshake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}#gate form.shake{animation:gshake .35s}';
   (document.head||de).appendChild(st);
   function build(){
@@ -44,7 +46,7 @@
      +'<h1>PAYAP<i>kuytok</i></h1><p>ใส่รหัสเข้าใช้งานครั้งแรก ครั้งต่อไปเข้าได้เลยไม่ต้องใส่อีก</p>'
      +'<label for="gate-pw">รหัสเข้าใช้งาน</label><div class="g-in"><input id="gate-pw" type="password" name="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="gate-err">'
      +'<button type="button" class="g-eye" aria-label="แสดงหรือซ่อนรหัส"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div>'
-     +'<div class="g-err" id="gate-err" role="alert"></div><button class="g-go" type="submit">เข้าสู่ระบบ</button><small>เครื่องนี้จะจำไว้ให้หลังเข้าครั้งแรก</small></form>';
+     +'<div class="g-err" id="gate-err" role="alert"></div><button class="g-go" type="submit">เข้าสู่ระบบ</button><small>เครื่องนี้จะจำไว้ให้หลังเข้าครั้งแรก</small><div class="g-qr"><img src="'+QR+'" alt="คิวอาร์โค้ดติดต่อขอรหัส" width="132" height="132"><div><b>หมายเหตุ</b><span>ใครอยากได้รหัส ติดต่อได้โดยสแกนคิวอาร์โค้ดนี้</span></div></div></form>';
     document.body.appendChild(g);
     var f=g.querySelector('form'), inp=g.querySelector('input'), err=g.querySelector('.g-err');
     g.querySelector('.g-eye').onclick=function(){ inp.type=inp.type==='password'?'text':'password'; inp.focus(); };
