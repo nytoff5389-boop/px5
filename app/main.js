@@ -29,8 +29,8 @@ const SUBJ={
     desc:'ทบทวนกายวิภาคศาสตร์ บทที่ 1 ถึง 7 ตั้งแต่บทนำ เนื้อเยื่อ กระดูก กล้ามเนื้อ ระบบประสาท จนถึงอวัยวะรับความรู้สึกพิเศษ พร้อมโจทย์สุ่มไม่จำกัดและเฉลยละเอียด',
     ch:7,chU:'บท',pages:117,qz:'โจทย์สุ่มไม่จำกัด',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',home:'anatomy/'},
   calc:{id:'calc',code:'PHT111',name:'calc',th:'การคำนวณทางเภสัชกรรม',en:'Pharmaceutical Calculations',img:'ui/img/b-calc1.jpg',
-    desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 ระบบเลขโรมันและเลขนัยสำคัญ มีทั้งโจทย์ปรนัยและโจทย์เติมคำตอบ พร้อมวิธีคิดทีละขั้น',
-    ch:1,chU:'บท',pages:16,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
+    desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 ระบบเลขโรมันและเลขนัยสำคัญ และบทที่ 2 มาตรชั่งและตวง (เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน) มีทั้งโจทย์ปรนัยและโจทย์เติมคำตอบ พร้อมวิธีคิดทีละขั้น',
+    ch:2,chU:'บท',pages:34,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
   chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'เคมีฟิสิกส์',th:'เคมีฟิสิกส์',en:'บทที่ 1 ปริมาณสารสัมพันธ์ (Stoichiometry)',img:'ui/img/b-chem1.jpg',
     desc:'เคมีฟิสิกส์ (Physical Chemistry) บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
     ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'}
@@ -43,7 +43,7 @@ const CREDITS=window.PHOTO_CREDITS||[];
 
 function stats(){
   const a=J('anatomeow.v1'), c=J('jinoon.v1'), z=c.qz||{}, ch=DB.chem;
-  const rdA=Math.max(0,((a.bookPage||1)-1)/116), rdC=Math.max(0,((c.bookPage||1)-1)/15), rdX=Math.max(0,((ch.pgMax||1)-1)/27);
+  const rdA=Math.max(0,((a.bookPage||1)-1)/116), rdC=Math.max(0,((c.bookPage||1)-1)/33), rdX=Math.max(0,((ch.pgMax||1)-1)/27);
   const mk=(ans,ok,rd,goal)=>({ans:ans||0,ok:ok||0,acc:ans?Math.round(ok/ans*100):null,rd:Math.round(rd*100),done:Math.round((rd*.5+Math.min(1,(ans||0)/goal)*.5)*100),
     ready:Math.round((rd*.3+(ans?ok/ans:0)*Math.min(1,(ans||0)/goal)*.7)*100)});
   return {anatomy:mk(a.answered,a.correct,rdA,200),calc:mk(z.ans,z.ok,rdC,60),chem:mk(ch.ans,ch.ok,rdX,80)};
@@ -103,7 +103,8 @@ function books(){
   const L=[];
   AN_CH.forEach((c,i)=>L.push({s:'anatomy',code:'BI112',no:pad(i+1),t:c[0],en:c[1],kind:'บทที่ '+(i+1),img:B+'an'+(i+1)+'.jpg',read:'anatomy/?tab=book&page='+AN_PG[i],exam:'anatomy/?tab=learn&ch='+(i+1)}));
   L.push({s:'anatomy',code:'BI112',no:'Q',t:'ข้อสอบกายวิภาคศาสตร์',short:'ข้อสอบ Anatomy',en:'Anatomy question bank',kind:'ข้อสอบ',img:B+'anq.jpg',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',q:1});
-  L.push({s:'calc',code:'PHT111',no:'01',t:'เลขโรมันและเลขนัยสำคัญ',short:'เลขโรมัน เลขนัยสำคัญ',en:'Roman numerals & Significant figures',kind:'บทที่ 1',img:B+'calc1.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz'});
+  L.push({s:'calc',code:'PHT111',no:'01',t:'เลขโรมันและเลขนัยสำคัญ',short:'เลขโรมัน เลขนัยสำคัญ',en:'Roman numerals & Significant figures',kind:'บทที่ 1',img:B+'calc1.jpg',read:'calc/?tab=book&page=1',exam:'calc/?tab=quiz&ch=1'});
+  L.push({s:'calc',code:'PHT111',no:'02',t:'มาตรชั่งและตวงทางเภสัชกรรม',short:'มาตรชั่งและตวง',en:'Weights & measures · Metric, Apothecary, Avoirdupois, Household',kind:'บทที่ 2',img:B+'calc2.jpg',read:'calc/?tab=book&page=17',exam:'calc/?tab=quiz&ch=2'});
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
   L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
   L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบเคมีฟิสิกส์',short:'ข้อสอบ เคมีฟิสิกส์',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
@@ -161,7 +162,7 @@ function vLibrary(v){
   v.dataset.title='อ่านหนังสือ'; const st=stats(); let h=`${pills()}<div class="ph"><h1>คลังหนังสือ</h1><p>Study Library · เปิดอ่านหนังสือสรุปฉบับ PDF ของแต่ละวิชา เลือกข้ามไปบทหรือหัวข้อที่ต้องการได้</p></div>`;
   const gh=(k,extra)=>{ const s=SUBJ[k]; return `<div class="gh"><div class="th" style="background-image:url(${s.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>${esc(s.th)}</h2><span class="tag">${s.code}</span></div><p>${esc(s.name)} · ${s.ch} ${s.chU} · ${s.pages} หน้า · อ่านแล้ว ${st[k].rd}%</p></div>${extra||''}</div>`; };
   if(show('anatomy')) h+=`<section class="group">${gh('anatomy',`<a class="btn sec sm" href="anatomy/?tab=book" data-app="anatomy" data-mode="read">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">${AN_CH.map((c,i)=>`<a class="item" href="anatomy/?tab=book&page=${AN_PG[i]}" data-app="anatomy" data-mode="read"><span class="n">${i+1}</span><div class="grow"><h3>${c[0]}</h3><p>${c[1]} · เริ่มหน้า ${AN_PG[i]}</p></div>${ic('chevron_right','ch')}</a>`).join('')}</div></section>`;
-  if(show('calc')) h+=`<section class="group">${gh('calc')}<div class="lst"><a class="item" href="calc/?tab=book" data-app="calc" data-mode="read"><span class="n">1</span><div class="grow"><h3>พื้นฐานที่เกี่ยวข้องกับการคำนวณทางเภสัชกรรม</h3><p>Roman numerals และ Significant figures · 16 หน้า</p></div>${ic('chevron_right','ch')}</a></div></section>`;
+  if(show('calc')) h+=`<section class="group">${gh('calc')}<div class="lst"><a class="item" href="calc/?tab=book" data-app="calc" data-mode="read"><span class="n">1</span><div class="grow"><h3>พื้นฐานที่เกี่ยวข้องกับการคำนวณทางเภสัชกรรม</h3><p>Roman numerals และ Significant figures · 16 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="calc/?tab=book&page=17" data-app="calc" data-mode="read"><span class="n">2</span><div class="grow"><h3>มาตรชั่งและตวงทางเภสัชกรรม (เล่ม 2)</h3><p>Metric, Apothecary, Avoirdupois และ Household · 18 หน้า</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   if(show('chem')) h+=`<section class="group">${gh('chem',`<a class="btn sec sm" href="#/pages/chem">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
@@ -336,7 +337,7 @@ function palette(){
   Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
   AN_CH.forEach((c,i)=>idx.push({t:'บทที่ '+(i+1)+' '+c[0],s:c[1],h:'anatomy/?tab=learn&ch='+(i+1),i:'graduation_cap',g:'BI112',app:'anatomy'}));
-  idx.push({t:'หนังสือสรุปกายวิภาคศาสตร์',s:'BI112 · 117 หน้า',h:'anatomy/?tab=book',i:'book_open',g:'BI112',app:'anatomy'},{t:'เลขโรมันและเลขนัยสำคัญ',s:'PHT111 · อ่านสรุป',h:'calc/?tab=book',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบคำนวณเภสัช',s:'PHT111 · Roman numerals, Significant figures',h:'calc/?tab=quiz',i:'clipboard_check',g:'PHT111',app:'calc'});
+  idx.push({t:'หนังสือสรุปกายวิภาคศาสตร์',s:'BI112 · 117 หน้า',h:'anatomy/?tab=book',i:'book_open',g:'BI112',app:'anatomy'},{t:'เลขโรมันและเลขนัยสำคัญ',s:'PHT111 · อ่านสรุป',h:'calc/?tab=book',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบคำนวณเภสัช บทที่ 1',s:'PHT111 · Roman numerals, Significant figures',h:'calc/?tab=quiz&ch=1',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'มาตรชั่งและตวงทางเภสัชกรรม',s:'PHT111 · บทที่ 2 อ่านสรุป',h:'calc/?tab=book&page=17',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบบทที่ 2 มาตรชั่งและตวง',s:'PHT111 · เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน',h:'calc/?tab=quiz&ch=2',i:'clipboard_check',g:'PHT111',app:'calc'});
   const d=document.createElement('div'); d.className='pal'; d.innerHTML=`<div class="bx" role="dialog" aria-modal="true" aria-label="ค้นหา"><div class="in">${ic('search')}<input type="search" placeholder="ค้นหาบทเรียน หัวข้อ หรือชุดข้อสอบ" aria-label="คำค้น" autocomplete="off"><kbd>Esc</kbd></div><div class="rs"></div></div>`;
   document.body.appendChild(d); const inp=$('input',d), rs=$('.rs',d); let cur=0, res=[];
   const draw=()=>{ const q=inp.value.trim().toLowerCase(); res=(q?idx.filter(x=>(x.t+' '+x.s+' '+(x.g||'')).toLowerCase().includes(q)).concat(idx.filter(x=>x.x&&x.x.toLowerCase().includes(q)&&!(x.t+' '+x.s).toLowerCase().includes(q))):idx).slice(0,14); cur=Math.min(cur,Math.max(0,res.length-1));

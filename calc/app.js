@@ -144,22 +144,28 @@ const CHAPTERS=[
    toc:[{n:'สารบัญ',p:2},{n:'เรียนเรื่องอะไรบ้างในบทนี้',p:3},{n:'1. ระบบเลขโรมัน Roman numeration system',p:3},{n:'1.1 หลักการเพิ่ม',p:4,s:1},{n:'1.2 หลักการลด',p:4,s:1},{n:'1.3 การเขียนจำนวนที่มีค่ามาก',p:5,s:1},{n:'1.4 ตัวอย่างเลขโรมันพร้อมเฉลย',p:6,s:1},
     {n:'2. เลขนัยสำคัญ Significant number',p:7},{n:'2.1 หลักการนับเลขนัยสำคัญ',p:8,s:1},{n:'2.2 หลักการบันทึกข้อมูล',p:9,s:1},
     {n:'3. กฎของเลขนัยสำคัญ',p:11},{n:'3.1 การบันทึกผล',p:11,s:1},{n:'3.2 การปัดตัวเลขตัวสุดท้าย',p:11,s:1},{n:'3.3 หลักการคำนวณเลขนัยสำคัญ',p:14,s:1}]},
-  {id:2},{id:3},{id:4},{id:5},{id:6}
+  {id:2,ready:true,name:'มาตรชั่งและตวงทางเภสัชกรรม',en:'Metric, Apothecary, Avoirdupois และ Household',p:17,n:18,book:2,
+   pdf:{f:'pdf/ch2.pdf',mb:3.5},
+   toc:[{n:'ปก เล่ม 2 บทที่ 2',p:17},{n:'สารบัญ',p:18},{n:'บทนำ ทำไมเภสัชต้องรู้เรื่องชั่ง ตวง วัด',p:19},{n:'1. ระบบเมตริก (The metric system)',p:19},{n:'1.1 คำนำหน้าหน่วย (prefix)',p:19,s:1},{n:'1.2 หน่วยน้ำหนัก ปริมาตร ความยาว',p:21,s:1},{n:'1.3 แบบฝึกแปลงหน่วยระบบเมตริก',p:23,s:1},{n:'1.4 ระบบเมตริกกับงานเภสัชกรรม',p:23,s:1},
+    {n:'2. ระบบสามัญ (The common system)',p:24},{n:'2.1 ระบบอะโปธิคารี',p:24,s:1},{n:'2.2 แบบฝึกหน่วยระบบอะโปธิคารี',p:27,s:1},{n:'2.3 ระบบอะวัวดูปัวส์',p:27,s:1},
+    {n:'3. ระบบมาตรประจำบ้าน (The household system)',p:28},{n:'3.1 การตวงเป็นหยด และกระบอกตวง',p:29,s:1},{n:'3.2 ตัวอย่างโจทย์มาตรประจำบ้าน',p:30,s:1},
+    {n:'4. การแปลงมาตราระบบต่าง ๆ',p:31},{n:'4.1 practical และ exact equivalent',p:31,s:1},{n:'4.2 สรุปตัวเลขทอง และแบบฝึก',p:34,s:1}]},
+  {id:3},{id:4},{id:5},{id:6}
 ];
 const chOf=id=>CHAPTERS.find(c=>c.id===id);
-const BOOK={title:'สรุปการคำนวณเภสัช PHT111',n:16,ch:CHAPTERS.filter(c=>c.ready)};
+const BOOK={title:'สรุปการคำนวณเภสัช PHT111',n:34,ch:CHAPTERS.filter(c=>c.ready)};
 const soon=id=>{toast(`บทที่ ${id} coming soon`);};
 const pageSrc=p=>`book/p-${String(p).padStart(3,'0')}.webp`;
 const pageCh=p=>{let c=BOOK.ch[0].id;for(const x of BOOK.ch) if(p>=x.p) c=x.id;return c;};
 let bookIO=null, bookSaveT=0;
 function bookHTML(){
-  const n=BOOK.n, cur=Math.min(n,Math.max(1,ST.bookPage||1)), c1=chOf(1);
+  const n=BOOK.n, cur=Math.min(n,Math.max(1,ST.bookPage||1)), c1=chOf(pageCh(cur));
   return head()+`<div class="wrap"><div class="ptitle"><div><h1>อ่านหนังสือ</h1><p>${esc(BOOK.title)} · แตะหน้าเพื่อขยาย ซูมได้</p></div>
      <button class="btn ghost rp" data-dl="1">${I.dl}ดาวน์โหลด PDF</button></div>
-   <details class="toc panel" ${UI.tocOpen?'open':''}><summary class="rp" data-soft="1">${I.layers}<b>สารบัญบทที่ 1</b>${I.down}</summary><div class="toc-l">${c1.toc.map(t=>`<button class="toc-r rp ${t.s?'sub':''}" data-pg="${t.p}" data-soft="1"><span>${esc(t.n)}</span><b class="num">${t.p}</b></button>`).join('')}</div></details></div>
+   <details class="toc panel" ${UI.tocOpen?'open':''}><summary class="rp" data-soft="1">${I.layers}<b>สารบัญ</b>${I.down}</summary><div class="toc-l">${BOOK.ch.map(c=>`<b class="toc-h">บทที่ ${c.id}${c.book?' (เล่ม '+c.book+')':''} · ${esc(c.name)}</b>`+c.toc.map(t=>`<button class="toc-r rp ${t.s?'sub':''}" data-pg="${t.p}" data-soft="1"><span>${esc(t.n)}</span><b class="num">${t.p}</b></button>`).join('')).join('')}</div></details></div>
    <div class="bk-top"><div class="wrap bk-bar"><div class="bk-chs" aria-label="เลือกบท">${CHAPTERS.map(c=>c.ready?`<button class="bk-ch rp on" data-bkch="${c.p}" data-soft="1">${I.book}บทที่ ${c.id}</button>`:`<button class="bk-ch soon rp" data-soon="${c.id}" data-soft="1">บทที่ ${c.id}<i>soon</i></button>`).join('')}</div><span class="bk-cnt num" id="bk-cnt">หน้า <b>${cur}</b>/${n}</span></div></div>
-   <div class="wrap"><div class="bk-pages" id="bk-pages">${Array.from({length:n},(_,i)=>`<figure class="bk-pg" id="pg-${i+1}" data-p="${i+1}"><button class="bk-img rp" data-zoom="${i+1}" data-silent="1" aria-label="ขยายหน้า ${i+1}"><img alt="หน้า ${i+1}" decoding="async" width="1100" height="1557"></button><figcaption class="num">หน้า ${i+1} · บทที่ 1</figcaption></figure>`).join('')}</div>
-   <div class="soon-box">${beetleCar({mood:'wink',cls:'soon-msc'})}<div><b>บทถัดไป coming soon</b><p>บทที่ 2 เป็นต้นไปกำลังเตรียมอยู่ จะเพิ่มเข้ามาในเล่มนี้เร็วๆ นี้</p></div></div></div>`;
+   <div class="wrap"><div class="bk-pages" id="bk-pages">${Array.from({length:n},(_,i)=>`<figure class="bk-pg" id="pg-${i+1}" data-p="${i+1}"><button class="bk-img rp" data-zoom="${i+1}" data-silent="1" aria-label="ขยายหน้า ${i+1}"><img alt="หน้า ${i+1}" decoding="async" width="1100" height="1557"></button><figcaption class="num">หน้า ${i+1} · บทที่ ${pageCh(i+1)}</figcaption></figure>`).join('')}</div>
+   <div class="soon-box">${beetleCar({mood:'wink',cls:'soon-msc'})}<div><b>บทถัดไป coming soon</b><p>บทที่ 3 เป็นต้นไปกำลังเตรียมอยู่ จะเพิ่มเข้ามาเร็วๆ นี้</p></div></div></div>`;
 }
 function bookBind(){
   if(bookIO) bookIO.disconnect();
@@ -170,7 +176,7 @@ function bookBind(){
   $$('[data-pg]').forEach(b=>b.onclick=()=>bookGo(+b.dataset.pg,true));
   const td=$('.toc'); if(td) td.ontoggle=()=>{UI.tocOpen=td.open;};
   $$('[data-zoom]').forEach(b=>b.onclick=()=>bookZoom(+b.dataset.zoom));
-  const p=ST.bookPage||1; if(UI.bookJump){ bookGo(UI.bookJump,false); UI.bookJump=0; } else if(p>1) bookGo(p,false);
+  const p=ST.bookPage||1, j=UI.bookJump||(p>1?p:0); UI.bookJump=0; if(j){ bookGo(j,false); requestAnimationFrame(()=>bookGo(j,false)); }
 }
 function bookGo(p,smooth){
   const el=$('#pg-'+p); if(!el) return; const top=$('.bk-top'); const off=(top?top.offsetHeight:0)+16;
@@ -194,7 +200,7 @@ function bookZoom(p){
     <div class="bz-nav"><button class="btn rp" id="bz-prev">${I.back} ก่อนหน้า</button><button class="btn rp" id="bz-next">ถัดไป ${I.chev}</button></div></div>`;
   document.body.style.overflow='hidden';
   const img=$('#bz-img'), sc=$('#bz-sc');
-  const show=()=>{ img.src=pageSrc(p); img.alt=`หน้า ${p}`; $('#bz-t').textContent=`หน้า ${p}/${n} · บทที่ 1`; $('#bz-prev').disabled=p<=1; $('#bz-next').disabled=p>=n; sc.scrollTo(0,0); };
+  const show=()=>{ img.src=pageSrc(p); img.alt=`หน้า ${p}`; $('#bz-t').textContent=`หน้า ${p}/${n} · บทที่ ${pageCh(p)}`; $('#bz-prev').disabled=p<=1; $('#bz-next').disabled=p>=n; sc.scrollTo(0,0); };
   const zoom=v=>{ const cx=(sc.scrollLeft+sc.clientWidth/2)/sc.scrollWidth, cy=(sc.scrollTop+sc.clientHeight/2)/sc.scrollHeight;
     z=Math.max(1,Math.min(3.5,v)); img.style.width=(z*100)+'%';
     requestAnimationFrame(()=>{ sc.scrollLeft=cx*sc.scrollWidth-sc.clientWidth/2; sc.scrollTop=cy*sc.scrollHeight-sc.clientHeight/2; }); };
@@ -855,6 +861,393 @@ function buildSet(kind,no){
 
 /* ===================== ข้อสอบบทที่ 1: หน้าเลือกโหมด + ผู้เล่น ===================== */
 ST.qz=Object.assign({sets:{},ans:0,ok:0,best:0,tp:{},wrong:[],last:null,style:'mix',diff:'mix',n:10,tps:['r2a','a2r','rcalc','sfcount','record','round','sfcalc','concept']},ST.qz||{});
+/* ===================== บทที่ 2 มาตรชั่งและตวงทางเภสัชกรรม (เล่ม 2) ===================== */
+/* เลขหน้าเป็นเลขหน้าของหนังสือรวม (บทที่ 2 เริ่มหน้า 17) */
+const C2P=p=>16+p;
+Object.assign(QT,{
+  met:{n:'ระบบเมตริก',pg:C2P(4),ch:2},
+  apo:{n:'ระบบอะโปธิคารี',pg:C2P(9),ch:2},
+  avo:{n:'ระบบอะวัวดูปัวส์',pg:C2P(11),ch:2},
+  hh:{n:'มาตรประจำบ้าน',pg:C2P(12),ch:2},
+  drop:{n:'หยดและกระบอกตวง',pg:C2P(13),ch:2},
+  xs:{n:'แปลงข้ามระบบ (exact, practical)',pg:C2P(16),ch:2},
+  word:{n:'โจทย์การจ่ายยา',pg:C2P(14),ch:2},
+  con2:{n:'ทฤษฎีบทที่ 2',pg:C2P(3),ch:2}
+});
+const TP2=Object.keys(QT).filter(k=>QT[k].ch===2), TP1=Object.keys(QT).filter(k=>!QT[k].ch);
+const qch=t=>(QT[t]&&QT[t].ch)||1;
+
+/* ตัวเลข: ปัดตามจำนวนทศนิยม ตัด 0 ท้าย ใส่จุลภาค */
+function fm(x,dp=4){ let s=(+(+x).toFixed(dp)).toString(); if(/e/.test(s)) s=(+x).toFixed(12).replace(/0+$/,'').replace(/\.$/,'');
+  const neg=s[0]==='-'; if(neg) s=s.slice(1); const [i,f]=s.split('.'); return (neg?'-':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,',')+(f?'.'+f:''); }
+/* ช่องตอบตัวเลข: ตรวจด้วยค่าตัวเลข ยอมคลาดเคลื่อนได้ tol (หรือค่าอื่นใน alt เช่นค่า practical) */
+function NF(val,o={}){ const dp=o.dp==null?4:o.dp, show=fm(val,dp);
+  const unitTol=dp>0?0.5*Math.pow(10,-dp):0.5;
+  const tol=o.tol!=null?o.tol:Math.max(unitTol,o.rel?Math.abs(val)*o.rel:0);
+  const vals=[val,...(o.alt||[])];
+  return F('num',show,(o.alt||[]).map(a=>fm(a,dp)),{val,vals,tol,unit:o.unit||'',lab:o.lab||''}); }
+function numIn(u,unit){ if(unit) u=String(u==null?'':u).split(unit).join(''); let s=normNum(u).replace(/^[^\d.\-]+/,'').replace(/[^\d.]+$/,''); return /^-?\d*\.?\d+$/.test(s)?parseFloat(s):NaN; }
+/* ช้อยส์ตัวเลข: ตัวลวงจากความผิดพลาดที่พบบ่อย */
+function mc2(q,wrongVals,dp){ const right=q.fields[0].val, d=dp==null?4:dp, u=q.fields[0].unit;
+  const ws=[]; for(const w of wrongVals){ if(w==null||!isFinite(w)||w<=0) continue; const s=fm(w,d); if(s==='0'||s===fm(right,d)||ws.includes(s)) continue; ws.push(s); if(ws.length>=3) break; }
+  for(const k of [2,0.5,10,0.1,3,1.5]){ if(ws.length>=3) break; const s=fm(right*k,d); if(s!==fm(right,d)&&!ws.includes(s)) ws.push(s); }
+  const R=fm(right,d), opts=shuf([R,...ws.slice(0,3)]).map(x=>u?x+' '+u:x); q.mc={opts,ans:opts.indexOf(u?R+' '+u:R)}; q.plain=true; return q; }
+function Q2(t,lv,stem,big,fields,exp,o={}){ return mkQ(t,lv,stem,big,fields,exp,Object.assign({pg:QT[t].pg},o)); }
+
+/* ---------- หน่วย ---------- */
+const MU={ /* ระบบเมตริก: เลขชี้กำลังเทียบหน่วยพื้นฐาน */
+  mass:[['kg','kilograms',3],['g','grams',0],['dg','decigrams',-1],['cg','centigrams',-2],['mg','milligrams',-3],['µg','micrograms',-6],['ng','nanograms',-9]],
+  vol:[['L','liters',0],['dL','deciliters',-1],['mL','milliliters',-3],['µL','microliters',-6],['nL','nanoliters',-9]],
+  len:[['km','kilometers',3],['m','meters',0],['cm','centimeters',-2],['mm','millimeters',-3],['µm','micrometers',-6],['nm','nanometers',-9]]
+};
+const APW=[['grains','gr.',1],['scruples','℈',20],['drams','ʒ',60],['ounces','℥',480],['pounds','lb',5760]];
+const APV=[['minims','min',1],['fluid drams','fʒ',60],['fluid ounces','f℥',480],['pints','pt',7680],['quarts','qt',15360],['gallons','gal',61440]];
+const nice=()=>pick([ri(1,9),ri(11,99),ri(1,9)+0.5,ri(1,9)*10,ri(1,19)*25,ri(1,99)/100,ri(101,999)/100,ri(1,9)*100+ri(1,9)*10]);
+
+const GEN2={
+  met(lv){ const kind=pick(['mass','mass','vol','vol','len']), U=MU[kind];
+    if(lv==='hard'&&Math.random()<.55){ /* รวมหลายหน่วยเป็น mg แบบสไลด์ 17 */
+      const a=pick([1.25,0.5,2.5,1.5,0.75,2,0.125]), b=ri(5,95), c=pick([20,50,80,250,400,750]);
+      const tot=a*1000+b+c/1000;
+      return withNum(Q2('met',lv,'ผสมสาร A, B และ C ตามนี้ น้ำหนักรวมเป็นกี่ milligrams',`${fm(a)} g + ${b} mg + ${c} µg`,[NF(tot,{dp:3,unit:'mg'})],
+        [`เปลี่ยนทุกตัวเป็น mg ก่อน: ${fm(a)} g × 1,000 = ${fm(a*1000)} mg`,`${c} µg ÷ 1,000 = ${fm(c/1000,3)} mg`,`รวม ${fm(a*1000)} + ${b} + ${fm(c/1000,3)} = <b>${fm(tot,3)} mg</b>`],{sub:'sum'}),
+        [a*1000+b+c, a*100+b+c/1000, a*1000+b+c/100, a+b/1000+c/1e6],3); }
+    let i,j; for(let g=0;g<50;g++){ i=ri(0,U.length-1); j=ri(0,U.length-1); if(i===j) continue; const d=Math.abs(U[i][2]-U[j][2]);
+      if(lv==='easy'&&d!==3) continue; if(lv==='mid'&&(d<1||d>6||d===3)) continue; if(lv==='hard'&&d<6) continue; break; }
+    if(i===j) j=(i+1)%U.length;
+    const [a,an,ae]=U[i],[b,bn,be]=U[j], e=ae-be; let v=nice(); if(Math.abs(e)>=6&&e<0) v=pick([ri(1,999)*10,ri(1,99)*100,ri(1,9)*1000]);
+    const r=v*Math.pow(10,e), rr=+r.toPrecision(12); if(rr<1e-5||rr>1e10) return GEN2.met(lv);
+    const f=Math.pow(10,Math.abs(e)), big=e>0;
+    return withNum(Q2('met',lv,`จงเปลี่ยนหน่วย ${fm(v)} ${an} เท่ากับกี่ ${bn}`,`${fm(v)} ${a} = ? ${b}`,[NF(rr,{dp:9,unit:b})],
+      [`${a} กับ ${b} ห่างกัน ${Math.abs(e)} ขั้นของสิบ (10<sup>${Math.abs(e)}</sup> = ${fm(f)})`,big?`หน่วยใหญ่ไปหน่วยเล็ก ให้คูณ (เลื่อนจุดไปทางขวา ${Math.abs(e)} ตำแหน่ง)`:`หน่วยเล็กไปหน่วยใหญ่ ให้หาร (เลื่อนจุดไปทางซ้าย ${Math.abs(e)} ตำแหน่ง)`,
+       `${fm(v)} ${big?'×':'÷'} ${fm(f)} = <b>${fm(rr,9)} ${b}</b>`],{sub:a+b+v}),
+      [rr*10,rr/10,rr*1000,rr/1000,v*Math.pow(10,-e)],9); },
+
+  apo(lv){ const vol=Math.random()<.45, T=vol?APV:APW;
+    if(lv==='hard'&&Math.random()<.5){ /* โจทย์จ่ายยาแบบสไลด์ 28 */
+      if(!vol){ const n=pick([12,24,30,36,48,50]), g=pick([1,2,3,5]), tot=n*g, to=pick([[20,'scruples'],[60,'drams']]);
+        return withNum(Q2('apo',lv,`เภสัชกรจ่ายยาเหน็บทวาร ${n} แท่ง แต่ละแท่งมีตัวยา ${g} gr. รวมตัวยาทั้งหมดกี่ ${to[1]}`,`${n} แท่ง × ${g} gr.`,[NF(tot/to[0],{dp:3,unit:to[1]})],
+          [`ตัวยาทั้งหมด ${n} × ${g} = ${tot} grains`,`1 ${to[1].slice(0,-1)} = ${to[0]} grains`,`${tot} ÷ ${to[0]} = <b>${fm(tot/to[0],3)} ${to[1]}</b>`],{sub:'supp'+to[0]}),
+          [tot/(to[0]===20?60:20),tot*to[0],tot/to[0]*2],3); }
+      const n=pick([2,3,4,6,8]), u=pick([[60,'fluid drams','fluidrams'],[480,'fluid ounces','fluidounces']]);
+      return withNum(Q2('apo',lv,`ห้องยามีสารละลายบรรจุขวดขนาด ${n} ${u[2]} เท่ากับกี่ minims`,`${n} ${u[1]} = ? minims`,[NF(n*u[0],{dp:0,unit:'minims'})],
+        [`1 ${u[1].slice(0,-1)} = ${u[0]} minims`,`${n} × ${u[0]} = <b>${fm(n*u[0])} minims</b>`],{sub:'bottle'}),[n*(u[0]===60?480:60),n*16.23,n*u[0]/8],0); }
+    let i,j; for(let g=0;g<40;g++){ i=ri(0,T.length-1); j=ri(0,T.length-1); if(i===j) continue; const d=Math.abs(i-j); if(lv==='easy'&&d!==1) continue; if(lv!=='easy'&&d<2) continue; break; }
+    if(i===j) j=i?i-1:1;
+    const [an,as,af]=T[i],[bn,bs,bf]=T[j]; let v;
+    if(af>bf) v=lv==='easy'?ri(2,9):pick([ri(2,6),ri(1,4)+0.5]); else { const k=bf/af; v=lv==='easy'?k*ri(2,6):Math.round(k*pick([1,2,3,0.5,1.5,1.25,0.75,2.5])); if(v<1) v=k; }
+    const r=v*af/bf, chain=T.slice(Math.min(i,j)+1,Math.max(i,j)+1).map(x=>`1 ${x[0].replace(/s$/,'')} (${x[1]}) = ${fm(x[2]/T[T.indexOf(x)-1][2])} ${T[T.indexOf(x)-1][0]}`);
+    return withNum(Q2('apo',lv,`จงเปลี่ยนหน่วยในระบบอะโปธิคารี ${fm(v)} ${an} เท่ากับกี่ ${bn}`,`${fm(v)} ${an} (${as}) = ? ${bn} (${bs})`,[NF(r,{dp:3,unit:bn})],
+      [`ทวนตาราง: ${chain.join(' และ ')}`,`เทียบเป็นหน่วยเล็กสุดก่อน: 1 ${an.replace(/s$/,'')} = ${fm(af)} ${T[0][0]} และ 1 ${bn.replace(/s$/,'')} = ${fm(bf)} ${T[0][0]}`,
+       `${fm(v)} × ${fm(af)} ÷ ${fm(bf)} = <b>${fm(r,3)} ${bn}</b>`],{sub:an+bn+v}),
+      [v*bf/af,r*10,r/10,vol?v*af/bf*(16.23/60):r*1.5,r*0.75],3); },
+
+  avo(lv){
+    if(lv==='easy'){ const k=pick(['lb2oz','oz2gr','lb2gr']), v=ri(2,6);
+      const m={lb2oz:[16,'pounds (avoir)','ounces (avoir)','1 lb avoir = 16 oz'],oz2gr:[437.5,'ounces (avoir)','grains','1 oz avoir = 437.5 grains'],lb2gr:[7000,'pounds (avoir)','grains','1 lb avoir = 7,000 grains']}[k];
+      return withNum(Q2('avo',lv,`ระบบอะวัวดูปัวส์ ${v} ${m[1]} เท่ากับกี่ ${m[2]}`,`${v} ${m[1]} = ? ${m[2]}`,[NF(v*m[0],{dp:1,unit:m[2]})],[m[3],`${v} × ${fm(m[0])} = <b>${fm(v*m[0],1)} ${m[2]}</b>`],{sub:k+v}),
+        [v*({lb2oz:12,oz2gr:480,lb2gr:5760}[k]),v*m[0]/2,v*m[0]*1.5],1); }
+    if(lv==='mid'){ const k=pick(['oz2g','lb2g','g2oz']);
+      if(k==='g2oz'){ const g=pick([100,250,500,1000]); const r=g/28.35; return withNum(Q2('avo',lv,`ผงยา ${g} g คิดเป็นกี่ ounces (avoir) (1 oz avoir = 28.35 g)`,`${g} g = ? oz (avoir)`,[NF(r,{dp:2,rel:.003,unit:'oz'})],
+        ['1 oz avoir = 28.35 g',`${g} ÷ 28.35 = <b>${fm(r,2)} oz</b>`],{sub:k+g}),[g/31.1,g*28.35/1000,g/30],2); }
+      const v=k==='oz2g'?pick([1.5,2,3,4,0.5,2.5]):pick([2,3,1.5,5]), f=k==='oz2g'?28.35:453.6, r=v*f;
+      return withNum(Q2('avo',lv,`ระบบอะวัวดูปัวส์ ${fm(v)} ${k==='oz2g'?'ounces':'pounds'} เท่ากับกี่ grams`,`${fm(v)} ${k==='oz2g'?'oz':'lb'} (avoir) = ? g`,[NF(r,{dp:2,unit:'g',rel:.002})],
+        [`1 ${k==='oz2g'?'oz':'lb'} avoir = ${fm(f)} g (ระวังอย่าใช้ค่าอะโปธิคารี ${k==='oz2g'?'31.1':'373.2'} g)`,`${fm(v)} × ${fm(f)} = <b>${fm(r,2)} g</b>`],{sub:k+v}),
+        [v*(k==='oz2g'?31.1:373.2),v*(k==='oz2g'?30:454)*1.1,r/1000],2); }
+    const k=pick(['sachet','cmp','lbcmp']);
+    if(k==='sachet'){ const per=pick([250,300,400,500,650]), mg=28350, n=Math.floor(mg/per);
+      return withNum(Q2('avo',lv,`ผงยาหนัก 1 avoirdupois ounce ต้องการแบ่งบรรจุซองละ ${per} mg จะแบ่งได้เต็มกี่ซอง`,`1 oz (avoir) ÷ ${per} mg`,[NF(n,{dp:0,unit:'ซอง',tol:0})],
+        ['1 oz avoir = 28.35 g = 28,350 mg',`28,350 ÷ ${per} = ${fm(mg/per,2)} ซอง`,`นับเฉพาะซองที่บรรจุเต็ม ได้ <b>${n} ซอง</b> (เหลือผงยา ${fm(mg-n*per)} mg)`],{sub:'s'+per}),
+        [Math.floor(31100/per),Math.ceil(mg/per)===n?n+1:Math.ceil(mg/per),Math.floor(30000/per)],0); }
+    if(k==='cmp'){ const v=pick([1,2,4]); const d=v*(480-437.5);
+      return withNum(Q2('avo',lv,`ยา ${v} ounce แบบอะโปธิคารี หนักกว่า ${v} ounce แบบอะวัวดูปัวส์กี่ grains`,`${v} ℥ (apo) − ${v} oz (avoir)`,[NF(d,{dp:1,unit:'grains'})],
+        ['1 ℥ (apo) = 480 grains','1 oz (avoir) = 437.5 grains',`ต่างกัน ${v} × (480 − 437.5) = <b>${fm(d,1)} grains</b>`],{sub:'c'+v}),[v*480,v*437.5,d*2],1); }
+    const r=7000/480; return withNum(Q2('avo',lv,'1 pound แบบอะวัวดูปัวส์ เท่ากับกี่ ounces แบบอะโปธิคารี (℥)','1 lb (avoir) = ? ℥ (apo)',[NF(r,{dp:2,unit:'℥',tol:.01})],
+      ['1 lb avoir = 7,000 grains','1 ℥ apo = 480 grains','7,000 ÷ 480 = <b>14.58 ℥</b>'],{sub:'lb'}),[16,12,7000/437.5*0.9],2); },
+
+  hh(lv){ const H=[['ช้อนชา (tsp)',5],['ช้อนโต๊ะ (tbsp)',15],['ช้อนของหวาน (dssp)',8]];
+    if(lv==='easy'){ const [n,f]=pick([H[0],H[1],H[0],H[1],H[2]]), v=pick([1,2,3,4,0.5,1.5,5]);
+      return withNum(Q2('hh',lv,`${fm(v)} ${n} เท่ากับกี่ milliliters`,`${fm(v)} ${n.split(' ')[0]} = ? mL`,[NF(v*f,{dp:1,unit:'mL'})],[`1 ${n} = ${f} mL`,`${fm(v)} × ${f} = <b>${fm(v*f,1)} mL</b>`],{sub:n+v}),
+        [v*(f===5?15:5),v*(f===15?30:8),v*f/2],1); }
+    if(lv==='mid'){ const k=pick(['ml2tsp','ml2tbsp','tsp2tbsp','glass','cup','oz2tbsp']);
+      if(k==='ml2tsp'||k==='ml2tbsp'){ const f=k==='ml2tsp'?5:15, n=f===5?'ช้อนชา':'ช้อนโต๊ะ', v=f*pick([1,2,3,0.5,1.5,4]);
+        return withNum(Q2('hh',lv,`ยา ${fm(v)} mL เท่ากับกี่${n}`,`${fm(v)} mL = ? ${n}`,[NF(v/f,{dp:2,unit:n})],[`1 ${n} = ${f} mL`,`${fm(v)} ÷ ${f} = <b>${fm(v/f,2)} ${n}</b>`],{sub:k+v}),[v/(f===5?15:5),v*f,v/f*2],2); }
+      if(k==='tsp2tbsp'){ const v=3*pick([1,2,3,4,5]); return withNum(Q2('hh',lv,`${v} ช้อนชา เท่ากับกี่ช้อนโต๊ะ`,`${v} tsp = ? tbsp`,[NF(v/3,{dp:2,unit:'ช้อนโต๊ะ'})],['1 ช้อนโต๊ะ = 15 mL = 3 ช้อนชา',`${v} ÷ 3 = <b>${fm(v/3)} ช้อนโต๊ะ</b>`],{sub:k+v}),[v*3,v/2,v/5],2); }
+      if(k==='glass'){ const v=ri(2,5); return withNum(Q2('hh',lv,`${v} แก้ว (glass) เท่ากับกี่ fluid ounces`,`${v} glasses = ? fl oz`,[NF(v*8,{dp:0,unit:'fl oz'})],['1 แก้ว (glass) = 8 fluid ounces',`${v} × 8 = <b>${v*8} fl oz</b>`],{sub:k+v}),[v*6,v*16,v*30],0); }
+      if(k==='cup'){ const v=ri(2,5); return withNum(Q2('hh',lv,`${v} coffee cups เท่ากับกี่ fluid ounces`,`${v} cups = ? fl oz`,[NF(v*6,{dp:0,unit:'fl oz'})],['1 coffee cup = 6 fluid ounces',`${v} × 6 = <b>${v*6} fl oz</b>`],{sub:k+v}),[v*8,v*4,v*12],0); }
+      const v=pick([1,2,3,4,0.5]); return withNum(Q2('hh',lv,`ยา ${fm(v)} fluid ounce(s) ในมาตรประจำบ้านเท่ากับกี่ช้อนโต๊ะ`,`${fm(v)} fl oz = ? tbsp`,[NF(v*2,{dp:1,unit:'ช้อนโต๊ะ'})],['1 fluid ounce = 2 ช้อนโต๊ะ = 30 mL',`${fm(v)} × 2 = <b>${fm(v*2)} ช้อนโต๊ะ</b>`],{sub:k+v}),[v*6,v*3,v*8],1); }
+    const k=pick(['total','days','spoons']);
+    if(k==='total'){ const s=pick([1,2,0.5]), sp=pick([H[0],H[1]]), t=pick([2,3,4]), d=pick([5,7,10]); const tot=s*sp[1]*t*d;
+      return withNum(Q2('hh',lv,`แพทย์สั่งยาน้ำครั้งละ ${fm(s)} ${sp[0]} วันละ ${t} ครั้ง นาน ${d} วัน ต้องจ่ายยาทั้งหมดกี่ mL`,`${fm(s)} ${sp[0].split(' ')[0]} × ${t} ครั้ง × ${d} วัน`,[NF(tot,{dp:1,unit:'mL'})],
+        [`1 ${sp[0]} = ${sp[1]} mL ดังนั้นครั้งละ ${fm(s*sp[1])} mL`,`วันละ ${fm(s*sp[1])} × ${t} = ${fm(s*sp[1]*t)} mL`,`${d} วัน = <b>${fm(tot)} mL</b>`],{sub:k+s+sp[1]+t+d}),
+        [s*(sp[1]===5?15:5)*t*d,s*sp[1]*d,s*sp[1]*t],1); }
+    if(k==='days'){ const b=pick([60,100,120,150]), s=pick([1,2]), t=pick([2,3]), per=s*5*t, dd=Math.floor(b/per);
+      return withNum(Q2('hh',lv,`ยาน้ำขวด ${b} mL ผู้ป่วยรับประทานครั้งละ ${s} ช้อนชา วันละ ${t} ครั้ง ยาจะพอใช้เต็มวันได้กี่วัน`,`${b} mL ÷ (${s} tsp × ${t})`,[NF(dd,{dp:0,unit:'วัน',tol:0})],
+        [`ใช้วันละ ${s} × 5 × ${t} = ${per} mL`,`${b} ÷ ${per} = ${fm(b/per,2)} วัน`,`นับเฉพาะวันที่ยาพอครบ <b>${dd} วัน</b>`],{sub:k+b+s+t}),[Math.floor(b/(s*15*t)),Math.ceil(b/per)+(Math.ceil(b/per)===dd?1:0),Math.floor(b/(s*5))],0); }
+    const v=pick([2,3,4]); return withNum(Q2('hh',lv,`แพทย์สั่งยาครั้งละ ${v} ช้อนโต๊ะ ผู้ป่วยมีแต่ช้อนชา ต้องตวงครั้งละกี่ช้อนชา`,`${v} tbsp = ? tsp`,[NF(v*3,{dp:0,unit:'ช้อนชา'})],
+      [`1 ช้อนโต๊ะ = 15 mL และ 1 ช้อนชา = 5 mL`,`${v} ช้อนโต๊ะ = ${v*15} mL`,`${v*15} ÷ 5 = <b>${v*3} ช้อนชา</b>`],{sub:k+v}),[v*2,v*5,v*15],0); },
+
+  drop(lv){
+    if(lv==='easy'){ if(Math.random()<.5){ const c=pick([5,10,25,50,100,250,500,1000]); return withNum(Q2('drop',lv,`กระบอกตวงขนาด ${c} mL ตวงของเหลวได้น้อยที่สุดกี่ mL`,`20% ของ ${c} mL`,[NF(c*.2,{dp:1,unit:'mL'})],
+        ['ปริมาตรน้อยที่สุดที่ตวงได้แม่นคือ 20% ของขนาดกระบอกตวง',`${c} × 0.20 = <b>${fm(c*.2)} mL</b>`],{sub:'cyl'+c}),[c*.1,c*.5,c*.25],1); }
+      const v=pick([0.5,1,1.5,2,0.25,3]); return withNum(Q2('drop',lv,`หลอดหยดมาตรฐาน USP (20 หยดต่อ 1 mL) ยา ${fm(v)} mL เท่ากับกี่หยด`,`${fm(v)} mL = ? หยด`,[NF(v*20,{dp:1,unit:'หยด'})],
+        ['หลอดหยดมาตรฐาน USP-NF: เส้นผ่านศูนย์กลาง 3 mm ได้ 20 หยดต่อ 1 mL ที่ 25 °C',`${fm(v)} × 20 = <b>${fm(v*20)} หยด</b>`],{sub:'usp'+v}),[v*10,v*15,v*60],1); }
+    if(lv==='mid'){ const dr=pick([30,40,45,36,50]), ml=pick([1,2]), want=pick([0.25,0.3,0.5,0.6,0.75,0.1,1.5]); const r=dr*want/ml;
+      return withNum(Q2('drop',lv,`สอบเทียบหลอดหยดพบว่า ${dr} หยด เท่ากับ ${ml} mL ต้องการยา ${fm(want)} mL ต้องหยดกี่หยด`,`${dr} หยด = ${ml} mL, ${fm(want)} mL = ?`,[NF(r,{dp:2,unit:'หยด',alt:[Math.round(r)]})],
+        [`${ml} mL เท่ากับ ${dr} หยด`,`${fm(want)} mL เท่ากับ ${dr} × ${fm(want)} ÷ ${ml} = <b>${fm(r,2)} หยด</b>${Math.round(r)!==r?` หรือประมาณ ${Math.round(r)} หยด`:''}`],{sub:'cal'+dr+ml+want}),
+        [ml*want/dr*100,dr*want,want*20],2); }
+    const t=pick([0.1,0.2,0.05,0.25]), d=pick([10,15,20]); const ml=t*5, r=ml*d;
+    return withNum(Q2('drop',lv,`แพทย์สั่งยาให้ทารกครั้งละ ${fm(t)} ช้อนชา โรงพยาบาลมีหลอดหยด (1 mL เท่ากับ ${d} หยด) ต้องให้ยาครั้งละกี่หยด`,`${fm(t)} tsp → หยด`,[NF(r,{dp:1,unit:'หยด',alt:[Math.round(r)]})],
+      [`1 ช้อนชา = 5 mL ดังนั้น ${fm(t)} ช้อนชา = ${fm(ml,3)} mL`,`1 mL = ${d} หยด`,`${fm(ml,3)} × ${d} = <b>${fm(r,1)} หยด</b>`],{sub:'baby'+t+d}),[t*d,ml*20===r?ml*15:ml*20,t*15*d],1); },
+
+  xs(lv){ const X=[
+      ['gr2mg','grains','mg',64.8,65,'1 gr = 64.8 mg (practical 65 mg)'],
+      ['mg2gr','mg','grains',1/64.8,1/65,'1 gr = 64.8 mg ดังนั้นหารด้วย 64.8'],
+      ['g2gr','g','grains',15.432,15.4,'1 g = 15.432 grains'],
+      ['floz2ml','fluid ounces (f℥)','mL',29.57,30,'1 f℥ = 29.57 mL (practical 30 mL)'],
+      ['pt2ml','pints','mL',473,473,'1 pint = 473 mL'],
+      ['ml2min','mL','minims',16.23,16.23,'1 mL = 16.23 minims'],
+      ['min2ml','minims','mL',1/16.23,0.06,'16.23 minims = 1 mL (1 minim ≈ 0.06 mL)'],
+      ['kg2lb','kg','lb',2.2,2.2,'1 kg = 2.20 lb'],
+      ['ozapo2g','℥ (apo. oz)','g',31.1,30,'1 ℥ = 31.1 g'],
+      ['lbapo2g','apo. lb','g',373.2,373.2,'1 apo lb = 373.2 g'],
+      ['gal2ml','gallons','mL',3785,3785,'1 gallon = 3,785 mL']];
+    if(lv==='hard'){ const k=pick(['grtot','mintot','wt']);
+      if(k==='grtot'){ const n=pick([50,100,200]), mg=pick([250,300,325,500]); const g=n*mg/1000, r=g*15.432;
+        return withNum(Q2('xs',lv,`เตรียมยา ${n} ซอง ซองละ ${mg} mg ต้องใช้ตัวยาทั้งหมดกี่ grains (1 g = 15.432 gr)`,`${n} × ${mg} mg → grains`,[NF(r,{dp:1,rel:.004,unit:'grains',alt:[n*mg/64.8]})],
+          [`ตัวยาทั้งหมด ${n} × ${mg} = ${fm(n*mg)} mg = ${fm(g)} g`,`1 g = 15.432 grains`,`${fm(g)} × 15.432 = <b>${fm(r,1)} grains</b> (ใช้ ÷ 64.8 ก็ได้ใกล้เคียงกัน)`],{sub:k+n+mg}),[g*64.8,n*mg*15.432,r/12],1); }
+      if(k==='mintot'){ const m=pick([5,10,15,20]), t=pick([2,3,4]), d=pick([5,7,10]); const tot=m*t*d, r=tot/16.23;
+        return withNum(Q2('xs',lv,`ยาหยอดใช้ครั้งละ ${m} minims วันละ ${t} ครั้ง นาน ${d} วัน ต้องใช้ยาทั้งหมดกี่ mL (16.23 minims = 1 mL)`,`${m} minims × ${t} × ${d} → mL`,[NF(r,{dp:2,rel:.003,unit:'mL'})],
+          [`ใช้ยาทั้งหมด ${m} × ${t} × ${d} = ${tot} minims`,'16.23 minims = 1 mL',`${tot} ÷ 16.23 = <b>${fm(r,2)} mL</b>`],{sub:k+m+t+d}),[tot*0.0616*16.23/16.23*1.07,tot*16.23,tot/60],2); }
+      const kg=pick([5,12,18,22,30]); const lb=kg*2.2; return withNum(Q2('xs',lv,`เด็กหนัก ${fm(lb,1)} lb คิดเป็นกี่ kg (1 kg = 2.20 lb)`,`${fm(lb,1)} lb = ? kg`,[NF(kg,{dp:1,unit:'kg',tol:.06})],
+        ['1 kg = 2.20 lb',`${fm(lb,1)} ÷ 2.2 = <b>${fm(kg,1)} kg</b>`],{sub:k+kg}),[lb*2.2,lb/2,kg*0.454*2],1); }
+    const c=pick(X); const [k,a,b,ex,pr,rule]=c; const usePr=lv==='easy'&&pr!==ex; let v;
+    if(k==='mg2gr') v=pick([130,195,260,325,650,300,500]); else if(k==='min2ml') v=pick([15,30,45,60,100]); else if(k==='gal2ml') v=pick([1,2,0.5]); else if(k==='pt2ml') v=pick([1,2,0.5,3]); else v=pick([1,2,3,4,5,10,0.5,1.5,2.5]);
+    const f=usePr?pr:ex, r=v*f, dp=r<100?3:1;
+    const note=usePr?'ใช้ค่า practical':'ใช้ค่า exact';
+    return withNum(Q2('xs',lv,`${fm(v)} ${a} เท่ากับกี่ ${b} (${note})`,`${fm(v)} ${a} = ? ${b}`,[NF(r,{dp,rel:.004,unit:b,alt:pr!==ex?[v*(usePr?ex:pr)]:[]})],
+      [rule+(usePr?' ข้อนี้ใช้ค่าประมาณ (practical)':''),`${fm(v)} ${k==='mg2gr'||(k==='min2ml'&&!usePr)?'÷ '+fm(1/f,2):'× '+fm(f,3)} = <b>${fm(r,dp)} ${b}</b>`],{sub:k+v+usePr}),
+      [v/f,r*10,v*(k.startsWith('oz')?28.35:k==='floz2ml'?15:f*1.25)],dp); },
+
+  word(lv){ const D=[['Suprax® (cefixime)',100,5],['ibuprofen',100,5],['paracetamol',120,5],['amoxicillin',125,5],['paracetamol',250,5],['Tylenol with codeine® (codeine)',12,5]];
+    const [nm,mg,per]=pick(D);
+    if(lv==='easy'){ const s=pick([1,2]), sp=pick([['ช้อนชา',5],['ช้อนโต๊ะ',15]]), ml=s*sp[1], r=mg*ml/per;
+      return withNum(Q2('word',lv,`ยาน้ำ ${nm} ${mg} mg/${per} mL ผู้ป่วยรับประทานครั้งละ ${s} ${sp[0]} ได้รับตัวยาครั้งละกี่ mg`,`${mg} mg/${per} mL, ${s} ${sp[0]}`,[NF(r,{dp:1,unit:'mg'})],
+        [`${s} ${sp[0]} = ${ml} mL`,`ยา ${per} mL มีตัวยา ${mg} mg`,`ยา ${ml} mL มีตัวยา ${mg} × ${ml} ÷ ${per} = <b>${fm(r,1)} mg</b>`],{sub:'e'+nm+mg+s+sp[1]}),[mg*s,mg*ml,r/2],1); }
+    if(lv==='mid'){ const s=pick([1,2]), t=pick([2,3]), d=pick([5,7,10]), ml=s*5*t*d, g=mg*ml/per/1000;
+      return withNum(Q2('word',lv,`ยาน้ำ ${nm} ${mg} mg/${per} mL ครั้งละ ${s} ช้อนชา วันละ ${t} ครั้ง นาน ${d} วัน ผู้ป่วยได้รับตัวยาทั้งหมดกี่กรัม`,`${s} tsp × ${t} × ${d} วัน`,[NF(g,{dp:3,unit:'g'})],
+        [`${s} ช้อนชา = ${s*5} mL, วันละ ${s*5*t} mL, ${d} วัน = ${ml} mL`,`ตัวยา ${mg} × ${ml} ÷ ${per} = ${fm(g*1000)} mg`,`${fm(g*1000)} mg ÷ 1,000 = <b>${fm(g,3)} g</b>`],{sub:'m'+nm+mg+s+t+d}),[g*1000,g*3,mg*ml/1000],3); }
+    const oz=pick([2,3,4]), ml=oz*30, totmg=mg*ml/per, gr=totmg/65;
+    return withNum(Q2('word',lv,`ยาน้ำ ${nm} ${mg} mg/${per} mL เภสัชกรจ่ายยา ${oz} fluidounces ผู้ป่วยได้รับตัวยาทั้งหมดกี่ grains (ใช้ 1 f℥ = 30 mL และ 1 gr = 65 mg)`,`${oz} f℥ ของ ${mg} mg/${per} mL → grains`,[NF(gr,{dp:2,rel:.005,unit:'grains',alt:[totmg/64.8]})],
+      [`${oz} f℥ × 30 = ${ml} mL`,`ตัวยา ${mg} × ${ml} ÷ ${per} = ${fm(totmg)} mg`,`${fm(totmg)} ÷ 65 = <b>${fm(gr,2)} grains</b> (ถ้าใช้ค่า exact 64.8 จะได้ ${fm(totmg/64.8,2)})`],{sub:'h'+nm+mg+oz}),[totmg/15.432,totmg*65/1000,gr*8],2); },
+
+  con2(lv){ const ids=CON2.map((c,i)=>i).filter(i=>lv==='mix'||CON2[i][3]===lv); return bCon2(pick(ids.length?ids:CON2.map((c,i)=>i))); }
+};
+Object.assign(GEN,GEN2);
+function withNum(q,wrongs,dp){ return mc2(q,wrongs,dp); }
+
+/* ---------- ข้อช้อยทฤษฎีบทที่ 2: [โจทย์, [ถูก, ผิด, ผิด, ผิด], เหตุผล, ระดับ, หน้าในบท] ---------- */
+const CON2=[
+ ['ระบบมาตราที่ต้องรู้ในบทนี้มีกี่ระบบ',['4 ระบบ: เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน','2 ระบบ: เมตริก และอังกฤษ','3 ระบบ: เมตริก อะโปธิคารี มาตรประจำบ้าน','5 ระบบ: เมตริก อะโปธิคารี อะวัวดูปัวส์ ทรอย มาตรประจำบ้าน'],'บทนี้ใช้ 4 ระบบ คือ เมตริก อะโปธิคารี อะวัวดูปัวส์ และมาตรประจำบ้าน','easy',3],
+ ['ระบบเมตริกเริ่มใช้ครั้งแรกที่ไหน เมื่อไร',['ฝรั่งเศส ค.ศ. 1809','อังกฤษ ค.ศ. 1809','อเมริกา ค.ศ. 1866','ฝรั่งเศส ค.ศ. 1866'],'เริ่มใช้ ค.ศ. 1809 ที่ฝรั่งเศส แล้วอเมริกานำมาใช้อย่างเป็นทางการ ค.ศ. 1866','mid',3],
+ ['ข้อใดอธิบายระบบเมตริกได้ถูกต้อง',['เป็นระบบฐาน 10 แต่ละหน่วยห่างกัน 10 เท่า','แต่ละหน่วยห่างกัน 12 เท่า','มีเฉพาะหน่วยน้ำหนักและปริมาตร','เขียนตัวเลขด้วยเลขโรมัน'],'ระบบเมตริกเป็น decimal system ใช้คำนำหน้าจากภาษาละติน และมีทั้งความยาว ปริมาตร น้ำหนัก','easy',3],
+ ['คำนำหน้า micro- (µ) มีค่าเท่าใด',['10⁻⁶','10⁻³','10⁻⁹','10⁶'],'deci 0.1, centi 0.01, milli 0.001, micro 10⁻⁶, nano 10⁻⁹','easy',4],
+ ['คำนำหน้า nano- (n) มีค่าเท่าใด',['10⁻⁹','10⁻⁶','10⁻¹²','10⁹'],'nano = 10⁻⁹ ส่วน pico = 10⁻¹²','easy',4],
+ ['ตัวย่อ M กับ m ต่างกันอย่างไร',['M คือ mega (10⁶) ส่วน m คือ milli (10⁻³)','M คือ milli ส่วน m คือ mega','ทั้งสองคือ milli','M คือ micro ส่วน m คือ milli'],'ระวังตัวย่อ M (mega) กับ m (milli) คนละตัวกัน','mid',4],
+ ['เปลี่ยนจากหน่วยใหญ่ไปหน่วยเล็กในระบบเมตริก ต้องทำอย่างไร',['คูณ หรือเลื่อนจุดทศนิยมไปทางขวา','หาร หรือเลื่อนจุดไปทางซ้าย','บวกด้วย 1,000','ลบด้วย 1,000'],'ใหญ่ไปเล็กคูณ (จุดไปขวา) เล็กไปใหญ่หาร (จุดไปซ้าย)','easy',4],
+ ['หน่วยพื้นฐานของปริมาตรในระบบเมตริกคือข้อใด',['ลิตร (L)','มิลลิลิตร (mL)','ลูกบาศก์เมตร (m³)','ออนซ์ (oz)'],'น้ำหนัก กรัม, ปริมาตร ลิตร, ความยาว เมตร, พื้นที่ ตารางเมตร','easy',5],
+ ['1 mL เท่ากับข้อใด',['1 cm³ หรือ 1 cc','1 dm³','10 cc','0.1 cm³'],'1 mL = 1 cm³ = 1 cc จึงแปลง mL กับ cc ได้แบบ 1 ต่อ 1','easy',6],
+ ['ใบสั่งยาเขียนว่า Aspirin 1.00 และ Cheracol q.s. 120.00 โดยไม่เขียนหน่วย ต้องอ่านหน่วยอย่างไร',['Aspirin เป็น g และ Cheracol เป็น mL','ทั้งสองเป็น g','ทั้งสองเป็น mL','Aspirin เป็น mg และ Cheracol เป็น L'],'ถ้าไม่เขียนหน่วย ของแข็งถือเป็น g และของเหลวถือเป็น mL','mid',8],
+ ['q.s. ในใบสั่งยามีความหมายว่าอะไร',['ใส่ในปริมาณที่พอเพียง (quantum sufficiat)','ทุก 4 ชั่วโมง','ก่อนอาหาร','จงเอาไป'],'q.s. = quantum sufficiat แปลว่าใส่ในปริมาณที่พอเพียง ส่วน Rx แปลว่าจงเอาไป','mid',8],
+ ['ระบบสามัญหรือระบบอังกฤษแบ่งเป็นระบบใดบ้าง',['อะโปธิคารี และอะวัวดูปัวส์','เมตริก และอะโปธิคารี','อะวัวดูปัวส์ และมาตรประจำบ้าน','ทรอย และเมตริก'],'ระบบสามัญแบ่งเป็น apothecary และ avoirdupois','easy',8],
+ ['ระบบอะโปธิคารีมีหน่วยวัดอะไรบ้าง',['เฉพาะน้ำหนักและปริมาตร','เฉพาะน้ำหนัก','น้ำหนัก ปริมาตร และความยาว','เฉพาะปริมาตร'],'อะโปธิคารีมีเฉพาะหน่วยน้ำหนักและปริมาตร ส่วนอะวัวดูปัวส์มีเฉพาะน้ำหนัก','mid',8],
+ ['ระบบอะโปธิคารีบางครั้งเรียกว่าอะไร',['Troy weight','International system','Household system','Decimal system'],'อะโปธิคารีเริ่มใช้ที่อังกฤษ บางครั้งเรียกว่า Troy weight','mid',8],
+ ['ระบบอะโปธิคารีนิยมเขียนตัวเลขแบบใด',['เลขโรมันไว้หลังหน่วย เช่น gr. V','เลขอารบิกไว้หลังหน่วย','เลขโรมันไว้หน้าหน่วย','ทศนิยมไว้หลังหน่วย'],'นิยมเลขโรมันหลังหน่วย ถ้าใช้เลขอารบิกให้เขียนไว้หน้าหน่วย เช่น 5 grain','mid',10],
+ ['ส่วนย่อยของ grains หรือ minims ในระบบอะโปธิคารีเขียนอย่างไร',['เศษส่วน','ทศนิยม','เปอร์เซ็นต์','เลขยกกำลัง'],'ส่วนย่อย (subdivision) ของ grains หรือ minims ใช้เศษส่วน','hard',10],
+ ['ยาใดที่ยังพบขนาดยาเป็นหน่วยอะโปธิคารี',['aspirin และ phenobarbital','paracetamol และ ibuprofen','amoxicillin และ cefixime','insulin และ heparin'],'ยังเจอในยาบางตัว เช่น morphine, aspirin, phenobarbital, nitroglycerin','mid',8],
+ ['ในระบบอะโปธิคารี 1 scruple (℈) เท่ากับกี่ grains',['20 grains','60 grains','3 grains','480 grains'],'20 grains = 1 scruple, 3 scruples = 1 dram','easy',9],
+ ['ในระบบอะโปธิคารี 1 dram (ʒ) เท่ากับกี่ grains',['60 grains','20 grains','480 grains','8 grains'],'1 dram = 3 scruples = 60 grains','easy',9],
+ ['ในระบบอะโปธิคารี 1 ounce (℥) เท่ากับเท่าใด',['8 drams = 480 grains','12 drams = 720 grains','16 drams = 437.5 grains','3 drams = 180 grains'],'8 drams = 1 ounce = 480 grains','easy',9],
+ ['1 pound ของระบบอะโปธิคารีมีกี่ ounces',['12 ounces','16 ounces','8 ounces','20 ounces'],'pound อะโปธิคารีมีแค่ 12 ounces (5,760 grains) ส่วน pound อะวัวดูปัวส์มี 16 ounces','mid',9],
+ ['ลำดับการจำหน่วยน้ำหนักอะโปธิคารี 20 แล้ว 3 แล้ว 8 แล้ว 12 หมายถึงข้อใด',['gr → ℈ → ʒ → ℥ → lb','gr → ʒ → ℈ → ℥ → lb','℈ → gr → ʒ → lb → ℥','gr → ℥ → ʒ → ℈ → lb'],'20 gr = 1 ℈, 3 ℈ = 1 ʒ, 8 ʒ = 1 ℥, 12 ℥ = 1 lb','mid',9],
+ ['1 fluid dram (fʒ) เท่ากับกี่ minims',['60 minims','8 minims','16 minims','480 minims'],'60 minims = 1 fluid dram','easy',9],
+ ['1 pint เท่ากับกี่ fluid ounces',['16 fluid ounces','8 fluid ounces','12 fluid ounces','32 fluid ounces'],'16 fluid ounces = 1 pint, 2 pints = 1 quart, 4 quarts = 1 gallon','easy',9],
+ ['1 gallon (US) เท่ากับกี่ pints',['8 pints','4 pints','2 pints','16 pints'],'1 gallon = 4 quarts = 8 pints','mid',10],
+ ['สัญลักษณ์ O และ C ในระบบอะโปธิคารีหมายถึงอะไร',['O คือ pint และ C คือ gallon','O คือ ounce และ C คือ cup','O คือ quart และ C คือ pint','O คือ gallon และ C คือ pint'],'pint เขียนเป็น pt หรือ O ส่วน gallon เขียนเป็น gal หรือ C','hard',10],
+ ['ระบบอะวัวดูปัวส์มีลักษณะตรงกับข้อใด',['ระบบทางการค้า มีเฉพาะมาตราน้ำหนัก','ใช้ปรุงยาในห้องยา มีน้ำหนักและปริมาตร','ใช้วัดความยาว','ใช้ตวงยาที่บ้าน'],'อะวัวดูปัวส์เป็นระบบทางการค้า ใช้ซื้อขายปริมาณมาก มีเฉพาะมาตราน้ำหนัก','easy',11],
+ ['หน่วยใดมีค่าเท่ากันทั้งในระบบอะโปธิคารีและอะวัวดูปัวส์',['grain','ounce','pound','dram'],'เท่ากันแค่ grain นอกนั้นไม่เท่ากันแม้ชื่อเรียกเหมือนกัน','mid',11],
+ ['1 ounce (avoir) เท่ากับกี่ grains',['437.5 grains','480 grains','454 grains','7,000 grains'],'1 oz avoir = 437.5 gr แต่ 1 ℥ apo = 480 gr','easy',11],
+ ['1 pound (avoir) เท่ากับเท่าใด',['16 oz = 7,000 grains','12 oz = 5,760 grains','16 oz = 5,760 grains','12 oz = 7,000 grains'],'1 lb avoir = 16 oz = 7,000 gr ส่วน 1 lb apo = 12 ℥ = 5,760 gr','mid',12],
+ ['โจทย์เขียน oz (avoir) ควรใช้ค่าใด',['437.5 gr หรือ 28.35 g','480 gr หรือ 31.1 g','437.5 gr หรือ 31.1 g','480 gr หรือ 28.35 g'],'oz avoir ใช้ 437.5 gr หรือ 28.35 g ถ้าเป็น ℥ หรือ apo. oz ใช้ 480 gr หรือ 31.1 g','mid',12],
+ ['ข้อใดถูกต้องเกี่ยวกับระบบมาตรประจำบ้าน',['ไม่ค่อยแม่นยำ ใช้วัดอย่างประมาณ นำไปปรุงยาไม่ได้','แม่นยำที่สุด ใช้ปรุงยาได้','ใช้ในอุตสาหกรรมยา','เป็นระบบฐาน 10'],'มาตรประจำบ้านไม่ค่อยแม่นยำ ใช้วัดอย่างประมาณเท่านั้น นำไปปรุงยาไม่ได้','easy',12],
+ ['หน้าที่ของเภสัชกรเกี่ยวกับมาตรประจำบ้านคือข้อใด',['แปลงขนาดยาเป็นหน่วยมาตรประจำบ้านตอนจัดยาและเขียนฉลาก','แปลงขนาดยาเป็นอะโปธิคารี','ใช้มาตรประจำบ้านปรุงยา','ห้ามใช้มาตรประจำบ้านบนฉลาก'],'ใบสั่งยามักเป็นเมตริกหรืออะโปธิคารี เภสัชกรต้องแปลงเป็นช้อนชา ช้อนโต๊ะ ให้ผู้ป่วยใช้ที่บ้าน','easy',12],
+ ['ในทางปฏิบัติ 1 ช้อนชา เท่ากับกี่ mL',['5 mL','4.93 mL','3.69 mL','15 mL'],'ช้อนชามาตรฐานสหรัฐ 4.93 ± 0.24 mL แต่ในทางปฏิบัติกำหนดให้ 5 mL','easy',12],
+ ['1 ช้อนโต๊ะ เท่ากับเท่าใด',['15 mL หรือ 3 ช้อนชา','10 mL หรือ 2 ช้อนชา','30 mL หรือ 6 ช้อนชา','8 mL'],'1 ช้อนโต๊ะ = 15 mL = 3 ช้อนชา','easy',13],
+ ['1 dessertspoonful (dssp) เท่ากับกี่ mL',['8 mL','5 mL','10 mL','15 mL'],'tsp 5, dssp 8, tbsp 15 mL','mid',12],
+ ['ตัวย่อ gtt หมายถึงอะไร',['หยด (guttae, drop)','ช้อนชา','แก้ว','กรัม'],'gtt ย่อมาจาก guttae แปลว่าหยด','easy',12],
+ ['1 แก้ว (glass) และ 1 coffee cup เท่ากับกี่ fluid ounces ตามลำดับ',['8 และ 6 fl oz','6 และ 8 fl oz','8 และ 8 fl oz','16 และ 6 fl oz'],'1 glass = 8 fl oz และ 1 coffee cup = 6 fl oz','mid',12],
+ ['ถ้าเครื่องหมายช้อนชาปรากฏในการปรุงยา (ไม่ใช่วิธีใช้ของผู้ป่วย) จะเท่ากับกี่ mL ตามระบบอะโปธิคารี',['3.69 mL','5 mL','4.93 mL','8 mL'],'ในวิธีใช้ของผู้ป่วยเท่ากับ 5 mL แต่ในการปรุงยาเท่ากับ 3.69 mL (1 fluidram)','hard',12],
+ ['ทำไมยาน้ำแต่ละชนิด 1 mL จึงมีจำนวนหยดไม่เท่ากัน',['ความหนืด ความหนาแน่น แรงตึงผิว อุณหภูมิ และมุมที่หยด','สีของยา','ขนาดขวดยา','วันหมดอายุ'],'จำนวนหยดขึ้นกับความหนืด ความหนาแน่น แรงตึงผิว อุณหภูมิ และมุมที่หยด','mid',13],
+ ['หลอดหยดมาตรฐาน USP-NF ได้กี่หยดต่อ 1 mL',['20 หยด ที่ 25 °C (เส้นผ่านศูนย์กลาง 3 mm)','10 หยด ที่ 37 °C','16.23 หยด','60 หยด'],'USP-NF: เส้นผ่านศูนย์กลางกลาง 3 mm ได้ 20 หยดต่อ 1 mL ที่ 25 °C และ 1 หยดหนักประมาณ 45 ถึง 55 mg','mid',13],
+ ['แพทย์สั่งยาเป็นจำนวนหยดในกรณีใด',['ยาอันตรายหรือยาน้ำเด็กเล็กที่ใช้ปริมาณน้อยมาก','ยาที่ใช้ปริมาณมาก','ยาเม็ด','ยาฉีดทุกชนิด'],'ยาอันตรายหรือยาน้ำเด็กเล็กใช้ปริมาณน้อยมาก แพทย์จึงสั่งเป็นจำนวนหยด','easy',13],
+ ['ปริมาตรน้อยที่สุดที่ตวงด้วยกระบอกตวงได้คือเท่าใด',['20% ของขนาดกระบอกตวง','10% ของขนาดกระบอกตวง','50% ของขนาดกระบอกตวง','1 mL เสมอ'],'ตวงได้น้อยสุด 20% ของขนาดกระบอก เช่น กระบอก 10 mL ตวงได้น้อยสุด 2 mL','easy',13],
+ ['ต้องการตวงยา 1 mL แต่มีกระบอกตวง 10 mL ควรทำอย่างไร',['ใช้หลอดหยดที่สอบเทียบกับกระบอกตวงแล้ว','ตวงด้วยกระบอก 10 mL ได้เลย','ใช้ช้อนชา','ใช้กระบอก 100 mL'],'ต่ำกว่า 20% (2 mL) ไม่เหมาะ ต้องใช้หลอดหยดที่สอบเทียบแล้ว','mid',13],
+ ['practical equivalent ต่างจาก exact equivalent อย่างไร',['practical ใช้ค่าประมาณเตรียมยาปริมาณไม่มาก ส่วน exact ใช้ค่าแน่นอนในการปรุงยา','practical ใช้ปรุงยา ส่วน exact ใช้ที่บ้าน','ทั้งสองค่าเท่ากันเสมอ','exact ใช้เฉพาะระบบเมตริก'],'practical ใช้ค่าประมาณ ส่วน exact ใช้ค่าแน่นอนเพื่อความถูกต้องในการปรุงยา','easy',15],
+ ['1 grain เท่ากับกี่ mg (exact และ practical)',['64.8 mg และ 65 mg','65 mg และ 60 mg','60 mg และ 65 mg','15.432 mg และ 15 mg'],'1 gr = 64.8 mg (exact) ประมาณ 65 mg (practical)','easy',16],
+ ['1 g เท่ากับกี่ grains',['15.432 grains','64.8 grains','16.23 grains','437.5 grains'],'1 g = 15.432 gr','easy',16],
+ ['1 fluid ounce (f℥) เท่ากับกี่ mL (exact และ practical)',['29.57 mL และ 30 mL','31.1 mL และ 30 mL','28.35 mL และ 30 mL','30 mL และ 29.57 mL'],'1 f℥ = 29.57 mL ประมาณ 30 mL','easy',16],
+ ['1 ℥ (apo) และ 1 oz (avoir) เท่ากับกี่กรัม ตามลำดับ',['31.1 g และ 28.35 g','28.35 g และ 31.1 g','29.57 g และ 28.35 g','31.1 g และ 30 g'],'1 ℥ = 31.1 g ส่วน 1 oz avoir = 28.35 g (ทั้งคู่ practical ≈ 30 g)','mid',16],
+ ['1 pound อะโปธิคารี และ 1 pound อะวัวดูปัวส์ เท่ากับกี่กรัม ตามลำดับ',['373.2 g และ 453.6 g','453.6 g และ 373.2 g','373.2 g และ 437.5 g','480 g และ 454 g'],'1 lb apo = 373.2 g และ 1 lb avoir = 453.6 g (≈ 454 g)','mid',17],
+ ['1 mL เท่ากับกี่ minims',['16.23 minims','60 minims','15.432 minims','20 minims'],'16.23 minims = 1 mL (1 minim ≈ 0.06 mL)','easy',17],
+ ['1 pint เท่ากับกี่ mL',['473 mL','480 mL','500 mL','946 mL'],'1 pint = 473.2 mL ประมาณ 473 mL (มาตรประจำบ้านถือ 500 mL)','easy',16],
+ ['1 kg เท่ากับกี่ lb',['2.20 lb','0.454 lb','2.68 lb','1.6 lb'],'1 kg = 2.20 lb','easy',17],
+ ['1 minim (เฉพาะน้ำ) หนักประมาณกี่ grains',['0.95 grains','1 grain','0.06 grains','16.23 grains'],'1 minim (ใช้กับน้ำเท่านั้น) = 0.95 gr','hard',17],
+ ['1 apo pound เท่ากับกี่ pound (avoir)',['0.85 lb','1.2 lb','0.75 lb','1 lb'],'1 apo pound = 0.85 pound','hard',17],
+ ['1 gallon (US) เท่ากับกี่ mL',['3,785 mL','3,000 mL','4,000 mL','946 mL'],'1 gallon = 3,785.3 mL หรือ 128 fluid ounces','mid',16],
+ ['1 quart (qt) เท่ากับเท่าใด',['946 mL (ประจำบ้านถือ 1 ลิตร)','473 mL','500 mL','3,785 mL'],'1 quart = 946 mL ในมาตรประจำบ้านถือเป็น 1 liter','mid',13],
+ ['สไลด์ตัวอย่างโจทย์ Tylenol with codeine ใช้ค่า 1 f℥ เท่าใด',['30 mL (practical)','29.57 mL (exact)','28.35 mL','31.1 mL'],'สไลด์ตัวอย่างใช้ practical 30 mL ถ้าโจทย์บอกให้ใช้ค่า exact ค่อยใช้ 29.57 mL','mid',18],
+ ['ข้อใดคือตัวเลขทองที่จับคู่ถูก',['1 gr = 64.8 mg, 1 ℥ = 31.1 g, 1 mL = 16.23 minims','1 gr = 65 g, 1 ℥ = 28.35 g, 1 mL = 60 minims','1 gr = 15.432 mg, 1 ℥ = 31.1 g','1 f℥ = 473 mL, 1 pint = 29.57 mL'],'ตัวเลขทอง: 1 gr = 64.8 mg, 1 g = 15.432 gr, 1 ℥ = 31.1 g, 1 oz avoir = 28.35 g, 1 mL = 16.23 minims, 1 f℥ = 29.57 mL, 1 pint = 473 mL','hard',18],
+];
+function bCon2(i){ const [st,opts,why,lv,pg]=CON2[i]; const sh=shuf(opts);
+  return {t:'con2',lv,stem:st,big:'',fields:[{kind:'text',show:opts[0],acc:[]}],exp:[why],id:'con2|'+i,mc:{opts:sh,ans:sh.indexOf(opts[0])},mcOnly:true,plain:true,pg:C2P(pg)}; }
+
+/* ---------- แบบฝึกหัดในชีทบทที่ 2 (เฉลยสีแดง) ---------- */
+function set2Sheet(){ const S=(no,o={})=>({src:'แบบฝึกหัดบทที่ 2',no:'ข้อ '+no,...o});
+  const cv=(t,no,lv,v,a,b,r,dp,exp,wr,o={})=>withNum(Q2(t,lv,`จงเปลี่ยนหน่วย ${v} ${a} เท่ากับกี่ ${b}`,`${v} ${a} = ? ${b}`,[NF(r,{dp,unit:b,...o})],exp,{sub:'sh'+no,...S(no)}),wr,dp);
+  const L=[
+  cv('met','1.1','easy','2.5','grams','milligrams',2500,0,['1 g = 1,000 mg','2.5 × 1,000 = <b>2,500 mg</b>'],[250,25000,0.0025]),
+  cv('met','1.2','easy','750','milligrams','grams',0.75,3,['1,000 mg = 1 g','750 ÷ 1,000 = <b>0.75 g</b>'],[7.5,0.075,750000]),
+  cv('met','1.3','easy','0.025','grams','milligrams',25,2,['1 g = 1,000 mg','0.025 × 1,000 = <b>25 mg</b>'],[2.5,250,0.000025]),
+  cv('met','1.4','easy','3500','micrograms','milligrams',3.5,3,['1,000 µg = 1 mg','3,500 ÷ 1,000 = <b>3.5 mg</b>'],[35,0.35,3500000]),
+  cv('met','1.5','easy','0.75','kilograms','grams',750,0,['1 kg = 1,000 g','0.75 × 1,000 = <b>750 g</b>'],[75,7500,0.00075]),
+  cv('met','1.6','easy','1250','milliliters','liters',1.25,3,['1,000 mL = 1 L','1,250 ÷ 1,000 = <b>1.25 L</b>'],[12.5,0.125,1250000]),
+  cv('met','1.7','easy','0.05','liters','milliliters',50,1,['1 L = 1,000 mL','0.05 × 1,000 = <b>50 mL</b>'],[5,500,0.00005]),
+  cv('met','1.8','easy','450','microliters','milliliters',0.45,3,['1,000 µL = 1 mL','450 ÷ 1,000 = <b>0.45 mL</b>'],[4.5,0.045,450000]),
+  cv('met','1.9','mid','2.5','centimeters','micrometers',25000,0,['cm ไป µm ห่างกัน 10⁴ (1 cm = 10,000 µm)','2.5 × 10,000 = <b>25,000 µm</b>'],[2500,250000,0.00025]),
+  cv('met','1.10','easy','0.035','milligrams','micrograms',35,2,['1 mg = 1,000 µg','0.035 × 1,000 = <b>35 µg</b>'],[3.5,350,0.000035]),
+  cv('xs','2.1','mid','10','grains','milligrams',648,1,['1 gr = 64.8 mg (exact)','10 × 64.8 = <b>648 mg</b> (ถ้าใช้ค่าประมาณ 65 mg จะได้ 650 mg)'],[650*1.1,154.32,6480],{alt:[650]}),
+  cv('xs','2.2','mid','5','grains','grams',0.324,3,['1 gr = 64.8 mg = 0.0648 g','5 × 0.0648 = <b>0.324 g</b> (ค่าประมาณ 0.325 g)'],[3.24,77.16,0.0324],{alt:[0.325]}),
+  cv('apo','2.3','easy','2','scruples','grains',40,0,['1 scruple = 20 grains','2 × 20 = <b>40 grains</b>'],[60,6,120]),
+  cv('apo','2.4','easy','3','drams','grains',180,0,['1 dram = 60 grains','3 × 60 = <b>180 grains</b>'],[60,9,1440]),
+  cv('apo','2.5','easy','2','ounces','drams',16,0,['1 ounce = 8 drams','2 × 8 = <b>16 drams</b>'],[24,960,6]),
+  cv('xs','2.6','mid','1.5','ounces','grams',46.65,2,['1 apo. oz (℥) = 31.1 g','1.5 × 31.1 = <b>46.65 g</b>'],[42.53,45,720],{tol:.01}),
+  cv('xs','2.7','mid','30','grains','grams',1.944,3,['1 gr = 0.0648 g','30 × 0.0648 = <b>1.944 g</b> (ประมาณ 1.94 g)'],[1.5,0.5,19.44],{tol:.006,alt:[1.95]}),
+  cv('apo','2.8','easy','120','grains','drams',2,1,['1 dram = 60 grains','120 ÷ 60 = <b>2 drams</b>'],[6,0.25,7200]),
+  cv('apo','2.9','easy','3','fluid drams','minims',180,0,['1 fluid dram = 60 minims','3 × 60 = <b>180 minims</b>'],[24,48.69,1440]),
+  cv('apo','2.10','easy','5','fluid ounces','fluid drams',40,0,['1 fluid ounce = 8 fluid drams','5 × 8 = <b>40 fluid drams</b>'],[80,300,60]),
+  cv('apo','2.11','easy','2','pints','fluid ounces',32,0,['1 pint = 16 fluid ounces','2 × 16 = <b>32 fluid ounces</b>'],[16,24,946]),
+  cv('apo','2.12','easy','4','fluid ounces','fluid drams',32,0,['1 fluid ounce = 8 fluid drams','4 × 8 = <b>32 fluid drams</b>'],[64,240,48]),
+  cv('apo','2.13','mid','1','pints','minims',7680,0,['1 pint = 16 f℥, 1 f℥ = 8 fʒ, 1 fʒ = 60 minims','16 × 8 × 60 = <b>7,680 minims</b>'],[960,5760,7676.8]),
+  cv('avo','3.1','easy','2','pound (avoir)','ounce',32,0,['1 lb avoir = 16 oz','2 × 16 = <b>32 oz</b>'],[24,14,875]),
+  cv('avo','3.2','mid','3','pound (avoir)','grams',1360.8,1,['1 lb avoir = 453.6 g','3 × 453.6 = <b>1,360.8 g</b>'],[1119.6,1362*1.1,21000],{tol:.06,alt:[1362]}),
+  cv('avo','3.6','mid','1.5','ounces (avoir)','g',42.53,2,['1 oz avoir = 28.35 g','1.5 × 28.35 = <b>42.53 g</b>'],[46.65,45,656.25],{tol:.01}),
+  cv('hh','4.1','easy','2','teaspoons','milliliters',10,0,['1 ช้อนชา = 5 mL','2 × 5 = <b>10 mL</b>'],[30,16,8]),
+  cv('hh','4.2','easy','3','teaspoons','milliliters',15,0,['1 ช้อนชา = 5 mL','3 × 5 = <b>15 mL</b>'],[45,24,5]),
+  cv('hh','4.3','easy','2','tablespoons','milliliters',30,0,['1 ช้อนโต๊ะ = 15 mL','2 × 15 = <b>30 mL</b>'],[10,60,16]),
+  cv('hh','4.4','easy','5','tablespoons','milliliters',75,0,['1 ช้อนโต๊ะ = 15 mL','5 × 15 = <b>75 mL</b>'],[25,150,40]),
+  cv('hh','4.5','easy','2','glasses','fluid ounces',16,0,['1 แก้ว (glass) = 8 fluid ounces','2 × 8 = <b>16 fl oz</b>'],[12,60,32]),
+  cv('hh','4.6','easy','3','quarts','liters',3,1,['มาตรประจำบ้าน 1 quart = 1 liter','3 × 1 = <b>3 L</b>'],[2.838,1.5,6]),
+  cv('hh','4.7','easy','2','cups','fluid ounces',12,0,['1 coffee cup = 6 fl oz','2 × 6 = <b>12 fl oz</b>'],[16,8,24]),
+  cv('hh','4.9','easy','6','teaspoons','tablespoons',2,1,['1 ช้อนโต๊ะ = 3 ช้อนชา','6 ÷ 3 = <b>2 ช้อนโต๊ะ</b>'],[18,3,1.5]),
+  withNum(Q2('xs','mid','แพทย์สั่งยาในขนาด 5 grains ต้องการเตรียมยาเป็นหน่วย milligram จะต้องใช้ยากี่ milligrams','5 grains = ? mg',[NF(324,{dp:1,unit:'mg',alt:[325]})],
+    ['1 grain เท่ากับ 64.8 milligrams','5 grains เท่ากับ 64.8 × 5 ÷ 1 = <b>324 mg</b> (ถ้าใช้ค่าประมาณ 1 gr = 65 mg จะได้ 325 mg)'],{sub:'sh5',...S('5')}),[77.16,32.4,300],1),
+  withNum(Q2('met','easy','เภสัชกรต้องชั่งสาร 250 milligrams แต่เครื่องชั่งแสดงหน่วยเป็นกรัม ต้องชั่งสารกี่ grams','250 mg = ? g',[NF(0.25,{dp:3,unit:'g'})],
+    ['1,000 mg เท่ากับ 1 g','250 mg เท่ากับ 1 × 250 ÷ 1,000 = <b>0.25 g</b>'],{sub:'sh6',...S('6')}),[2.5,0.025,250000],3),
+  withNum(Q2('avo','hard','ผงยาหนัก 1 avoirdupois ounce ต้องการแบ่งบรรจุซองละ 500 milligrams จะสามารถแบ่งได้กี่ซอง','1 oz (avoir) ÷ 500 mg',[NF(56,{dp:0,unit:'ซอง',tol:0})],
+    ['1 avoirdupois ounce = 28.35 g = 28,350 mg','จำนวนซอง 28,350 ÷ 500 = 56.7 ซอง','แบ่งได้เต็ม <b>56 ซอง</b> (เหลือผงยา 350 mg)'],{sub:'sh7',...S('7')}),[62,57,60],0),
+  withNum(Q2('xs','hard','ต้องการเตรียมตำรับยาทั้งหมด 100 ซอง แต่ละซองมีตัวยา 250 milligrams ต้องใช้วัตถุดิบทั้งหมดกี่ grains','100 ซอง × 250 mg → grains',[NF(385.8,{dp:1,unit:'grains',tol:.06,alt:[385.802]})],
+    ['ตัวยาทั้งหมด 250 × 100 = 25,000 mg = 25 g','1 gram เท่ากับ 15.432 grains','25 g เท่ากับ 15.432 × 25 = <b>385.8 grains</b> (25,000 ÷ 64.8 ก็ได้ 385.8)'],{sub:'sh8',...S('8')}),[1620,3858,384.6*1.1],1),
+  withNum(Q2('xs','mid','เภสัชกรต้องการเตรียมยาน้ำ 2 fluid ounces เตรียมยาน้ำได้ทั้งหมดกี่ milliliters','2 f℥ = ? mL',[NF(59.14,{dp:2,unit:'mL',tol:.01,alt:[60]})],
+    ['1 fluid ounce เท่ากับ 29.57 mL','2 fluid ounces เท่ากับ 29.57 × 2 = <b>59.14 mL</b> (ถ้าใช้ค่าประมาณ 30 mL จะได้ 60 mL)'],{sub:'sh9',...S('9')}),[56.7,62.2,32.46],2),
+  Q2('word','hard','มียาน้ำเชื่อม 1 pint ต้องการแบ่งบรรจุขวด ขวดละ 60 มิลลิลิตร จะได้ขวดเต็มกี่ขวด และเหลือยากี่ mL','1 pint ÷ 60 mL',[NF(7,{dp:0,unit:'ขวด',tol:0,lab:'ขวดเต็ม'}),NF(53,{dp:1,unit:'mL',tol:.06,lab:'เหลือยา'})],
+    ['1 pint เท่ากับ 473 mL','จำนวนขวด 473 ÷ 60 = 7.88 ขวด บรรจุเต็มได้ 7 ขวด ใช้ไป 7 × 60 = 420 mL','ได้ <b>7 ขวดเต็ม</b> และเหลือยา 473 − 420 = <b>53 mL</b>'],{sub:'sh10',...S('10')}),
+  withNum(Q2('xs','hard','ยาหยอดใช้ 15 minims ต่อครั้ง วันละ 3 ครั้ง เป็นเวลา 5 วัน ต้องใช้ยาทั้งหมดกี่ milliliters','15 minims × 3 × 5 วัน → mL',[NF(13.86,{dp:2,unit:'mL',tol:.05})],
+    ['ใช้ยาทั้งหมด 15 × 3 × 5 = 225 minims','16.23 minims เท่ากับ 1 mL','225 minims เท่ากับ 225 ÷ 16.23 = <b>13.86 mL</b>'],{sub:'sh11',...S('11')}),[3.75,3651.75,14.8],2),
+  Q2('word','hard','มีสารละลาย 3 fluid ounces ต้องการแบ่งบรรจุหลอดละ 5 mL จะได้หลอดเต็มกี่หลอด และเหลือกี่ mL (ใช้ 1 f℥ = 29.57 mL)','3 f℥ ÷ 5 mL',[NF(17,{dp:0,unit:'หลอด',tol:0,lab:'หลอดเต็ม'}),NF(3.71,{dp:2,unit:'mL',tol:.01,lab:'เหลือ'})],
+    ['1 fluid ounce เท่ากับ 29.57 mL ดังนั้น 3 fl oz = 88.71 mL','จำนวนหลอด 88.71 ÷ 5 = 17.7 หลอด บรรจุเต็มได้ 17 หลอด ใช้ไป 17 × 5 = 85 mL','ได้ <b>17 หลอดเต็ม</b> และเหลือ 88.71 − 85 = <b>3.71 mL</b> (ถ้าใช้ 30 mL จะได้ 18 หลอดพอดี)'],{sub:'sh12',...S('12')}),
+  withNum(Q2('drop','hard','แพทย์สั่งยาให้เด็กทารกทาน 0.10 ช้อนชา โรงพยาบาลมีหลอดหยด (1 mL เท่ากับ 10 หยด) ต้องให้ยาครั้งละกี่หยด','0.10 tsp → หยด (1 mL = 10 หยด)',[NF(5,{dp:0,unit:'หยด',tol:0})],
+    ['1 ช้อนชา เท่ากับ 5 mL ดังนั้น 0.10 ช้อนชา = 0.5 mL','1 mL เท่ากับ 10 หยด','0.5 mL เท่ากับ 10 × 0.5 = <b>5 หยด</b> เขียนฉลากว่าหยดยา 5 หยด'],{sub:'sh13',...S('13')}),[1,10,15],0)
+  ]; return L; }
+
+/* ---------- แบบฝึกในสไลด์ (จากหนังสือเล่ม 2) ---------- */
+function set2Slide(){ const S=(pg,o={})=>({src:'แบบฝึกในสไลด์',no:'สไลด์ '+pg,...o});
+  const one=(t,lv,stem,big,val,o,exp,wr,dp,sl,sub)=>withNum(Q2(t,lv,stem,big,[NF(val,o)],exp,{sub:'sl'+sub,...S(sl)}),wr,dp);
+  return [
+  one('met','easy','1 กรัม เท่ากับกี่ไมโครกรัม','1 g = ? µg',1000000,{dp:0,unit:'µg'},['1 g = 1,000 mg และ 1 mg = 1,000 µg','1 × 1,000 × 1,000 = <b>1,000,000 µg</b>'],[1000,1e9,0.000001],0,16,'a'),
+  one('met','easy','1 กรัม เท่ากับกี่กิโลกรัม','1 g = ? kg',0.001,{dp:3,unit:'kg'},['1,000 g = 1 kg','1 ÷ 1,000 = <b>0.001 kg</b>'],[1000,0.01,0.0001],3,16,'b'),
+  one('met','easy','1 ลิตร เท่ากับกี่ลูกบาศก์เซนติเมตร (cm³)','1 L = ? cm³',1000,{dp:0,unit:'cm³'},['1 L = 1,000 mL และ 1 mL = 1 cm³','<b>1,000 cm³</b> (เท่ากับ 1,000 cc)'],[100,1000000,10],0,16,'c'),
+  one('met','mid','1 ลิตร เท่ากับกี่นาโนลิตร','1 L = ? nL',1e9,{dp:0,unit:'nL'},['nano = 10⁻⁹ ดังนั้น 1 L = 10⁹ nL','<b>1,000,000,000 nL</b>'],[1e6,1e12,1e3],0,16,'d'),
+  one('met','mid','85 µm เท่ากับกี่มิลลิเมตร','85 µm = ? mm',0.085,{dp:4,unit:'mm'},['1,000 µm = 1 mm','85 ÷ 1,000 = <b>0.085 mm</b>'],[0.85,0.0085,85000],4,16,'e'),
+  one('met','mid','85 µm เท่ากับกี่เซนติเมตร','85 µm = ? cm',0.0085,{dp:5,unit:'cm'},['1 cm = 10,000 µm','85 ÷ 10,000 = <b>0.0085 cm</b>'],[0.085,0.00085,850000],5,16,'f'),
+  one('met','easy','2.525 L เท่ากับกี่มิลลิลิตร','2.525 L = ? mL',2525,{dp:0,unit:'mL'},['1 L = 1,000 mL','2.525 × 1,000 = <b>2,525 mL</b>'],[252.5,25250,2525000],0,16,'g'),
+  one('met','mid','2.525 L เท่ากับกี่ไมโครลิตร','2.525 L = ? µL',2525000,{dp:0,unit:'µL'},['1 L = 1,000,000 µL','2.525 × 1,000,000 = <b>2,525,000 µL</b>'],[2525,252500,25250000],0,16,'h'),
+  one('met','hard','เติมสาร A, B และ C ปริมาณ 1.25 g, 35 mg และ 80 µg สารผสมมีน้ำหนักรวมกี่ mg','1.25 g + 35 mg + 80 µg',1285.08,{dp:2,unit:'mg'},['เปลี่ยนทุกตัวเป็น mg: 1.25 g = 1,250 mg และ 80 µg = 0.08 mg','รวม 1,250 + 35 + 0.08 = <b>1,285.08 mg</b>'],[1365,1285.8,116.33],2,17,'i'),
+  one('apo','easy','60 grains เท่ากับกี่ scruples','60 gr = ? ℈',3,{dp:1,unit:'scruples'},['1 scruple = 20 grains','60 ÷ 20 = <b>3 scruples</b>'],[1,1200,20],1,28,'j'),
+  one('apo','easy','60 grains เท่ากับกี่ drams','60 gr = ? ʒ',1,{dp:1,unit:'drams'},['1 dram = 60 grains','60 ÷ 60 = <b>1 dram</b>'],[3,8,0.125],1,28,'k'),
+  one('apo','easy','16 fluid drams เท่ากับกี่ minims','16 fʒ = ? minims',960,{dp:0,unit:'minims'},['1 fluid dram = 60 minims','16 × 60 = <b>960 minims</b>'],[128,7680,259.68],0,28,'l'),
+  one('apo','easy','16 fluid drams เท่ากับกี่ fluid ounces','16 fʒ = ? f℥',2,{dp:1,unit:'fluid ounces'},['1 fluid ounce = 8 fluid drams','16 ÷ 8 = <b>2 f℥</b>'],[128,1,4],1,28,'m'),
+  one('apo','mid','เภสัชกรจ่ายยาเหน็บทวาร 36 แท่ง ตัวยา 2 gr. ต่อแท่ง มีตัวยาทั้งหมดกี่ scruples','36 แท่ง × 2 gr. → ℈',3.6,{dp:2,unit:'scruples'},['ตัวยาทั้งหมด 36 × 2 = 72 grains','1 scruple = 20 grains','72 ÷ 20 = <b>3.6 scruples</b>'],[1.2,1440,7.2],2,28,'n'),
+  one('apo','easy','topical keratolytic solution ขวดขนาด 4 fluidrams เท่ากับกี่ minims','4 fʒ = ? minims',240,{dp:0,unit:'minims'},['1 fluidram = 60 minims','4 × 60 = <b>240 minims</b>'],[32,1920,64.92],0,28,'o'),
+  one('hh','easy','แพทย์สั่ง Antacil® ครั้งละ 2 ช้อนโต๊ะ ผู้ป่วยทานยากี่มิลลิลิตร','2 ช้อนโต๊ะ = ? mL',30,{dp:0,unit:'mL'},['1 ช้อนโต๊ะ = 15 mL','15 × 2 ÷ 1 = <b>30 mL</b>'],[10,60,15],0,'Antacil','p'),
+  one('hh','mid','แพทย์สั่ง Antacil® ครั้งละ 2 ช้อนโต๊ะ เท่ากับกี่ช้อนชา','2 ช้อนโต๊ะ = ? ช้อนชา',6,{dp:0,unit:'ช้อนชา'},['2 ช้อนโต๊ะ = 30 mL','5 mL = 1 ช้อนชา ดังนั้น 30 ÷ 5 = <b>6 ช้อนชา</b>'],[4,3,10],0,'Antacil','q'),
+  one('hh','mid','Suprax® suspension (cefixime 100 mg/5 mL) ครั้งละ 2 ช้อนชา วันละ 2 ครั้ง 10 วัน ใช้ยาทั้งหมดกี่ mL','2 tsp × 2 × 10 วัน',200,{dp:0,unit:'mL'},['2 ช้อนชา = 10 mL','วันละ 2 ครั้ง = 20 mL','10 วัน = <b>200 mL</b>'],[100,400,600],0,'Suprax','r'),
+  one('word','mid','Suprax® suspension (cefixime 100 mg/5 mL) ใช้ทั้งหมด 200 mL ได้รับ cefixime ทั้งหมดกี่กรัม','100 mg/5 mL × 200 mL',4,{dp:2,unit:'g'},['ยา 5 mL มี cefixime 100 mg','200 mL มี 100 × 200 ÷ 5 = 4,000 mg','= <b>4 g</b>'],[4000,20,0.4],2,'Suprax','s'),
+  one('drop','mid','ยาหยอดหู 0.3 mL หลอดหยดสอบเทียบแล้ว 45 หยด = 2 mL ต้องหยดยากี่หยด','45 หยด = 2 mL, 0.3 mL = ?',6.75,{dp:2,unit:'หยด',alt:[7]},['2 mL เท่ากับ 45 หยด','0.3 mL เท่ากับ 45 × 0.3 ÷ 2 = <b>6.75 หยด</b> หรือประมาณ 7 หยด'],[13.5,6,3],2,'หยดหู','t'),
+  one('drop','mid','สอบเทียบหลอดหยดกับกระบอกตวง 10 mL ได้ 40 หยด = 2 mL ต้องการ 0.25 mL ต้องหยดกี่หยด','40 หยด = 2 mL, 0.25 mL = ?',5,{dp:1,unit:'หยด'},['2 mL = 40 หยด ดังนั้น 1 mL = 20 หยด','0.25 × 20 = <b>5 หยด</b>'],[10,2.5,8],1,'กระบอกตวง','u'),
+  one('word','hard','Tylenol with codeine® elixir มี codeine 12 mg ใน 5 mL จ่ายยา 4 fluidounces ผู้ป่วยได้รับยาทั้งหมดกี่ grains (ใช้ 1 f℥ = 30 mL, 1 gr = 65 mg)','12 mg/5 mL × 4 f℥ → grains',4.43,{dp:2,unit:'grains',tol:.015},['1 f℥ = 30 mL ดังนั้น 4 f℥ = 120 mL','codeine 12 × 120 ÷ 5 = 288 mg','288 ÷ 65 = <b>4.43 grains</b> (ถ้าใช้ exact 64.8 ได้ 4.44)'],[288,18.7,1.48],2,49,'v')
+  ]; }
+
+/* ---------- หน้าข้อสอบบทที่ 2 ---------- */
+const QLV2=[['mix','ผสม','ทุกระดับ'],['easy','ง่าย','แปลงหน่วยตรงๆ'],['mid','ปานกลาง','ข้ามหน่วย ค่า exact'],['hard','ยาก','โจทย์หลายขั้น']];
+const GOLD=[['1 gr','64.8 mg','≈ 65 mg'],['1 g','15.432 gr',''],['1 ℥ (apo)','31.1 g','480 gr'],['1 oz (avoir)','28.35 g','437.5 gr'],['1 lb apo','373.2 g','12 ℥'],['1 lb avoir','453.6 g','16 oz'],['1 mL','16.23 minims',''],['1 f℥','29.57 mL','≈ 30 mL'],['1 pint','473 mL','16 f℥'],['1 kg','2.20 lb',''],['1 ช้อนชา','5 mL',''],['1 ช้อนโต๊ะ','15 mL','3 ช้อนชา']];
+function chSw(cur){ return `<div class="qchsw" role="tablist" aria-label="เลือกบท">${[[1,'บทที่ 1','เลขโรมัน เลขนัยสำคัญ'],[2,'บทที่ 2','มาตรชั่งและตวง']].map(([id,t,d])=>`<button class="qchb rp ${cur===id?'on':''}" role="tab" aria-selected="${cur===id}" data-qch="${id}" data-soft="1"><b>${t}</b><small>${d}</small></button>`).join('')}</div>`; }
+function quiz2HTML(){
+  const Z=ST.qz; Z.tps2=Z.tps2||TP2.slice(); Z.diff2=Z.diff2||'mix';
+  const tp=TP2.map(k=>Z.tp[k]).filter(Boolean), ans=tp.reduce((a,s)=>a+s.all,0), ok=tp.reduce((a,s)=>a+s.ok,0), acc=ans?Math.round(ok/ans*100):null;
+  const seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
+  const S=Z.sets||{}, best=id=>{const x=S[id];return x?Math.round(x.best/x.n*100):null;};
+  const wr=Z.wrong.filter(w=>qch(w.t)===2);
+  const card=(id,ic,t,n,d)=>{const p=best(id);return `<button class="thb rp" data-qset="${id}"><b class="num">${n}</b><span><b>${t}</b><small>${d}${p!=null?` · ดีสุด ${p}%`:''}</small></span>${I.play}</button>`;};
+  return pageHead('ข้อสอบบทที่ 2','มาตรชั่งและตวงทางเภสัชกรรม · พิมพ์ตอบและช้อยส์ · ทุกข้อมีเฉลยพร้อมหลักการคิด')+chSw(2)+`
+   <section class="qhero qh-solo">
+    <div class="qhero-b"><div class="qstat"><div><b class="num">${ans}</b><small>ทำแล้ว (ข้อ)</small></div><div><b class="num">${acc==null?'–':acc+'%'}</b><small>แม่นยำ</small></div><div><b class="num">${Z.best}</b><small>ถูกติดกัน</small></div></div>
+     <div class="qstyle"><span class="qstyle-l">รูปแบบการตอบ</span>${seg(QSTYLE,Z.style,'data-qstyle')}<small>พิมพ์ตอบ: ใส่แค่ตัวเลข มีจุลภาคหรือไม่ก็ได้ ระบบยอมรับค่าที่ปัดเศษใกล้เคียงและค่า practical ที่หนังสือยอมรับ</small></div></div></section>
+
+   ${zone(1,'เตรียมตัว','จำตัวเลขทองให้แม่น แล้วค่อยลุยข้อสอบ',I.bulb,'z0')}
+   <section class="zcard gold"><h3 class="zc-t">${I.spark}ตัวเลขทองของบทนี้</h3><p class="zc-d">exact ใช้ปรุงยา practical ใช้ประมาณ โจทย์บอกค่าไหนให้ใช้ค่านั้น</p>
+    <div class="goldg">${GOLD.map(([a,b,c])=>`<div class="gd"><small>${a}</small><b class="num">${b}</b>${c?`<i class="num">${c}</i>`:''}</div>`).join('')}</div>
+    <button class="btn ghost lg rp wide" data-bkpg="${C2P(1)}">${I.book}อ่านสรุปบทที่ 2 (18 หน้า)</button></section>
+
+   ${zone(2,'ข้อสอบทฤษฎี','ช้อยส์ล้วน ตอบผิดมีเฉลยพร้อมเหตุผล',I.quiz,'z1')}
+   <section class="thcard"><header><span class="th-ic">${I.quiz}</span><div><h2>ข้อช้อยทฤษฎีบทที่ 2</h2><p>ช้อยส์ล้วน <b class="num">${CON2.length}</b> ข้อ ครอบคลุมทั้ง 4 ระบบ</p><span class="sc-tag">ช้อยส์อย่างเดียว</span></div></header>
+    <div class="thgrid">${card('c2:th',I.quiz,'ทำทั้งหมด',CON2.length,'สลับข้อทุกครั้ง')}</div></section>
+
+   ${zone(3,'แบบฝึกหัดจากชีทและสไลด์','โจทย์ชุดเดียวกับไฟล์ที่ส่งมา ตรวจตามเฉลยสีแดง',I.book,'z1')}
+   <section class="thcard"><header><span class="th-ic">${I.book}</span><div><h2>แบบฝึกหัดบทที่ 2</h2><p>แบบฝึกหัดมาตรวัด และแบบฝึกในสไลด์</p><span class="sc-tag">พิมพ์ตอบหรือช้อยส์</span></div></header>
+    <div class="thgrid">${card('c2:sh',I.book,'แบบฝึกหัดในชีท',set2Sheet().length,'ข้อ 1.1 ถึงข้อ 13')}${card('c2:sl',I.spark,'แบบฝึกในสไลด์',set2Slide().length,'สไลด์ 16, 17, 28, 49 และตัวอย่าง')}</div></section>
+
+   ${zone(4,'ฝึกซ้อม','ไม่จำกัดจำนวนข้อ อยากหยุดตอนไหนกด "หยุดและดูสรุป"',I.dice,'z2')}
+   ${wr.length?`<button class="qmode warn rp" data-qset="wrong"><span class="qm-ic">${I.alert}</span><span><b>ทำข้อที่เคยผิดอีกครั้ง</b><small class="num">${wr.length} ข้อ ตอบถูกแล้วจะออกจากรายการ</small></span>${I.play}</button>`:''}
+   <section class="zcard"><h3 class="zc-t">${I.dice}สุ่มโจทย์บทที่ 2</h3><p class="zc-d">ตัวเลขใหม่ทุกครั้ง เลือกระดับและเรื่องได้</p>
+    <h4 class="mini">ระดับ</h4>${seg(QLV2,Z.diff2,'data-q2diff')}
+    <h4 class="mini">เรื่อง <button class="link sm rp" data-q2all="1">${Z.tps2.length===TP2.length?'เอาออกทั้งหมด':'เลือกทั้งหมด'}</button></h4>
+    <div class="fchips">${TP2.map(k=>`<button class="fchip rp ${Z.tps2.includes(k)?'on':''}" data-q2tp="${k}" data-soft="1" aria-pressed="${Z.tps2.includes(k)}">${Z.tps2.includes(k)?I.check:''}${QT[k].n}${k==='con2'?' <i class="mc-tag">ช้อยส์</i>':''}</button>`).join('')}</div>
+    <button class="btn lg rp wide" data-qset="gen2" ${Z.tps2.length?'':'disabled'}>${I.dice}เริ่มสุ่มโจทย์</button></section>
+
+   ${zone(5,'ข้อสอบตามหัวข้อ','เลือกหัวข้อแล้วเริ่มทำได้เลย',I.quiz,'z1')}
+   <section class="zcard"><h3 class="zc-t">${I.book}บทที่ 2 · มาตรชั่งและตวงทางเภสัชกรรม</h3><p class="zc-d">แตะหัวข้อที่อยากทำ ทำได้ไม่จำกัดข้อ</p>
+    <div class="list">${TP2.map(k=>{const a=tpAcc(k),s=Z.tp[k];return `<button class="trow rp" data-q2one="${k}"><span class="trow-b"><b>${QT[k].n}</b><small class="num">${s?`ทำแล้ว ${s.all} ข้อ`:'ยังไม่เคยทำ'}</small></span><span class="macc num ${a==null?'new':a>=80?'hi':a>=50?'mid':'lo'}">${a==null?'ใหม่':a+'%'}</span><span class="trow-go">${I.play}</span></button>`;}).join('')}</div></section>
+   ${CHAPTERS.filter(c=>!c.ready).map(c=>`<button class="xrow soon rp" data-soon="${c.id}"><span class="sc-ic">${I.lock}</span><span><b>บทที่ ${c.id}</b><small>${esc(c.name||'')}</small></span><i class="mc-tag">soon</i></button>`).join('')}</div>`;
+}
+function quiz2Bind(){
+  const Z=ST.qz, rr=()=>{const y=scrollY;render();scrollTo(0,y);};
+  $$('[data-q2diff]').forEach(b=>b.onclick=()=>{Z.diff2=b.dataset.q2diff;save();rr();});
+  $$('[data-q2tp]').forEach(b=>b.onclick=()=>{const k=b.dataset.q2tp;Z.tps2=Z.tps2.includes(k)?Z.tps2.filter(x=>x!==k):[...Z.tps2,k];save();rr();});
+  $$('[data-q2all]').forEach(b=>b.onclick=()=>{Z.tps2=Z.tps2.length===TP2.length?[]:TP2.slice();save();rr();});
+  $$('[data-q2one]').forEach(b=>b.onclick=()=>startQuiz('gen',{tps:[b.dataset.q2one],diff:Z.diff2||'mix'}));
+  $$('[data-bkpg]').forEach(b=>b.onclick=()=>{UI.bookJump=+b.dataset.bkpg;go('book');});
+}
+
 const QSTYLE=[['type','พิมพ์ตอบ','แบบข้อเขียน'],['mc','ช้อยส์','เลือก 4 ตัวเลือก'],['mix','ผสม','สลับกันไป']];
 const QLV=[['mix','ผสม','ทุกระดับ'],['easy','ง่าย','ถามตรง'],['mid','ปานกลาง','หลักการลด กฎเลข 5'],['hard','ยาก','ขีดบน ยกกำลังสิบ หลายขั้น']];
 const tpAcc=t=>{const s=ST.qz.tp[t];return s&&s.all?Math.round(s.ok/s.all*100):null;};
@@ -880,9 +1273,10 @@ function cylSVG(step,v){
 
 /* ---------- หน้าเลือกโหมด ---------- */
 function quizHTML(){
+  if(UI.ch===2) return quiz2HTML();
   const Z=ST.qz, acc=Z.ans?Math.round(Z.ok/Z.ans*100):null;
   const seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
-  return pageHead('ข้อสอบบทที่ 1','เลขโรมัน และเลขนัยสำคัญ · พิมพ์ตอบและช้อยส์ · ทุกข้อมีเฉลยพร้อมหลักการคิด')+`
+  return pageHead('ข้อสอบบทที่ 1','เลขโรมัน และเลขนัยสำคัญ · พิมพ์ตอบและช้อยส์ · ทุกข้อมีเฉลยพร้อมหลักการคิด')+chSw(1)+`
    <section class="qhero qh-solo">
     <div class="qhero-b"><div class="qstat"><div><b class="num">${Z.ans}</b><small>ทำแล้ว (ข้อ)</small></div><div><b class="num">${acc==null?'–':acc+'%'}</b><small>แม่นยำ</small></div><div><b class="num">${Z.best}</b><small>ถูกติดกัน</small></div></div>
      <div class="qstyle"><span class="qstyle-l">รูปแบบการตอบ</span>${seg(QSTYLE,Z.style,'data-qstyle')}<small>พิมพ์ตอบ: ตัวเล็กใหญ่ เว้นวรรคหรือไม่ก็ได้ ขอแค่ตัวอักษรครบและเรียงถูก</small></div></div></section>
@@ -894,17 +1288,17 @@ function quizHTML(){
    ${theoryCard()}
 
    ${zone(3,'ฝึกซ้อม','ไม่จำกัดจำนวนข้อ อยากหยุดตอนไหนกด "หยุดและดูสรุป"',I.dice,'z2')}
-   ${Z.wrong.length?`<button class="qmode warn rp" data-qset="wrong"><span class="qm-ic">${I.alert}</span><span><b>ทำข้อที่เคยผิดอีกครั้ง</b><small class="num">${Z.wrong.length} ข้อ ตอบถูกแล้วจะออกจากรายการ</small></span>${I.play}</button>`:''}
+   ${Z.wrong.some(w=>qch(w.t)===1)?`<button class="qmode warn rp" data-qset="wrong"><span class="qm-ic">${I.alert}</span><span><b>ทำข้อที่เคยผิดอีกครั้ง</b><small class="num">${Z.wrong.filter(w=>qch(w.t)===1).length} ข้อ ตอบถูกแล้วจะออกจากรายการ</small></span>${I.play}</button>`:''}
    <section class="zcard"><h3 class="zc-t">${I.dice}สุ่มโจทย์</h3><p class="zc-d">ตัวเลขใหม่ทุกครั้ง เลือกระดับและเรื่องได้</p>
     <h4 class="mini">ระดับ</h4>${seg(QLV,Z.diff,'data-qdiff')}
-    <h4 class="mini">เรื่อง <button class="link sm rp" data-qall="1">${Z.tps.length===Object.keys(QT).length?'เอาออกทั้งหมด':'เลือกทั้งหมด'}</button></h4>
-    <div class="fchips">${Object.entries(QT).map(([k,t])=>`<button class="fchip rp ${Z.tps.includes(k)?'on':''}" data-qtp="${k}" data-soft="1" aria-pressed="${Z.tps.includes(k)}">${Z.tps.includes(k)?I.check:''}${t.n}${k==='concept'?' <i class="mc-tag">ช้อยส์</i>':''}</button>`).join('')}</div>
+    <h4 class="mini">เรื่อง <button class="link sm rp" data-qall="1">${Z.tps.length===TP1.length?'เอาออกทั้งหมด':'เลือกทั้งหมด'}</button></h4>
+    <div class="fchips">${Object.entries(QT).filter(([k])=>qch(k)===1).map(([k,t])=>`<button class="fchip rp ${Z.tps.includes(k)?'on':''}" data-qtp="${k}" data-soft="1" aria-pressed="${Z.tps.includes(k)}">${Z.tps.includes(k)?I.check:''}${t.n}${k==='concept'?' <i class="mc-tag">ช้อยส์</i>':''}</button>`).join('')}</div>
     <button class="btn lg rp wide" data-qset="gen" ${Z.tps.length?'':'disabled'}>${I.dice}เริ่มสุ่มโจทย์</button></section>
 
 
    ${zone(4,'ข้อสอบตามหัวข้อ','เลือกหัวข้อแล้วเริ่มทำได้เลย',I.quiz,'z1')}
    <section class="zcard"><h3 class="zc-t">${I.book}บทที่ 1 · เลขโรมัน และเลขนัยสำคัญ</h3><p class="zc-d">แตะหัวข้อที่อยากทำ ทำได้ไม่จำกัดข้อ</p>
-    <div class="list">${Object.entries(QT).map(([k,t])=>{const a=tpAcc(k),s=Z.tp[k];return `<button class="trow rp" data-qone="${k}"><span class="trow-b"><b>${t.n}</b><small class="num">${s?`ทำแล้ว ${s.all} ข้อ`:'ยังไม่เคยทำ'}</small></span><span class="macc num ${a==null?'new':a>=80?'hi':a>=50?'mid':'lo'}">${a==null?'ใหม่':a+'%'}</span><span class="trow-go">${I.play}</span></button>`;}).join('')}</div></section>
+    <div class="list">${Object.entries(QT).filter(([k])=>qch(k)===1).map(([k,t])=>{const a=tpAcc(k),s=Z.tp[k];return `<button class="trow rp" data-qone="${k}"><span class="trow-b"><b>${t.n}</b><small class="num">${s?`ทำแล้ว ${s.all} ข้อ`:'ยังไม่เคยทำ'}</small></span><span class="macc num ${a==null?'new':a>=80?'hi':a>=50?'mid':'lo'}">${a==null?'ใหม่':a+'%'}</span><span class="trow-go">${I.play}</span></button>`;}).join('')}</div></section>
    ${CHAPTERS.filter(c=>!c.ready).map(c=>`<button class="xrow soon rp" data-soon="${c.id}"><span class="sc-ic">${I.lock}</span><span><b>บทที่ ${c.id}</b><small>${esc(c.name||'')}</small></span><i class="mc-tag">soon</i></button>`).join('')}</div>`;
 }
 function primeBanner(){ const n=pmRead(), N=PRIME_L.length;
@@ -938,13 +1332,15 @@ function quizBind(){
   $$('[data-qstyle]').forEach(b=>b.onclick=()=>{Z.style=b.dataset.qstyle;save();rr();});
   $$('[data-qdiff]').forEach(b=>b.onclick=()=>{Z.diff=b.dataset.qdiff;save();rr();});
   $$('[data-qtp]').forEach(b=>b.onclick=()=>{const k=b.dataset.qtp;Z.tps=Z.tps.includes(k)?Z.tps.filter(x=>x!==k):[...Z.tps,k];save();rr();});
-  $$('[data-qall]').forEach(b=>b.onclick=()=>{Z.tps=Z.tps.length===Object.keys(QT).length?[]:Object.keys(QT);save();rr();});
+  $$('[data-qall]').forEach(b=>b.onclick=()=>{Z.tps=Z.tps.length===TP1.length?[]:TP1.slice();save();rr();});
+  $$('[data-qch]').forEach(b=>b.onclick=()=>{UI.ch=+b.dataset.qch;render();window.scrollTo(0,0);});
+  quiz2Bind();
   $$('[data-qn]').forEach(b=>b.onclick=()=>{Z.n=+b.dataset.qn;save();rr();});
   $$('[data-qset]').forEach(b=>b.onclick=()=>startQuiz(b.dataset.qset));
   $$('[data-qone]').forEach(b=>b.onclick=()=>startQuiz('gen',{tps:[b.dataset.qone]}));
 }
 function genList(tps,n,diff){ const out=[],seen=new Set(); let guard=0;
-  while(out.length<n&&guard++<n*30){ const t=tps[out.length%tps.length]; const lv=diff==='mix'?pick(['easy','mid','hard']):diff; const q=GEN[t](t==='concept'&&diff==='mix'?'mix':lv); if(seen.has(q.id)) continue; seen.add(q.id); out.push(q); }
+  while(out.length<n&&guard++<n*30){ const t=tps[out.length%tps.length]; const lv=diff==='mix'?pick(['easy','mid','hard']):diff; const q=GEN[t]((t==='concept'||t==='con2')&&diff==='mix'?'mix':lv); if(seen.has(q.id)) continue; seen.add(q.id); out.push(q); }
   return shuf(out); }
 function startQuiz(kind,o={}){
   const Z=ST.qz; let list,title;
@@ -952,8 +1348,12 @@ function startQuiz(kind,o={}){
   else if(kind==='slide'){ list=setSlide(); title='ตัวอย่างในสไลด์'; }
   else if(/^(sh|sl):\d+$/.test(kind)){ const [k,n]=kind.split(':'); list=buildSet(k,+n); title=(k==='sh'?'แนวชีท':'แนวสไลด์')+' ชุดที่ '+n; }
   else if(/^th:/.test(kind)){ const c=kind.slice(3); const ids=CONCEPT.map((_,i)=>i).filter(i=>c==='all'||(c==='r')===CROM.has(i)); list=shuf([...ids.map(bConcept),...(c==='r'?[]:CFIG.map((_,i)=>bCylTheory(i)))]); title='ข้อช้อยทฤษฎี'+(c==='r'?' · เลขโรมัน':c==='s'?' · เลขนัยสำคัญ':''); o.stop=true; }
-  else if(kind==='wrong'){ list=shuf(Z.wrong.map(x=>Object.assign({},x))); title='ข้อที่เคยผิด'; }
-  else { const tps=o.tps||Z.tps; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,Z.diff); o.endless={tps,diff:Z.diff}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(Z.diff==='mix'?'ทุกระดับ':LVN[Z.diff]); }
+  else if(kind==='c2:th'){ list=shuf(CON2.map((_,i)=>bCon2(i))); title='ข้อช้อยทฤษฎีบทที่ 2'; o.stop=true; }
+  else if(kind==='c2:sh'){ list=set2Sheet(); title='แบบฝึกหัดบทที่ 2'; o.stop=true; }
+  else if(kind==='c2:sl'){ list=set2Slide(); title='แบบฝึกในสไลด์บทที่ 2'; o.stop=true; }
+  else if(kind==='wrong'){ const c=UI.ch===2?2:1; list=shuf(Z.wrong.filter(x=>qch(x.t)===c).map(x=>Object.assign({},x))); if(!list.length) return toast('ไม่มีข้อที่เคยผิด'); title='ข้อที่เคยผิด บทที่ '+c; }
+  else { if(kind==='gen2'){ o.tps=o.tps||Z.tps2; o.diff=o.diff||Z.diff2||'mix'; kind='gen'; }
+    const tps=o.tps||Z.tps, df=o.diff||Z.diff; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,df); o.endless={tps,diff:df}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(qch(tps[0])===2?'บทที่ 2 ':'')+(df==='mix'?'ทุกระดับ':LVN[df]); }
   /* กำหนดรูปแบบการตอบของแต่ละข้อ */
   list.forEach((q,i)=>qAs(q,i));
   QP={kind,title,list,i:0,ok:0,streak:0,res:[],done:false,endless:o.endless||null,tps:o.tps,stop:!!o.stop};
@@ -997,7 +1397,7 @@ function qRender(){
   if(ins[0]&&!matchMedia('(pointer:coarse)').matches) ins[0].focus();
   QP._sel=()=>sel;
 }
-function chkField(f,u){ const c=[normNum(u),normRoman(u),normRange(u)]; return f.acc.some(a=>c.includes(a)); }
+function chkField(f,u){ if(f.vals){ const v=numIn(u,f.unit); if(isFinite(v)&&f.vals.some(x=>Math.abs(v-x)<=f.tol+Math.abs(x)*1e-9)) return true; } const c=[normNum(u),normRoman(u),normRange(u)]; return f.acc.some(a=>c.includes(a)); }
 function qCheck(){
   const P=QP, q=P.list[P.i]; if(P.checked) return;
   let ok, yours;
@@ -1030,7 +1430,7 @@ function qNext(){ const P=QP;
 function qFinish(){
   const P=QP; P.done=true; const n=P.res.length, ok=P.res.filter(r=>r.ok).length, p=n?Math.round(ok/n*100):0;
   ST.qz.last={title:P.title,ok,n,t:Date.now()};
-  if(/^(sh|sl|th):/.test(P.kind)&&n===P.list.length){ ST.qz.sets=ST.qz.sets||{}; const r=ST.qz.sets[P.kind]; if(!r||ok>r.best) ST.qz.sets[P.kind]={best:ok,n}; }
+  if(/^(sh|sl|th|c2):/.test(P.kind)&&n===P.list.length){ ST.qz.sets=ST.qz.sets||{}; const r=ST.qz.sets[P.kind]; if(!r||ok>r.best) ST.qz.sets[P.kind]={best:ok,n}; }
   save();
   const by={}; P.res.forEach(r=>{const k=r.q.t; by[k]=by[k]||[0,0]; by[k][1]++; if(r.ok) by[k][0]++;});
   $('#qp').innerHTML=`<div class="pbar"><div class="pbar-in"><button class="ib2 rp" id="qx" aria-label="ปิด">${I.x}</button><b>สรุปผล · ${esc(P.title)}</b></div></div>
@@ -1045,7 +1445,7 @@ function qFinish(){
   SFX.done();
   $('#qx').onclick=qClose;
   if($('#qs-wrong')) $('#qs-wrong').onclick=()=>{ const l=P.res.filter(r=>!r.ok).map(r=>Object.assign({},r.q)); QP={kind:'retry',title:'แก้ข้อที่ผิด',list:l,i:0,ok:0,streak:0,res:[],done:false}; openQuiz(); };
-  $('#qs-again').onclick=()=>{ if(P.kind==='retry'||P.kind==='wrong'){ const l=P.list.map(q=>Object.assign({},q)); QP={...P,list:shuf(l),i:0,ok:0,streak:0,res:[],done:false}; openQuiz(); } else startQuiz(P.kind,P.endless?{tps:P.endless.tps}:{}); };
+  $('#qs-again').onclick=()=>{ if(P.kind==='retry'||P.kind==='wrong'){ const l=P.list.map(q=>Object.assign({},q)); QP={...P,list:shuf(l),i:0,ok:0,streak:0,res:[],done:false}; openQuiz(); } else startQuiz(P.kind,P.endless?{tps:P.endless.tps,diff:P.endless.diff}:{}); };
 }
 addEventListener('keydown',e=>{ if(!QP||!$('#qp')) return; if(e.key==='Escape'){ e.preventDefault(); $('#qx')&&$('#qx').click(); }
   else if(e.key==='Enter'&&QP.checked&&!QP.done&&document.activeElement&&document.activeElement.id!=='qgo'){ e.preventDefault(); qNext(); }
@@ -1137,9 +1537,9 @@ function renderNav(){
   const rd=readPct();
   $('#side').innerHTML=`<div class="side-in">
     <button class="brand rp" data-tab="home" aria-label="calc หน้าแรก">${MARK}<span>${WORD}<small>Pharmaceutical Calculation</small></span></button>
-    <button class="btn side-cta rp" data-read="1">${I.book}อ่านบทที่ 1 ต่อ</button>
+    <button class="btn side-cta rp" data-read="0">${I.book}อ่านหนังสือต่อ</button>
     <nav class="snav" aria-label="เมนูหลัก">${TABS.map(([id,l,ic])=>`<button class="si rp ${cur===id?'on':''}" data-tab="${id}" ${cur===id?'aria-current="page"':''}>${ic}<span>${l}</span></button>`).join('')}</nav>
-    <div class="scard"><span class="scat">${beetleCar({mood:'wink'})}</span><div class="scard-h"><span>อ่านบทที่ 1 ไปแล้ว</span><b class="num">${rd}%</b></div>${meter(rd)}<small class="num">หน้า ${ST.bookPage||1} จาก ${BOOK.n}</small></div>
+    <div class="scard"><span class="scat">${beetleCar({mood:'wink'})}</span><div class="scard-h"><span>อ่านหนังสือไปแล้ว</span><b class="num">${rd}%</b></div>${meter(rd)}<small class="num">หน้า ${ST.bookPage||1} จาก ${BOOK.n}</small></div>
     <div class="sfoot"><button class="iconbtn rp" data-act="theme" aria-label="${ST.theme==='dark'?'เปลี่ยนเป็นโหมดสว่าง':'เปลี่ยนเป็นโหมดมืด'}">${ST.theme==='dark'?I.sun:I.moon}</button><button class="iconbtn rp" data-act="sound" data-silent="1" aria-label="${ST.sound?'ปิดเสียง':'เปิดเสียง'}">${ST.sound?I.sOn:I.sOff}</button><span id="tp-side"></span></div></div>`;
 }
 function head(){
@@ -1161,9 +1561,9 @@ function homeHTML(){
     <div class="hero-main">
      <p class="eyebrow num">Pharmaceutical Calculation · PHT111</p>
      <h1>คำนวณเภสัช<br><span class="hl">แม่นทุกตัวเลข</span></h1>
-     <p class="lede">อ่านสรุปบทที่ 1 เลขโรมัน และเลขนัยสำคัญ แล้วลองทำข้อสอบแบบพิมพ์ตอบและช้อยส์ ทุกข้อมีเฉลยพร้อมหลักการคิด</p>
-     <div class="cta-row"><button class="btn lg rp" data-read="1">${I.book}${p>1?'อ่านต่อหน้า '+p:'เริ่มอ่านบทที่ 1'}</button>
-      <button class="btn ghost lg rp" data-tab="quiz">${I.quiz}ทำข้อสอบบทที่ 1</button></div>
+     <p class="lede">อ่านสรุปบทที่ 1 เลขโรมันและเลขนัยสำคัญ และบทที่ 2 มาตรชั่งและตวง แล้วลองทำข้อสอบแบบพิมพ์ตอบและช้อยส์ ทุกข้อมีเฉลยพร้อมหลักการคิด</p>
+     <div class="cta-row"><button class="btn lg rp" data-read="0">${I.book}${p>1?'อ่านต่อหน้า '+p:'เริ่มอ่านบทที่ 1'}</button>
+      <button class="btn ghost lg rp" data-tab="quiz">${I.quiz}ทำข้อสอบ</button></div>
     </div>
     <div class="hero-side">
      <div class="hero-cat">${beetleCar({mood:'happy'})}</div>
@@ -1172,21 +1572,22 @@ function homeHTML(){
      <p class="last">ความคืบหน้าเก็บไว้ในเครื่องนี้</p>
     </div>
    </section>
-   <div class="sec"><div><h2>บทเรียน</h2><p>ตอนนี้เปิดให้อ่านบทที่ 1 ก่อน</p></div><button class="link rp" data-tab="book">อ่านหนังสือ ${I.chev}</button></div>
+   <div class="sec"><div><h2>บทเรียน</h2><p>ตอนนี้เปิดให้อ่านบทที่ 1 และบทที่ 2 (เล่ม 2)</p></div><button class="link rp" data-tab="book">อ่านหนังสือ ${I.chev}</button></div>
    <div class="chgrid">${CHAPTERS.map(chCard).join('')}</div>
    <div class="sec"><div><h2>เครื่องมือ</h2></div></div>
    <div class="tools">
     <button class="tool rp" data-tab="prime"><span class="tool-ic">${I.bulb}</span><span><b>ปูพื้นฐานก่อนสอบ</b><small>สรุปกฎทุกเรื่องพร้อมตัวอย่าง</small></span>${I.chev}</button>
-    <button class="tool rp" data-tab="quiz"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 1</b><small>${ST.qz.ans?`ทำแล้ว ${ST.qz.ans} ข้อ · แม่นยำ ${Math.round(ST.qz.ok/ST.qz.ans*100)}%`:'พิมพ์ตอบ ช้อยส์ พร้อมเฉลย'}</small></span>${I.chev}</button>
-    <button class="tool rp" data-read="1"><span class="tool-ic">${I.book}</span><span><b>อ่านหนังสือ</b><small>บทที่ 1 · ${BOOK.n} หน้า ซูมได้</small></span>${I.chev}</button>
-    <button class="tool rp" data-dl="1"><span class="tool-ic">${I.dl}</span><span><b>ดาวน์โหลด PDF บทที่ 1</b><small>บันทึกเก็บไว้อ่านแบบออฟไลน์</small></span>${I.chev}</button>
+    <button class="tool rp" data-qgo="2"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 2 มาตรชั่งและตวง</b><small>ข้อสอบทฤษฎี แบบฝึกหัดในชีท สุ่มโจทย์ 7 หัวข้อ</small></span>${I.chev}</button>
+    <button class="tool rp" data-qgo="1"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 1</b><small>${ST.qz.ans?`ทำแล้ว ${ST.qz.ans} ข้อ · แม่นยำ ${Math.round(ST.qz.ok/ST.qz.ans*100)}%`:'พิมพ์ตอบ ช้อยส์ พร้อมเฉลย'}</small></span>${I.chev}</button>
+    <button class="tool rp" data-read="1"><span class="tool-ic">${I.book}</span><span><b>อ่านหนังสือ</b><small>บทที่ 1 และ 2 · ${BOOK.n} หน้า ซูมได้</small></span>${I.chev}</button>
+    <button class="tool rp" data-dl="1"><span class="tool-ic">${I.dl}</span><span><b>ดาวน์โหลด PDF</b><small>บันทึกเก็บไว้อ่านแบบออฟไลน์</small></span>${I.chev}</button>
     <button class="tool rp" data-act="timer"><span class="tool-ic">${I.timer}</span><span><b>ตั้งเวลาอ่านหนังสือ</b><small>นับถอยหลัง และเตือนพักสายตาทุก ${ST.rest.min} นาที</small></span>${I.chev}</button>
    </div></div>`;
 }
 function chCard(c){
   if(!c.ready) return `<button class="chc soon rp" data-soon="${c.id}"><span class="chc-top"><span class="chc-no num">บทที่ ${c.id}</span><span class="chc-ic">${I.lock}</span></span>
     <span class="chc-t">Coming soon</span><span class="chc-en">กำลังเตรียมเนื้อหา</span><span class="chc-ft"><span>เร็วๆ นี้</span></span></button>`;
-  const rd=readPct();
+  const cp=Math.min(c.p+c.n-1,Math.max(c.p,ST.bookPage||1)), rd=(ST.bookPage||1)<c.p?0:Math.round((cp-c.p)/(c.n-1)*100);
   return `<button class="chc rp" data-read="${c.id}"><span class="chc-top"><span class="chc-no num">บทที่ ${c.id}</span><span class="chc-ic">${I.calc}</span></span>
     <span class="chc-t">${esc(c.name)}</span><span class="chc-en">${esc(c.en)}</span>
     <span class="chc-ft"><span class="num">${c.n} หน้า</span><b class="num">${rd}%</b></span>${meter(rd)}</button>`;
@@ -1214,7 +1615,8 @@ function setHTML(){
 
 function bind(){
   $$('[data-tab]').forEach(b=>b.onclick=()=>go(b.dataset.tab));
-  $$('[data-read]').forEach(b=>b.onclick=()=>{ const id=+b.dataset.read; const c=chOf(id); if(!c||!c.ready) return soon(id); UI.bookJump=Math.max(1,ST.bookPage||1); go('book'); });
+  $$('[data-read]').forEach(b=>b.onclick=()=>{ const id=+b.dataset.read; if(!id){ UI.bookJump=Math.max(1,ST.bookPage||1); return go('book'); } const c=chOf(id); if(!c||!c.ready) return soon(id); const bp=ST.bookPage||1; UI.bookJump=bp>=c.p&&bp<c.p+c.n?bp:c.p; go('book'); });
+  $$('[data-qgo]').forEach(b=>b.onclick=()=>go('quiz',{ch:+b.dataset.qgo}));
   $$('[data-soon]').forEach(b=>b.onclick=()=>soon(+b.dataset.soon));
   $$('[data-dl]').forEach(b=>b.onclick=openDL);
   $$('[data-act]').forEach(b=>b.onclick=()=>ACT[b.dataset.act]&&ACT[b.dataset.act](b));
