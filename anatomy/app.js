@@ -1667,7 +1667,7 @@ CARDS.push(
  {ch:7,tp:'smell',t:'การรับกลิ่นและรส',b:['กลิ่น: เซลล์รับกลิ่นในโพรงจมูกส่วนบน (อายุ 30 วัน) → olfactory nerve (CN I) ทะลุ cribriform plate → olfactory bulb → olfactory tract → สมอง','รส: ลิ้นมี papillae · taste bud 3,000 ถึง 10,000 ต่อม · เซลล์รับรสอายุ 10 วัน','ศูนย์รับรสอยู่ที่ insular lobe'],tb:{h:['บริเวณ','เส้นประสาท'],r:[['ลิ้นหน้า 2/3','CN VII facial'],['ลิ้นหลัง 1/3','CN IX glossopharyngeal'],['เพดาน ผนังหลอดคอ','CN X vagus']]},tip:'รสลิ้น 7 9 10'}
 );
 
-const CARD_PG=[4, 5, 5, 5, 6, 7, 9, 9, 10, 12, 14, 15, 17, 18, 19, 20, 24, 25, 27, 33, 33, 34, 38, 40, 42, 44, 45, 47, 49, 52, 59, 61, 63, 64, 66, 70, 71, 72, 74, 76, 81, 85, 85, 86, 88, 90, 91, 93, 95, 97, 97, 99, 100, 102, 104, 108, 109, 111, 112, 114, 115, 117];CARDS.forEach((c,i)=>{c.pg=c.pg||CARD_PG[i];});
+const CARD_PG=[3,4,5,5,6,7,9,9,12,13,15,17,19,21,23,25,27,27,31,37,38,39,44,46,49,51,52,53,56,62,67,70,71,73,76,81,83,84,86,88,94,98,99,101,102,105,106,108,110,112,113,114,116,117,120,124,125,127,129,131,133,135];CARDS.forEach((c,i)=>{c.pg=c.pg||CARD_PG[i];});
 /* ===================== ตัวสร้างโจทย์ไม่รู้จบ ===================== */
 const R=Math.random, ri=(a,b)=>a+Math.floor(R()*(b-a+1)), pick=a=>a[Math.floor(R()*a.length)];
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -2302,8 +2302,8 @@ function bdRender(){
 }
 
 /* ===================== หนังสือ: สมุดสรุปกายวิภาคศาสตร์ ===================== */
-const BOOK={title:'สมุดสรุปกายวิภาคศาสตร์ BI112',n:117,ch:[{id:1,p:3},{id:2,p:11},{id:3,p:29},{id:4,p:57},{id:5,p:77},{id:6,p:94},{id:7,p:105}],
-  pdf:[{f:'pdf/ch1-2.pdf',n:'บทที่ 1 และ 2',mb:7.4},{f:'pdf/ch3.pdf',n:'บทที่ 3',mb:6.9},{f:'pdf/ch4.pdf',n:'บทที่ 4',mb:5.6},{f:'pdf/ch5-6.pdf',n:'บทที่ 5 และ 6',mb:7.1},{f:'pdf/ch7.pdf',n:'บทที่ 7',mb:3.3}]};
+const BOOK={title:'สมุดสรุปกายวิภาคศาสตร์ BI112',n:135,ch:[{id:1,p:3},{id:2,p:13},{id:3,p:35},{id:4,p:67},{id:5,p:93},{id:6,p:110},{id:7,p:123}],
+  pdf:[{f:'pdf/ch1-2.pdf',n:'เล่ม 1 บทที่ 1 และ 2',mb:6.3},{f:'pdf/ch3.pdf',n:'เล่ม 2 บทที่ 3',mb:6.4},{f:'pdf/ch4.pdf',n:'เล่ม 3 บทที่ 4',mb:5.3},{f:'pdf/ch5-6.pdf',n:'เล่ม 4 บทที่ 5 และ 6',mb:6.1},{f:'pdf/ch7.pdf',n:'เล่ม 5 บทที่ 7',mb:3.3}]};
 const pageSrc=p=>`book/p-${String(p).padStart(3,'0')}.webp`;
 const pageCh=p=>{let c=BOOK.ch[0].id;for(const x of BOOK.ch) if(p>=x.p) c=x.id;return c;};
 let bookIO=null, bookSaveT=0;
@@ -2321,7 +2321,7 @@ function bookBind(){
   else pgs.forEach(load);
   $$('[data-bkch]').forEach(b=>b.onclick=()=>bookGo(+b.dataset.bkch,true));
   $$('[data-zoom]').forEach(b=>b.onclick=()=>bookZoom(+b.dataset.zoom));
-  const p=ST.bookPage||1; if(UI.bookJump){ bookGo(UI.bookJump,false); UI.bookJump=0; } else if(p>1) bookGo(p,false);
+  const p=ST.bookPage||1, j=UI.bookJump||(p>1?p:0); UI.bookJump=0; if(j){ bookGo(j,false); requestAnimationFrame(()=>bookGo(j,false)); }
 }
 function bookGo(p,smooth){
   const el=$('#pg-'+p); if(!el) return; const top=$('.bk-top'); const off=(top?top.offsetHeight:0)+16;
