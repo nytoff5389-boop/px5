@@ -171,3 +171,51 @@ html[data-app] .bk-img{box-shadow:0 0 0 1px var(--line)}
 [data-app="calc"] .gd i{font-style:normal;font-size:12px;color:var(--brand)}
 [data-app="calc"] .toc-h{display:block;padding:12px 8px 4px;font-size:13px;color:var(--brand);letter-spacing:.01em}
 [data-app="calc"] .toc-h:first-child{padding-top:4px}
+
+/* ---- calc: คลังโจทย์ปัญหา 500 ข้อ ---- */
+[data-app="calc"] .qchsw{grid-template-columns:1fr 1fr 1fr}
+[data-app="calc"] .qchb{padding:10px 10px;min-width:0}
+[data-app="calc"] .qchb b{font-size:15px}
+[data-app="calc"] .qchb.hot b{color:#C2410C}
+[data-app="calc"] .qchb.hot.on{border-color:#FDBA74;background:#FFF7ED}
+[data-app="calc"] .wpban,[data-app="calc"] .wphero{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;text-align:left;padding:20px 20px 18px;border-radius:20px;margin:0 0 20px;color:#fff;background:linear-gradient(135deg,#EA580C 0%,#F59E0B 100%);box-shadow:0 10px 28px rgba(234,88,12,.28);border:0}
+[data-app="calc"] .wphero>div{display:flex;flex-direction:column;gap:8px;width:100%}
+[data-app="calc"] .wpb-k{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:999px}
+[data-app="calc"] .wpb-k svg{width:15px;height:15px}
+[data-app="calc"] .wpb-t,[data-app="calc"] .wphero h2{font-size:28px;line-height:1.15;font-weight:800;color:#fff;margin:2px 0}
+[data-app="calc"] .wpb-t .num,[data-app="calc"] .wphero h2 .num{font-size:40px}
+[data-app="calc"] .wpb-d,[data-app="calc"] .wphero p{font-size:14px;color:rgba(255,255,255,.94);margin:0}
+[data-app="calc"] .wpb-p,[data-app="calc"] .wpc-p{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px}
+[data-app="calc"] .wpb-bar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.3);overflow:hidden}
+[data-app="calc"] .wpb-bar i{display:block;height:100%;background:#fff;border-radius:99px}
+[data-app="calc"] .wpb-go{display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:#fff;color:#C2410C;font-weight:700;padding:9px 16px;border-radius:999px;font-size:15px}
+[data-app="calc"] .wpb-go svg{width:16px;height:16px}
+[data-app="calc"] .wph-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0}
+[data-app="calc"] .wph-st div{background:rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column}
+[data-app="calc"] .wph-st b{font-size:22px}
+[data-app="calc"] .wph-st small{font-size:12px;opacity:.95}
+[data-app="calc"] .wphero .btn.wph-go{background:#fff;color:#C2410C;border-color:#fff}
+[data-app="calc"] .wphero .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.7)}
+[data-app="calc"] .wpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:0 0 20px}
+[data-app="calc"] .wpc{display:flex;align-items:flex-start;gap:12px;text-align:left;padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+[data-app="calc"] .wpc>svg{width:20px;height:20px;color:var(--brand);flex:none;margin-top:6px}
+[data-app="calc"] .wpc-n{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:18px;color:#fff;background:#EA580C}
+[data-app="calc"] .wpc-2 .wpc-n{background:#0284C7}[data-app="calc"] .wpc-3 .wpc-n{background:#7C3AED}[data-app="calc"] .wpc-4 .wpc-n{background:#059669}
+[data-app="calc"] .wpc-b{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+[data-app="calc"] .wpc-b small{font-size:12px;color:var(--muted)}
+[data-app="calc"] .wpc-b b{font-size:16px;color:var(--ink)}
+[data-app="calc"] .wpc-b>span{font-size:13.5px;color:var(--ink-2)}
+[data-app="calc"] .wpc .wpb-bar{background:var(--surface-2)}
+[data-app="calc"] .wpc .wpb-bar i{background:var(--brand)}
+[data-app="calc"] .tool.wp-tool{border-color:#FDBA74;background:linear-gradient(135deg,#FFF7ED,#FFFBEB)}
+[data-app="calc"] .tool.wp-tool .tool-ic{background:#EA580C;color:#fff}
+[data-theme="dark"][data-app="calc"] .tool.wp-tool{background:#2A1A0E;border-color:#9A3412}
+[data-theme="dark"][data-app="calc"] .qchb.hot.on{background:#2A1A0E;border-color:#9A3412}
+/* วิธีทำแบบเทียบบัญญัติไตรยางศ์ */
+[data-app="calc"] .wpwhy ol{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+[data-app="calc"] .wpwhy li{padding:0}
+[data-app="calc"] .eq{display:grid;grid-template-columns:minmax(84px,34%) auto 1fr;gap:4px 10px;align-items:baseline;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+[data-app="calc"] .eq-a{font-weight:600;color:var(--ink)}
+[data-app="calc"] .eqv{font-size:12.5px;color:var(--brand);font-weight:700;white-space:nowrap}
+[data-app="calc"] .eq-b{color:var(--ink)}
+@media (max-width:420px){[data-app="calc"] .eq{grid-template-columns:1fr auto}[data-app="calc"] .eq-b{grid-column:1/-1}}

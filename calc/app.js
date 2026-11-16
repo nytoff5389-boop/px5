@@ -1200,7 +1200,7 @@ function set2Slide(){ const S=(pg,o={})=>({src:'แบบฝึกในสไ�
 /* ---------- หน้าข้อสอบบทที่ 2 ---------- */
 const QLV2=[['mix','ผสม','ทุกระดับ'],['easy','ง่าย','แปลงหน่วยตรงๆ'],['mid','ปานกลาง','ข้ามหน่วย ค่า exact'],['hard','ยาก','โจทย์หลายขั้น']];
 const GOLD=[['1 gr','64.8 mg','≈ 65 mg'],['1 g','15.432 gr',''],['1 ℥ (apo)','31.1 g','480 gr'],['1 oz (avoir)','28.35 g','437.5 gr'],['1 lb apo','373.2 g','12 ℥'],['1 lb avoir','453.6 g','16 oz'],['1 mL','16.23 minims',''],['1 f℥','29.57 mL','≈ 30 mL'],['1 pint','473 mL','16 f℥'],['1 kg','2.20 lb',''],['1 ช้อนชา','5 mL',''],['1 ช้อนโต๊ะ','15 mL','3 ช้อนชา']];
-function chSw(cur){ return `<div class="qchsw" role="tablist" aria-label="เลือกบท">${[[1,'บทที่ 1','เลขโรมัน เลขนัยสำคัญ'],[2,'บทที่ 2','มาตรชั่งและตวง']].map(([id,t,d])=>`<button class="qchb rp ${cur===id?'on':''}" role="tab" aria-selected="${cur===id}" data-qch="${id}" data-soft="1"><b>${t}</b><small>${d}</small></button>`).join('')}</div>`; }
+function chSw(cur){ return `<div class="qchsw" role="tablist" aria-label="เลือกบท">${[[1,'บทที่ 1','เลขโรมัน เลขนัยสำคัญ'],[2,'บทที่ 2','มาตรชั่งและตวง'],[3,'โจทย์ปัญหา','500 ข้อ ข้อเขียน']].map(([id,t,d])=>`<button class="qchb rp ${id===3?'hot':''} ${cur===id?'on':''}" role="tab" aria-selected="${cur===id}" data-qch="${id}" data-soft="1"><b>${t}</b><small>${d}</small></button>`).join('')}</div>${cur===3?'':wpBanner()}`; }
 function quiz2HTML(){
   const Z=ST.qz; Z.tps2=Z.tps2||TP2.slice(); Z.diff2=Z.diff2||'mix';
   const tp=TP2.map(k=>Z.tp[k]).filter(Boolean), ans=tp.reduce((a,s)=>a+s.all,0), ok=tp.reduce((a,s)=>a+s.ok,0), acc=ans?Math.round(ok/ans*100):null;
@@ -1248,6 +1248,104 @@ function quiz2Bind(){
   $$('[data-bkpg]').forEach(b=>b.onclick=()=>{UI.bookJump=+b.dataset.bkpg;go('book');});
 }
 
+/* ===================== คลังโจทย์ปัญหา 500 ข้อ (แบบสไลด์: Suprax, Antacil, Tylenol with codeine, หยดหู) ===================== */
+Object.assign(QT,{
+  wpA:{n:'ยาน้ำตามขนาดที่สั่ง (แบบ Suprax)',pg:C2P(15),ch:3},
+  wpB:{n:'แปลงช้อนโต๊ะ ช้อนชา (แบบ Antacil)',pg:C2P(14),ch:3},
+  wpC:{n:'ยาน้ำเป็น grains (แบบ Tylenol with codeine)',pg:C2P(18),ch:3},
+  wpD:{n:'หลอดหยดที่สอบเทียบ (แบบยาหยอดหู)',pg:C2P(15),ch:3}
+});
+const WPK=['wpA','wpB','wpC','wpD'];
+const WPN={wpA:'A',wpB:'B',wpC:'C',wpD:'D'};
+const SPN={tsp:['ช้อนชา',5],tbsp:['ช้อนโต๊ะ',15]};
+const eqL=(a,b,v)=>`<span class="eq"><span class="eq-a">${a}</span><span class="eqv">${v||'เท่ากับ'}</span><span class="eq-b">${b}</span></span>`;
+let WPB=null;
+function wpBank(){ if(WPB) return WPB; const out=[]; const mc2=q=>q; /* ข้อเขียนเติมคำตอบล้วน ไม่มีช้อยส์ */
+  seeded(20261116,()=>{
+    const add=(t,list,mk)=>{ const seen=new Set(); let g=0; while(list.length<125&&g++<20000){ const q=mk(); if(!q||seen.has(q.id)) continue; seen.add(q.id); list.push(q); } };
+    /* ---- A: ยาน้ำแขวนตะกอนตามขนาดที่สั่ง ---- */
+    const DA=[['Suprax® suspension','cefixime',100,5],['Amoxil® suspension','amoxicillin',125,5],['Amoxil® forte','amoxicillin',250,5],['Tylenol® syrup','paracetamol',120,5],['Tempra® forte','paracetamol',250,5],['Brufen® syrup','ibuprofen',100,5],['Zithromax® suspension','azithromycin',200,5],['Bactrim® suspension','sulfamethoxazole',200,5],['Augmentin® suspension','amoxicillin',228,5],['Klacid® suspension','clarithromycin',125,5],['Ceclor® suspension','cefaclor',125,5],['Motilium® suspension','domperidone',5,5],['Zyrtec® syrup','cetirizine',5,5],['Dimetapp® syrup','brompheniramine',2,5]];
+    const A=[]; add('wpA',A,()=>{ const [br,dr,mg,per]=pick(DA), sk=Math.random()<.75?'tsp':'tbsp', [sn,sml]=SPN[sk], s=pick(sk==='tsp'?[0.5,1,1,1.5,2,2,3]:[0.5,1,1,2]), t=pick([2,2,3,3,4]), d=pick([3,5,5,7,7,10,10,14]);
+      const dose=s*sml, day=dose*t, tot=day*d, mgT=mg*tot/per, ask=pick(['ml','drug','both','both']);
+      const useG=mgT>=1000, dv=useG?mgT/1000:mgT, du=useG?'กรัม':'มิลลิกรัม', dU=useG?'g':'mg';
+      const stem=`ยา ${br} มีความเข้มข้นยา ${dr} ${mg} มิลลิกรัม ต่อ ${per} มิลลิลิตร ถ้าผู้ป่วยทานยาครั้งละ ${fm(s)} ${sn} วันละ ${t} ครั้ง เป็นเวลา ${d} วัน `+
+        (ask==='ml'?'อยากทราบว่าคนไข้ทานยาทั้งหมดกี่มิลลิลิตร':ask==='drug'?`อยากทราบว่าคนไข้ได้รับยา ${dr} ทั้งหมดกี่${du}`:`อยากทราบว่าคนไข้ทานยาทั้งหมดกี่มิลลิลิตร และได้รับยา ${dr} ทั้งหมดกี่${du}`);
+      const exp=[`ผู้ป่วยได้รับยา ${fm(s)} ${sn} วันละ ${t} ครั้ง เป็นเวลา ${d} วัน`,eqL(`1 ${sn}`,`${sml} มิลลิลิตร`),eqL(`${fm(s)} ${sn}`,`${sml} มิลลิลิตร × ${fm(s)} ${sn} / 1 ${sn} = <b>${fm(dose)} มิลลิลิตร</b>`),
+        `ทาน วันละ ${t} ครั้ง = ${fm(dose)} × ${t} = <b>${fm(day)} มิลลิลิตร</b>`,`ทาน ${d} วัน = ${fm(day)} × ${d} = <b>${fm(tot)} มิลลิลิตร</b>`];
+      if(ask!=='ml') exp.push(eqL(`ยาน้ำ ${per} มิลลิลิตร`,`${dr} ${mg} มิลลิกรัม`,'มีตัวยา'),eqL(`ยาน้ำ ${fm(tot)} มิลลิลิตร`,`${mg} มิลลิกรัม × ${fm(tot)} มล. / ${per} มล. = <b>${fm(mgT)} มิลลิกรัม</b>`+(useG?` = <b>${fm(dv,3)} กรัม</b>`:''),'มีตัวยา'));
+      const fl=ask==='ml'?[NF(tot,{dp:1,unit:'mL'})]:ask==='drug'?[NF(dv,{dp:3,unit:dU})]:[NF(tot,{dp:1,unit:'mL',lab:'ยาทั้งหมด'}),NF(dv,{dp:3,unit:dU,lab:`${dr} ทั้งหมด`})];
+      const q=Q2('wpA',ask==='ml'?'easy':ask==='drug'?'mid':'hard',stem,`${mg} mg/${per} mL · ${fm(s)} ${sn} × ${t} ครั้ง × ${d} วัน`,fl,exp,{sub:[br,s,sk,t,d,ask].join('/')});
+      if(fl.length===1) return ask==='ml'?mc2(q,[dose*d,day,tot*(sk==='tsp'?3:1/3),s*t*d],1):mc2(q,[useG?mgT:mgT/1000,mg*tot/(per*2),mg*s*t*d/(useG?1000:1),dv*t],3);
+      return q; });
+    /* ---- B: ช้อนโต๊ะ ช้อนชา มิลลิลิตร ---- */
+    const DB=['Antacil®','Alum milk','Mylanta®','Gaviscon®','Kremil-S®','Air-X® syrup','Simethicone syrup','Milk of Magnesia','ยาธาตุน้ำแดง','Bisolvon® elixir','Benadryl® syrup','Dextromethorphan syrup','ORS'];
+    const B=[]; add('wpB',B,()=>{ const nm=pick(DB), k=pick(['tb2','tb2','ts2','ml2','oz']);
+      if(k==='tb2'){ const n=pick([0.5,1,1.5,2,2.5,3,4]); const ml=n*15, ts=ml/5; const ask=pick(['ml','tsp','both']);
+        const stem=`แพทย์สั่งจ่ายยา ${nm} ครั้งละ ${fm(n)} ช้อนโต๊ะ ผู้ป่วยท่านนี้ทานยา`+(ask==='ml'?'กี่มิลลิลิตร':ask==='tsp'?'กี่ช้อนชา':'กี่มิลลิลิตร หรือกี่ช้อนชา');
+        const exp=[eqL('1 ช้อนโต๊ะ','15 มิลลิลิตร'),eqL(`${fm(n)} ช้อนโต๊ะ`,`15 มิลลิลิตร × ${fm(n)} ช้อนโต๊ะ / 1 ช้อนโต๊ะ = <b>${fm(ml)} มิลลิลิตร</b>`),eqL('5 มิลลิลิตร','1 ช้อนชา'),eqL(`${fm(ml)} มิลลิลิตร`,`1 ช้อนชา × ${fm(ml)} มิลลิลิตร / 5 มิลลิลิตร = <b>${fm(ts)} ช้อนชา</b>`),`ดังนั้นผู้ป่วยทานยาครั้งละ ${fm(ml)} มิลลิลิตร หรือเท่ากับ ${fm(ts)} ช้อนชา`];
+        const fl=ask==='ml'?[NF(ml,{dp:1,unit:'mL'})]:ask==='tsp'?[NF(ts,{dp:2,unit:'ช้อนชา'})]:[NF(ml,{dp:1,unit:'mL',lab:'มิลลิลิตร'}),NF(ts,{dp:2,unit:'ช้อนชา',lab:'ช้อนชา'})];
+        const q=Q2('wpB',ask==='both'?'mid':'easy',stem,`${fm(n)} ช้อนโต๊ะ`,fl,exp,{sub:[nm,k,n,ask].join('/')});
+        return fl.length>1?q:ask==='ml'?mc2(q,[n*5,n*30,ts],1):mc2(q,[n*2,n*5,ml],2); }
+      if(k==='ts2'){ const n=pick([1,2,3,4,5,6,9]); const ml=n*5, tb=ml/15;
+        const q=Q2('wpB','mid',`แพทย์สั่งจ่ายยา ${nm} ครั้งละ ${n} ช้อนชา ถ้าผู้ป่วยมีแต่ช้อนโต๊ะ ต้องตวงยาครั้งละกี่ช้อนโต๊ะ`,`${n} ช้อนชา → ช้อนโต๊ะ`,[NF(tb,{dp:2,unit:'ช้อนโต๊ะ'})],
+          [eqL('1 ช้อนชา','5 มิลลิลิตร'),eqL(`${n} ช้อนชา`,`5 มิลลิลิตร × ${n} ช้อนชา / 1 ช้อนชา = <b>${ml} มิลลิลิตร</b>`),eqL('15 มิลลิลิตร','1 ช้อนโต๊ะ'),eqL(`${ml} มิลลิลิตร`,`1 ช้อนโต๊ะ × ${ml} มิลลิลิตร / 15 มิลลิลิตร = <b>${fm(tb,2)} ช้อนโต๊ะ</b>`)],{sub:[nm,k,n].join('/')});
+        return mc2(q,[n*3,n/2,ml/10],2); }
+      if(k==='ml2'){ const ml=pick([7.5,10,15,20,22.5,25,30,45,60]), to=pick(['tsp','tbsp']), [sn,f]=SPN[to], r=ml/f;
+        const q=Q2('wpB','mid',`แพทย์สั่งจ่ายยา ${nm} ครั้งละ ${fm(ml)} มิลลิลิตร ต้องเขียนฉลากให้ผู้ป่วยตวงครั้งละกี่${sn}`,`${fm(ml)} mL → ${sn}`,[NF(r,{dp:2,unit:sn})],
+          [eqL(`${f} มิลลิลิตร`,`1 ${sn}`),eqL(`${fm(ml)} มิลลิลิตร`,`1 ${sn} × ${fm(ml)} มิลลิลิตร / ${f} มิลลิลิตร = <b>${fm(r,2)} ${sn}</b>`)],{sub:[nm,k,ml,to].join('/')});
+        return mc2(q,[ml/(f===5?15:5),ml*f,r*2],2); }
+      const oz=pick([0.5,1,1.5,2,3]), to=pick(['tbsp','tsp']), [sn,f]=SPN[to], ml=oz*30, r=ml/f;
+      const q=Q2('wpB','hard',`แพทย์สั่งจ่ายยา ${nm} ครั้งละ ${fm(oz)} fluid ounce(s) ผู้ป่วยต้องตวงยาครั้งละกี่${sn} (มาตรประจำบ้าน 1 fl oz = 30 มิลลิลิตร)`,`${fm(oz)} f℥ → ${sn}`,[NF(r,{dp:2,unit:sn})],
+        [eqL('1 fluid ounce','30 มิลลิลิตร'),eqL(`${fm(oz)} fluid ounce`,`30 มิลลิลิตร × ${fm(oz)} / 1 = <b>${fm(ml)} มิลลิลิตร</b>`),eqL(`${f} มิลลิลิตร`,`1 ${sn}`),eqL(`${fm(ml)} มิลลิลิตร`,`1 ${sn} × ${fm(ml)} / ${f} = <b>${fm(r,2)} ${sn}</b>`)],{sub:[nm,'oz',oz,to].join('/')});
+      return mc2(q,[oz*(f===5?2:6),oz*29.57/f*1.5,r/2],2); });
+    /* ---- C: ยาน้ำ แล้วเปลี่ยนเป็น grains ---- */
+    const DC=[['Tylenol with codeine® elixir','codeine',12,5],['Phenobarbital elixir','phenobarbital',20,5],['Codeine phosphate syrup','codeine',15,5],['Phenergan® with codeine','codeine',10,5],['Robitussin AC®','codeine',10,5],['Luminal® elixir','phenobarbital',15,5],['Morphine sulfate oral solution','morphine',10,5],['Chloral hydrate syrup','chloral hydrate',500,5]];
+    const C=[]; add('wpC',C,()=>{ const [nm,dr,mg,per]=pick(DC), vk=pick(['oz','oz','oz','pt']), oz=vk==='oz'?pick([1,2,3,4,5,6,8]):pick([0.5,1]);
+      const ml=vk==='oz'?oz*30:oz*473, mgT=mg*ml/per, gr=mgT/65, ask=pick(['gr','gr','gr','mg']);
+      const vol=vk==='oz'?`${fm(oz)} fluidounces`:`${fm(oz)} pint`;
+      const stem=`ยา ${nm} มีตัวยา ${dr} ${fm(mg)} มิลลิกรัม ในยาปริมาตรเท่ากับ ${per} มิลลิลิตร เภสัชกรจ่ายยาให้กับผู้ป่วย ปริมาณ ${vol} อยากทราบว่าผู้ป่วยได้รับยาทั้งหมดกี่`+(ask==='gr'?` grains (ใช้ ${vk==='oz'?'1 f℥ = 30 mL':'1 pint = 473 mL'} และ 1 gr = 65 mg)`:'มิลลิกรัม'+(vk==='oz'?' (ใช้ 1 f℥ = 30 mL)':' (ใช้ 1 pint = 473 mL)'));
+      const exp=[vk==='oz'?eqL('1 fluid ounce (f℥)','30 มิลลิลิตร'):eqL('1 pint','473 มิลลิลิตร'),
+        vk==='oz'?eqL(`${fm(oz)} fluid ounces`,`30 มิลลิลิตร × ${fm(oz)} f℥ / 1 f℥ = <b>${fm(ml)} มิลลิลิตร</b>`):eqL(`${fm(oz)} pint`,`473 × ${fm(oz)} = <b>${fm(ml,1)} มิลลิลิตร</b>`),
+        eqL(`ยาปริมาตร ${per} มิลลิลิตร`,`${dr} ${fm(mg)} มิลลิกรัม`,'มีตัวยา'),eqL(`ยาปริมาตร ${fm(ml,1)} มิลลิลิตร`,`${fm(mg)} มิลลิกรัม × ${fm(ml,1)} มล. / ${per} มล. = <b>${fm(mgT,2)} มิลลิกรัม</b>`,'มีตัวยา')];
+      if(ask==='gr') exp.push(`เปลี่ยนเป็น grains: ${fm(mgT,2)} ÷ 65 ≈ <b>${fm(gr,2)} grains</b> (ถ้าใช้ค่า exact 1 gr = 64.8 mg ได้ ${fm(mgT/64.8,2)} grains)`);
+      const f=ask==='gr'?NF(gr,{dp:2,unit:'grains',rel:.004,alt:[mgT/64.8,mg*(vk==='oz'?oz*29.57:ml)/per/64.8,mg*(vk==='oz'?oz*29.57:ml)/per/65]}):NF(mgT,{dp:2,unit:'mg',alt:vk==='oz'?[mg*oz*29.57/per]:[]});
+      const q=Q2('wpC',ask==='mg'?'mid':'hard',stem,`${fm(mg)} mg/${per} mL · ${vol}`,[f],exp,{sub:[nm,vk,oz,ask].join('/')});
+      return ask==='gr'?mc2(q,[mgT/15.432,mgT*65/1000,gr*12,mg*oz/65],2):mc2(q,[mg*oz,mgT/5,mgT*2],2); });
+    /* ---- D: หลอดหยดที่สอบเทียบ ---- */
+    const DD=['ยาหยอดหู','ยาหยอดตา','ยาหยอดจมูก','ยาน้ำเด็กชนิดหยด','วิตามินชนิดหยด','ยาลดไข้ชนิดหยด'];
+    const D=[]; add('wpD',D,()=>{ const nm=pick(DD), cal=pick([[45,2],[40,2],[30,2],[36,2],[50,2],[20,1],[25,1],[16,1],[60,3],[48,2],[55,2],[42,2]]), [dr,ml]=cal, v=pick([0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.75,0.8,1,1.2,1.5]);
+      const r=dr*v/ml, rr=Math.round(r), whole=Math.abs(r-rr)<1e-9;
+      const q=Q2('wpD',whole?'easy':'mid',`แพทย์สั่งจ่าย${nm}ให้กับคนไข้ครั้งละ ${fm(v)} มิลลิลิตร เภสัชกรทำการสอบเทียบหลอดหยด พบว่า ${dr} หยด เท่ากับ ${ml} มิลลิลิตร อยากทราบว่าคนไข้ต้องหยดยาเท่ากับกี่หยด`,`${dr} หยด = ${ml} mL · ต้องการ ${fm(v)} mL`,
+        [NF(r,{dp:2,unit:'หยด',alt:whole?[]:[rr]})],[eqL(`${ml} มิลลิลิตร`,`${dr} หยด`),eqL(`${fm(v)} มิลลิลิตร`,`${dr} หยด × ${fm(v)} มล. / ${ml} มล. = <b>${fm(r,2)} หยด</b>${whole?'':` หรือประมาณ <b>${rr} หยด</b>`}`)],{sub:[nm,dr,ml,v].join('/')});
+      return mc2(q,[ml*v/dr*10,dr*v,v*20,r*2],2); });
+    [A,B,C,D].forEach((L,j)=>L.forEach((q,i)=>{ q.wp=1; q.src='โจทย์ปัญหา'; q.no=`${'ABCD'[j]}${i+1}`; q.id='wp|'+q.t+'|'+i; }));
+    out.push(...A,...B,...C,...D);
+  });
+  WPB=out; return out; }
+WPK.forEach(k=>{ GEN[k]=lv=>{ const L=wpBank().filter(q=>q.t===k), M=lv==='new'?L.filter(q=>!(ST.qz.wpOk||{})[q.id]):L; return Object.assign({},pick(M.length?M:L)); }; });
+
+/* ---------- หน้าคลังโจทย์ปัญหา ---------- */
+function wpBanner(){ const Z=ST.qz, ok=Object.keys(Z.wpOk||{}).length;
+  return `<button class="wpban rp" data-qch="3"><span class="wpb-k">${I.flame}ใหม่ · คลังโจทย์ปัญหา</span><b class="wpb-t">โจทย์ปัญหา <span class="num">500</span> ข้อ</b>
+    <span class="wpb-d">ยาน้ำตามขนาดที่สั่ง · ช้อนโต๊ะ ช้อนชา · ยาน้ำเป็น grains · หลอดหยด ข้อเขียนเติมคำตอบ สุ่มคละ เฉลยเป็นวิธีทำเทียบบัญญัติไตรยางศ์</span>
+    <span class="wpb-p"><span class="wpb-bar"><i style="width:${ok/5}%"></i></span><small class="num">ทำถูกแล้ว ${ok}/500</small></span><span class="wpb-go">เริ่มเลย ${I.chev}</span></button>`; }
+function quiz3HTML(){
+  const Z=ST.qz, OK=Z.wpOk||{}, B=wpBank(), _seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
+  const ok=Object.keys(OK).length, wr=Z.wrong.filter(w=>qch(w.t)===3);
+  const IMGS={wpA:'Suprax',wpB:'Antacil',wpC:'Tylenol with codeine',wpD:'ยาหยอดหู'};
+  const DESC={wpA:'ความเข้มข้น mg/5 mL ครั้งละกี่ช้อน วันละกี่ครั้ง กี่วัน หายาทั้งหมดเป็น mL และ g',wpB:'ช้อนโต๊ะ ↔ มิลลิลิตร ↔ ช้อนชา และ fl oz เป็นช้อน',wpC:'จ่ายยากี่ fluidounces หรือ pint แล้วหาตัวยาเป็น mg และ grains',wpD:'สอบเทียบหลอดหยด กี่หยดเท่ากับกี่ mL แล้วหาจำนวนหยด'};
+  return pageHead('โจทย์ปัญหา 500 ข้อ','ข้อเขียนเติมคำตอบ สุ่มคละจากโจทย์ 4 แบบในสไลด์ · เฉลยแสดงวิธีทำแบบเทียบบัญญัติไตรยางศ์')+chSw(3)+`
+   <section class="wphero"><div><span class="wpb-k">${I.flame}คลังโจทย์ปัญหา</span><h2><span class="num">500</span> ข้อ สุ่มไม่ซ้ำ</h2><p>4 แบบ แบบละ 125 ข้อ ตัวเลขไม่ซ้ำกัน ทำต่อได้เรื่อยๆ จนกว่าจะกดหยุด</p>
+     <div class="wph-st"><div><b class="num">${ok}</b><small>ทำถูกแล้ว</small></div><div><b class="num">${500-ok}</b><small>ยังไม่ผ่าน</small></div><div><b class="num">${Math.round(ok/5)}%</b><small>ของคลัง</small></div></div>
+     <button class="btn lg rp wide wph-go" data-qset="wp:mix">${I.dice}สุ่มโจทย์ทั้ง 500 ข้อ</button>
+     <button class="btn ghost rp wide" data-qset="wp:new">${I.play}สุ่มเฉพาะข้อที่ยังไม่เคยทำถูก</button></div></section>
+   ${wr.length?`<button class="qmode warn rp" data-qset="wrong"><span class="qm-ic">${I.alert}</span><span><b>ทำข้อที่เคยผิดอีกครั้ง</b><small class="num">${wr.length} ข้อ ตอบถูกแล้วจะออกจากรายการ</small></span>${I.play}</button>`:''}
+   ${zone(1,'เลือกแบบโจทย์','สุ่มเฉพาะแบบที่อยากฝึก แบบละ 125 ข้อ',I.quiz,'z1')}
+   <div class="wpgrid">${WPK.map((k,i)=>{ const L=B.filter(q=>q.t===k), d=L.filter(q=>OK[q.id]).length;
+     return `<button class="wpc rp wpc-${i+1}" data-qset="wp:${k}"><span class="wpc-n">${'ABCD'[i]}</span><span class="wpc-b"><small>แบบ ${IMGS[k]}</small><b>${QT[k].n.replace(/ \(.*\)/,'')}</b><span>${DESC[k]}</span>
+       <span class="wpc-p"><span class="wpb-bar"><i style="width:${d/L.length*100}%"></i></span><small class="num">ถูกแล้ว ${d}/${L.length}</small></span></span>${I.play}</button>`; }).join('')}</div></div>`;
+}
+
 const QSTYLE=[['type','พิมพ์ตอบ','แบบข้อเขียน'],['mc','ช้อยส์','เลือก 4 ตัวเลือก'],['mix','ผสม','สลับกันไป']];
 const QLV=[['mix','ผสม','ทุกระดับ'],['easy','ง่าย','ถามตรง'],['mid','ปานกลาง','หลักการลด กฎเลข 5'],['hard','ยาก','ขีดบน ยกกำลังสิบ หลายขั้น']];
 const tpAcc=t=>{const s=ST.qz.tp[t];return s&&s.all?Math.round(s.ok/s.all*100):null;};
@@ -1273,6 +1371,7 @@ function cylSVG(step,v){
 
 /* ---------- หน้าเลือกโหมด ---------- */
 function quizHTML(){
+  if(UI.ch===3) return quiz3HTML();
   if(UI.ch===2) return quiz2HTML();
   const Z=ST.qz, acc=Z.ans?Math.round(Z.ok/Z.ans*100):null;
   const seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
@@ -1351,9 +1450,10 @@ function startQuiz(kind,o={}){
   else if(kind==='c2:th'){ list=shuf(CON2.map((_,i)=>bCon2(i))); title='ข้อช้อยทฤษฎีบทที่ 2'; o.stop=true; }
   else if(kind==='c2:sh'){ list=set2Sheet(); title='แบบฝึกหัดบทที่ 2'; o.stop=true; }
   else if(kind==='c2:sl'){ list=set2Slide(); title='แบบฝึกในสไลด์บทที่ 2'; o.stop=true; }
-  else if(kind==='wrong'){ const c=UI.ch===2?2:1; list=shuf(Z.wrong.filter(x=>qch(x.t)===c).map(x=>Object.assign({},x))); if(!list.length) return toast('ไม่มีข้อที่เคยผิด'); title='ข้อที่เคยผิด บทที่ '+c; }
-  else { if(kind==='gen2'){ o.tps=o.tps||Z.tps2; o.diff=o.diff||Z.diff2||'mix'; kind='gen'; }
-    const tps=o.tps||Z.tps, df=o.diff||Z.diff; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,df); o.endless={tps,diff:df}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(qch(tps[0])===2?'บทที่ 2 ':'')+(df==='mix'?'ทุกระดับ':LVN[df]); }
+  else if(kind==='wrong'){ const c=UI.ch||1; list=shuf(Z.wrong.filter(x=>qch(x.t)===c).map(x=>Object.assign({},x))); if(!list.length) return toast('ไม่มีข้อที่เคยผิด'); title='ข้อที่เคยผิด บทที่ '+c; }
+  else { if(/^wp:/.test(kind)){ const k=kind.slice(3); o.tps=WPK.includes(k)?[k]:WPK; o.diff=k==='new'?'new':'mix'; o.title=k==='new'?'โจทย์ปัญหา · ข้อที่ยังไม่ผ่าน':WPK.includes(k)?QT[k].n:'โจทย์ปัญหา 500 ข้อ · สุ่มคละ'; kind='gen'; }
+    if(kind==='gen2'){ o.tps=o.tps||Z.tps2; o.diff=o.diff||Z.diff2||'mix'; kind='gen'; }
+    const tps=o.tps||Z.tps, df=o.diff||Z.diff; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,df); o.endless={tps,diff:df}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(qch(tps[0])===2?'บทที่ 2 ':'')+(df==='mix'?'ทุกระดับ':LVN[df]); if(o.title) title=o.title; else if(tps.every(t=>qch(t)===3)) title=tps.length===1?QT[tps[0]].n:'โจทย์ปัญหา 500 ข้อ'; }
   /* กำหนดรูปแบบการตอบของแต่ละข้อ */
   list.forEach((q,i)=>qAs(q,i));
   QP={kind,title,list,i:0,ok:0,streak:0,res:[],done:false,endless:o.endless||null,tps:o.tps,stop:!!o.stop};
@@ -1410,13 +1510,14 @@ function qCheck(){
   const Z=ST.qz, k=q.t; Z.tp[k]=Z.tp[k]||{ok:0,all:0}; Z.tp[k].all++; Z.ans++;
   if(ok){ Z.tp[k].ok++; Z.ok++; P.ok++; P.streak++; Z.best=Math.max(Z.best,P.streak); Z.wrong=Z.wrong.filter(w=>w.id!==q.id); SFX.ok(); }
   else { P.streak=0; if(!Z.wrong.some(w=>w.id===q.id)){ const c=Object.assign({},q); delete c.as; delete c._sel; Z.wrong.unshift(c); Z.wrong=Z.wrong.slice(0,80);} SFX.bad(); }
+  if(ok&&q.wp){ Z.wpOk=Z.wpOk||{}; Z.wpOk[q.id]=1; }
   save(); P.res.push({q,ok,yours});
   const fb=$('#qfb');
   fb.innerHTML=`<section class="qexp ${ok?'ok':'no'}" aria-live="polite">
     <header class="qexp-h"><span class="qexp-ic">${ok?I.check:I.x}</span><b>${ok?pick(['ถูกต้อง เก่งมาก','ถูกเป๊ะ','เยี่ยมเลย']):'ยังไม่ถูก ดูเฉลยก่อนนะ'}</b></header>
     ${!ok?`<p class="qyour">คำตอบของคุณ: <span>${q.as==='mc'?(q.plain?esc(yours):showAns(yours)):esc(yours)||'–'}</span></p>`:''}
     <p class="qans">เฉลย: ${q.fields.length>1?q.fields.map(f=>`<span class="qa-f"><small>${esc(f.lab)}</small><b>${showAns(f.show)}${f.unit?' '+f.unit:''}</b></span>`).join(''):`<b>${q.plain?esc(q.fields[0].show):showAns(q.fields[0].show)}${q.fields[0].unit?' '+q.fields[0].unit:''}</b>`}</p>
-    <div class="qwhy"><h4>${I.bulb}หลักการคิด</h4><ol>${q.exp.map(s=>`<li>${s}</li>`).join('')}</ol></div>
+    <div class="qwhy ${q.wp?'wpwhy':''}"><h4>${I.bulb}${q.wp?'วิธีทำ (เทียบบัญญัติไตรยางศ์)':'หลักการคิด'}</h4><ol>${q.exp.map(s=>`<li>${s}</li>`).join('')}</ol></div>
     <button class="link sm rp" data-qpg="${q.pg||QT[q.t].pg}">${I.book}อ่านเรื่องนี้ในหนังสือ หน้า ${q.pg||QT[q.t].pg}</button>
    </section>`;
   $('#qp [data-qpg]').onclick=e=>bookZoom(+e.currentTarget.dataset.qpg);
@@ -1577,6 +1678,7 @@ function homeHTML(){
    <div class="sec"><div><h2>เครื่องมือ</h2></div></div>
    <div class="tools">
     <button class="tool rp" data-tab="prime"><span class="tool-ic">${I.bulb}</span><span><b>ปูพื้นฐานก่อนสอบ</b><small>สรุปกฎทุกเรื่องพร้อมตัวอย่าง</small></span>${I.chev}</button>
+    <button class="tool rp wp-tool" data-qgo="3"><span class="tool-ic">${I.flame}</span><span><b>โจทย์ปัญหา 500 ข้อ</b><small>ข้อเขียนเติมคำตอบ สุ่มคละ 4 แบบ เฉลยเป็นวิธีทำเทียบบัญญัติไตรยางศ์</small></span>${I.chev}</button>
     <button class="tool rp" data-qgo="2"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 2 มาตรชั่งและตวง</b><small>ข้อสอบทฤษฎี แบบฝึกหัดในชีท สุ่มโจทย์ 7 หัวข้อ</small></span>${I.chev}</button>
     <button class="tool rp" data-qgo="1"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 1</b><small>${ST.qz.ans?`ทำแล้ว ${ST.qz.ans} ข้อ · แม่นยำ ${Math.round(ST.qz.ok/ST.qz.ans*100)}%`:'พิมพ์ตอบ ช้อยส์ พร้อมเฉลย'}</small></span>${I.chev}</button>
     <button class="tool rp" data-read="1"><span class="tool-ic">${I.book}</span><span><b>อ่านหนังสือ</b><small>บทที่ 1 และ 2 · ${BOOK.n} หน้า ซูมได้</small></span>${I.chev}</button>
