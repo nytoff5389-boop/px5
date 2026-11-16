@@ -173,7 +173,8 @@ html[data-app] .bk-img{box-shadow:0 0 0 1px var(--line)}
 [data-app="calc"] .toc-h:first-child{padding-top:4px}
 
 /* ---- calc: คลังโจทย์ปัญหา 500 ข้อ ---- */
-[data-app="calc"] .qchsw{grid-template-columns:1fr 1fr 1fr}
+[data-app="calc"] .wpsub{margin:14px 2px 8px;font-weight:600;color:var(--text-2,#475569);font-size:.9rem}
+[data-app="calc"] #wpsec{margin:0 0 22px}
 [data-app="calc"] .qchb{padding:10px 10px;min-width:0}
 [data-app="calc"] .qchb b{font-size:15px}
 [data-app="calc"] .qchb.hot b{color:#C2410C}

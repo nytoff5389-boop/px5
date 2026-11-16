@@ -875,7 +875,7 @@ Object.assign(QT,{
   con2:{n:'ทฤษฎีบทที่ 2',pg:C2P(3),ch:2}
 });
 const TP2=Object.keys(QT).filter(k=>QT[k].ch===2), TP1=Object.keys(QT).filter(k=>!QT[k].ch);
-const qch=t=>(QT[t]&&QT[t].ch)||1;
+const qch=t=>{const c=(QT[t]&&QT[t].ch)||1;return c===3?2:c;};
 
 /* ตัวเลข: ปัดตามจำนวนทศนิยม ตัด 0 ท้าย ใส่จุลภาค */
 function fm(x,dp=4){ let s=(+(+x).toFixed(dp)).toString(); if(/e/.test(s)) s=(+x).toFixed(12).replace(/0+$/,'').replace(/\.$/,'');
@@ -1200,7 +1200,7 @@ function set2Slide(){ const S=(pg,o={})=>({src:'แบบฝึกในสไ�
 /* ---------- หน้าข้อสอบบทที่ 2 ---------- */
 const QLV2=[['mix','ผสม','ทุกระดับ'],['easy','ง่าย','แปลงหน่วยตรงๆ'],['mid','ปานกลาง','ข้ามหน่วย ค่า exact'],['hard','ยาก','โจทย์หลายขั้น']];
 const GOLD=[['1 gr','64.8 mg','≈ 65 mg'],['1 g','15.432 gr',''],['1 ℥ (apo)','31.1 g','480 gr'],['1 oz (avoir)','28.35 g','437.5 gr'],['1 lb apo','373.2 g','12 ℥'],['1 lb avoir','453.6 g','16 oz'],['1 mL','16.23 minims',''],['1 f℥','29.57 mL','≈ 30 mL'],['1 pint','473 mL','16 f℥'],['1 kg','2.20 lb',''],['1 ช้อนชา','5 mL',''],['1 ช้อนโต๊ะ','15 mL','3 ช้อนชา']];
-function chSw(cur){ return `<div class="qchsw" role="tablist" aria-label="เลือกบท">${[[1,'บทที่ 1','เลขโรมัน เลขนัยสำคัญ'],[2,'บทที่ 2','มาตรชั่งและตวง'],[3,'โจทย์ปัญหา','500 ข้อ ข้อเขียน']].map(([id,t,d])=>`<button class="qchb rp ${id===3?'hot':''} ${cur===id?'on':''}" role="tab" aria-selected="${cur===id}" data-qch="${id}" data-soft="1"><b>${t}</b><small>${d}</small></button>`).join('')}</div>${cur===3?'':wpBanner()}`; }
+function chSw(cur){ return `<div class="qchsw" role="tablist" aria-label="เลือกบท">${[[1,'บทที่ 1','เลขโรมัน เลขนัยสำคัญ'],[2,'บทที่ 2','มาตรชั่งและตวง']].map(([id,t,d])=>`<button class="qchb rp ${cur===id?'on':''}" role="tab" aria-selected="${cur===id}" data-qch="${id}" data-soft="1"><b>${t}</b><small>${d}</small></button>`).join('')}</div>`; }
 function quiz2HTML(){
   const Z=ST.qz; Z.tps2=Z.tps2||TP2.slice(); Z.diff2=Z.diff2||'mix';
   const tp=TP2.map(k=>Z.tp[k]).filter(Boolean), ans=tp.reduce((a,s)=>a+s.all,0), ok=tp.reduce((a,s)=>a+s.ok,0), acc=ans?Math.round(ok/ans*100):null;
@@ -1212,6 +1212,7 @@ function quiz2HTML(){
    <section class="qhero qh-solo">
     <div class="qhero-b"><div class="qstat"><div><b class="num">${ans}</b><small>ทำแล้ว (ข้อ)</small></div><div><b class="num">${acc==null?'–':acc+'%'}</b><small>แม่นยำ</small></div><div><b class="num">${Z.best}</b><small>ถูกติดกัน</small></div></div>
      <div class="qstyle"><span class="qstyle-l">รูปแบบการตอบ</span>${seg(QSTYLE,Z.style,'data-qstyle')}<small>พิมพ์ตอบ: ใส่แค่ตัวเลข มีจุลภาคหรือไม่ก็ได้ ระบบยอมรับค่าที่ปัดเศษใกล้เคียงและค่า practical ที่หนังสือยอมรับ</small></div></div></section>
+   ${wpSection()}
 
    ${zone(1,'เตรียมตัว','จำตัวเลขทองให้แม่น แล้วค่อยลุยข้อสอบ',I.bulb,'z0')}
    <section class="zcard gold"><h3 class="zc-t">${I.spark}ตัวเลขทองของบทนี้</h3><p class="zc-d">exact ใช้ปรุงยา practical ใช้ประมาณ โจทย์บอกค่าไหนให้ใช้ค่านั้น</p>
@@ -1329,18 +1330,17 @@ function wpBanner(){ const Z=ST.qz, ok=Object.keys(Z.wpOk||{}).length;
   return `<button class="wpban rp" data-qch="3"><span class="wpb-k">${I.flame}ใหม่ · คลังโจทย์ปัญหา</span><b class="wpb-t">โจทย์ปัญหา <span class="num">500</span> ข้อ</b>
     <span class="wpb-d">ยาน้ำตามขนาดที่สั่ง · ช้อนโต๊ะ ช้อนชา · ยาน้ำเป็น grains · หลอดหยด ข้อเขียนเติมคำตอบ สุ่มคละ เฉลยเป็นวิธีทำเทียบบัญญัติไตรยางศ์</span>
     <span class="wpb-p"><span class="wpb-bar"><i style="width:${ok/5}%"></i></span><small class="num">ทำถูกแล้ว ${ok}/500</small></span><span class="wpb-go">เริ่มเลย ${I.chev}</span></button>`; }
-function quiz3HTML(){
+function wpSection(){
   const Z=ST.qz, OK=Z.wpOk||{}, B=wpBank(), _seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
-  const ok=Object.keys(OK).length, wr=Z.wrong.filter(w=>qch(w.t)===3);
+  const ok=Object.keys(OK).length;
   const IMGS={wpA:'Suprax',wpB:'Antacil',wpC:'Tylenol with codeine',wpD:'ยาหยอดหู'};
   const DESC={wpA:'ความเข้มข้น mg/5 mL ครั้งละกี่ช้อน วันละกี่ครั้ง กี่วัน หายาทั้งหมดเป็น mL และ g',wpB:'ช้อนโต๊ะ ↔ มิลลิลิตร ↔ ช้อนชา และ fl oz เป็นช้อน',wpC:'จ่ายยากี่ fluidounces หรือ pint แล้วหาตัวยาเป็น mg และ grains',wpD:'สอบเทียบหลอดหยด กี่หยดเท่ากับกี่ mL แล้วหาจำนวนหยด'};
-  return pageHead('โจทย์ปัญหา 500 ข้อ','ข้อเขียนเติมคำตอบ สุ่มคละจากโจทย์ 4 แบบในสไลด์ · เฉลยแสดงวิธีทำแบบเทียบบัญญัติไตรยางศ์')+chSw(3)+`
-   <section class="wphero"><div><span class="wpb-k">${I.flame}คลังโจทย์ปัญหา</span><h2><span class="num">500</span> ข้อ สุ่มไม่ซ้ำ</h2><p>4 แบบ แบบละ 125 ข้อ ตัวเลขไม่ซ้ำกัน ทำต่อได้เรื่อยๆ จนกว่าจะกดหยุด</p>
+  return `<div id="wpsec">
+   <section class="wphero"><div><span class="wpb-k">${I.flame}คลังโจทย์ปัญหา</span><h2>โจทย์ปัญหา <span class="num">500</span> ข้อ</h2><p>ข้อเขียนเติมคำตอบ 4 แบบ แบบละ 125 ข้อ สุ่มไม่ซ้ำ เฉลยเป็นวิธีทำเทียบบัญญัติไตรยางศ์</p>
      <div class="wph-st"><div><b class="num">${ok}</b><small>ทำถูกแล้ว</small></div><div><b class="num">${500-ok}</b><small>ยังไม่ผ่าน</small></div><div><b class="num">${Math.round(ok/5)}%</b><small>ของคลัง</small></div></div>
      <button class="btn lg rp wide wph-go" data-qset="wp:mix">${I.dice}สุ่มโจทย์ทั้ง 500 ข้อ</button>
      <button class="btn ghost rp wide" data-qset="wp:new">${I.play}สุ่มเฉพาะข้อที่ยังไม่เคยทำถูก</button></div></section>
-   ${wr.length?`<button class="qmode warn rp" data-qset="wrong"><span class="qm-ic">${I.alert}</span><span><b>ทำข้อที่เคยผิดอีกครั้ง</b><small class="num">${wr.length} ข้อ ตอบถูกแล้วจะออกจากรายการ</small></span>${I.play}</button>`:''}
-   ${zone(1,'เลือกแบบโจทย์','สุ่มเฉพาะแบบที่อยากฝึก แบบละ 125 ข้อ',I.quiz,'z1')}
+   <p class="wpsub">หรือเลือกฝึกเฉพาะแบบ</p>
    <div class="wpgrid">${WPK.map((k,i)=>{ const L=B.filter(q=>q.t===k), d=L.filter(q=>OK[q.id]).length;
      return `<button class="wpc rp wpc-${i+1}" data-qset="wp:${k}"><span class="wpc-n">${'ABCD'[i]}</span><span class="wpc-b"><small>แบบ ${IMGS[k]}</small><b>${QT[k].n.replace(/ \(.*\)/,'')}</b><span>${DESC[k]}</span>
        <span class="wpc-p"><span class="wpb-bar"><i style="width:${d/L.length*100}%"></i></span><small class="num">ถูกแล้ว ${d}/${L.length}</small></span></span>${I.play}</button>`; }).join('')}</div></div>`;
@@ -1371,7 +1371,7 @@ function cylSVG(step,v){
 
 /* ---------- หน้าเลือกโหมด ---------- */
 function quizHTML(){
-  if(UI.ch===3) return quiz3HTML();
+  if(UI.ch===3){ UI.ch=2; UI.wpJump=1; }
   if(UI.ch===2) return quiz2HTML();
   const Z=ST.qz, acc=Z.ans?Math.round(Z.ok/Z.ans*100):null;
   const seg=(arr,cur,attr)=>`<div class="lvseg ${arr.length===3?'q3':''}" role="radiogroup">${arr.map(([id,n,d])=>`<button class="ls rp ${cur===id?'on':''}" role="radio" aria-checked="${cur===id}" ${attr}="${id}" data-soft="1"><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;
@@ -1453,7 +1453,7 @@ function startQuiz(kind,o={}){
   else if(kind==='wrong'){ const c=UI.ch||1; list=shuf(Z.wrong.filter(x=>qch(x.t)===c).map(x=>Object.assign({},x))); if(!list.length) return toast('ไม่มีข้อที่เคยผิด'); title='ข้อที่เคยผิด บทที่ '+c; }
   else { if(/^wp:/.test(kind)){ const k=kind.slice(3); o.tps=WPK.includes(k)?[k]:WPK; o.diff=k==='new'?'new':'mix'; o.title=k==='new'?'โจทย์ปัญหา · ข้อที่ยังไม่ผ่าน':WPK.includes(k)?QT[k].n:'โจทย์ปัญหา 500 ข้อ · สุ่มคละ'; kind='gen'; }
     if(kind==='gen2'){ o.tps=o.tps||Z.tps2; o.diff=o.diff||Z.diff2||'mix'; kind='gen'; }
-    const tps=o.tps||Z.tps, df=o.diff||Z.diff; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,df); o.endless={tps,diff:df}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(qch(tps[0])===2?'บทที่ 2 ':'')+(df==='mix'?'ทุกระดับ':LVN[df]); if(o.title) title=o.title; else if(tps.every(t=>qch(t)===3)) title=tps.length===1?QT[tps[0]].n:'โจทย์ปัญหา 500 ข้อ'; }
+    const tps=o.tps||Z.tps, df=o.diff||Z.diff; if(!tps.length) return toast('เลือกอย่างน้อย 1 เรื่อง'); list=genList(tps,5,df); o.endless={tps,diff:df}; title=tps.length===1?QT[tps[0]].n:'สุ่มโจทย์ '+(qch(tps[0])===2?'บทที่ 2 ':'')+(df==='mix'?'ทุกระดับ':LVN[df]); if(o.title) title=o.title; else if(tps.every(t=>QT[t].ch===3)) title=tps.length===1?QT[tps[0]].n:'โจทย์ปัญหา 500 ข้อ'; }
   /* กำหนดรูปแบบการตอบของแต่ละข้อ */
   list.forEach((q,i)=>qAs(q,i));
   QP={kind,title,list,i:0,ok:0,streak:0,res:[],done:false,endless:o.endless||null,tps:o.tps,stop:!!o.stop};
@@ -1621,7 +1621,7 @@ function primeBind(){
 /* ===================== โครงหน้า ===================== */
 const UI={tab:'home',tocOpen:false};
 const TABS=[['home','หน้าแรก',I.home],['book','อ่านหนังสือ',I.book],['quiz','ข้อสอบ',I.quiz],['set','ตั้งค่า',I.cog]];
-function go(tab,opt){UI.tab=tab;if(opt) Object.assign(UI,opt);render();window.scrollTo(0,0);}
+function go(tab,opt){UI.tab=tab;if(opt) Object.assign(UI,opt);render();window.scrollTo(0,0); if(UI.wpJump){ UI.wpJump=0; const j=()=>{const e=document.getElementById('wpsec'); if(e) window.scrollTo(0,e.getBoundingClientRect().top+window.scrollY-70);}; j(); requestAnimationFrame(j); } }
 function render(){
   const v=$('#view');
   v.innerHTML=({home:homeHTML,book:bookHTML,quiz:quizHTML,prime:primeHTML,set:setHTML}[UI.tab]||homeHTML)();
@@ -1678,7 +1678,7 @@ function homeHTML(){
    <div class="sec"><div><h2>เครื่องมือ</h2></div></div>
    <div class="tools">
     <button class="tool rp" data-tab="prime"><span class="tool-ic">${I.bulb}</span><span><b>ปูพื้นฐานก่อนสอบ</b><small>สรุปกฎทุกเรื่องพร้อมตัวอย่าง</small></span>${I.chev}</button>
-    <button class="tool rp wp-tool" data-qgo="3"><span class="tool-ic">${I.flame}</span><span><b>โจทย์ปัญหา 500 ข้อ</b><small>ข้อเขียนเติมคำตอบ สุ่มคละ 4 แบบ เฉลยเป็นวิธีทำเทียบบัญญัติไตรยางศ์</small></span>${I.chev}</button>
+    <button class="tool rp wp-tool" data-qgo="3"><span class="tool-ic">${I.flame}</span><span><b>โจทย์ปัญหา 500 ข้อ</b><small>อยู่ในข้อสอบบทที่ 2 · ข้อเขียนเติมคำตอบ สุ่มคละ 4 แบบ เฉลยเทียบบัญญัติไตรยางศ์</small></span>${I.chev}</button>
     <button class="tool rp" data-qgo="2"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 2 มาตรชั่งและตวง</b><small>ข้อสอบทฤษฎี แบบฝึกหัดในชีท สุ่มโจทย์ 7 หัวข้อ</small></span>${I.chev}</button>
     <button class="tool rp" data-qgo="1"><span class="tool-ic">${I.quiz}</span><span><b>ข้อสอบบทที่ 1</b><small>${ST.qz.ans?`ทำแล้ว ${ST.qz.ans} ข้อ · แม่นยำ ${Math.round(ST.qz.ok/ST.qz.ans*100)}%`:'พิมพ์ตอบ ช้อยส์ พร้อมเฉลย'}</small></span>${I.chev}</button>
     <button class="tool rp" data-read="1"><span class="tool-ic">${I.book}</span><span><b>อ่านหนังสือ</b><small>บทที่ 1 และ 2 · ${BOOK.n} หน้า ซูมได้</small></span>${I.chev}</button>
