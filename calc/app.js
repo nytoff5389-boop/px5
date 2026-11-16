@@ -1479,7 +1479,7 @@ function qRender(){
   el.innerHTML=`<div class="pbar"><div class="pbar-in"><button class="ib2 rp" id="qx" aria-label="ออก">${I.x}</button>${P.endless?`<b class="num qn-end">ข้อที่ ${P.i+1}</b><span class="top-sp"></span>${P.res.length?`<button class="btn ghost sm rp" id="qstop">หยุดและดูสรุป</button>`:''}`:`<div class="pline"><i style="width:${pct}%"></i></div><b class="num">${P.i+1}/${P.list.length}</b>${P.stop&&P.res.length?`<button class="btn ghost sm rp" id="qstop">หยุด</button>`:''}`}<span class="pst num">${I.check}${P.ok}</span></div></div>
    <div class="pl-sc" id="qsc"><div class="stage"><article class="qcard">
     <div class="qmeta"><span class="qtopic">${QT[q.t].n}</span><span class="lv lv-${q.lv}">${LVN[q.lv]}</span>${q.src?`<span class="qsrc">${esc(q.src)}${q.no?' · '+esc(q.no):''}</span>`:''}<span class="qtype">${q.as==='mc'?'ช้อยส์':'พิมพ์ตอบ'}</span></div>
-    <p class="stem">${esc(q.stem)}</p>${!q.fig&&(q.bigHTML||q.big)?`<div class="qbig">${q.bigHTML||esc(q.big)}</div>`:''}${fig(q)?`<div class="qfig">${fig(q)}</div>`:''}
+    <p class="stem">${esc(q.stem)}</p>${!q.fig&&(q.bigHTML||q.big)?`${q.wp?'':`<div class="qbig">${q.bigHTML||esc(q.big)}</div>`}`:''}${fig(q)?`<div class="qfig">${fig(q)}</div>`:''}
     ${ans}
     <div id="qfb"></div></article></div></div>
    <div class="pact"><div class="pact-in"><button class="btn lg rp wide" id="qgo" ${q.as==='mc'?'disabled':''}>${I.check}ตรวจคำตอบ</button></div></div>`;
@@ -1541,7 +1541,7 @@ function qFinish(){
     <h2>${p>=80?'เครื่องแรงมาก พร้อมสอบแล้ว':p>=50?'มาถูกทางแล้ว ทบทวนอีกนิด':'ค่อยๆ ซ้อมไปด้วยกันนะ'}</h2>
     <div class="qsum-tp">${Object.entries(by).map(([k,[o,a]])=>`<div class="lvbar"><span>${QT[k].n}</span><span class="num">${o}/${a}</span>${meter(Math.round(o/a*100))}</div>`).join('')}</div>
     <div class="cta-row two">${P.res.some(r=>!r.ok)?`<button class="btn ghost lg rp" id="qs-wrong">${I.alert}ทำข้อที่ผิดอีกครั้ง</button>`:''}<button class="btn lg rp" id="qs-again">${I.reset}ทำชุดนี้อีกรอบ</button></div>
-    ${P.res.some(r=>!r.ok)?`<h3 class="mini">ข้อที่ผิดพร้อมเฉลย</h3><div class="qrv">${P.res.filter(r=>!r.ok).map(r=>`<details class="rv"><summary><span class="rv-q">${esc(r.q.stem)} <b>${r.q.bigHTML||esc(r.q.big)}</b></span>${I.down}</summary><div class="rv-b"><p>เฉลย: <b>${r.q.fields.map(f=>showAns(f.show)+(f.unit?' '+f.unit:'')).join(' · ')}</b></p><ol>${r.q.exp.map(s=>`<li>${s}</li>`).join('')}</ol></div></details>`).join('')}</div>`:''}
+    ${P.res.some(r=>!r.ok)?`<h3 class="mini">ข้อที่ผิดพร้อมเฉลย</h3><div class="qrv">${P.res.filter(r=>!r.ok).map(r=>`<details class="rv"><summary><span class="rv-q">${esc(r.q.stem)} ${r.q.wp?'':`<b>${r.q.bigHTML||esc(r.q.big)}</b>`}</span>${I.down}</summary><div class="rv-b"><p>เฉลย: <b>${r.q.fields.map(f=>showAns(f.show)+(f.unit?' '+f.unit:'')).join(' · ')}</b></p><ol>${r.q.exp.map(s=>`<li>${s}</li>`).join('')}</ol></div></details>`).join('')}</div>`:''}
    </section></div></div>`;
   SFX.done();
   $('#qx').onclick=qClose;
