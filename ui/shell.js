@@ -26,6 +26,7 @@
   var IN_APP_BROWSER=/Line\/|FBAN|FBAV|FB_IAB|Instagram|TikTok|musical_ly|BytedanceWebview|Twitter|Messenger|MicroMessenger|KAKAOTALK/i.test(UA);
   var IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   function pdfList(){
+    if(APP==='bio') return [{f:'pdf/ch1.pdf',n:'บทที่ 1 คาร์โบไฮเดรต',mb:4.1,name:'Biochem-PHB104-ch1.pdf'},{f:'pdf/ch2.pdf',n:'บทที่ 2 ลิพิดส์',mb:6.1,name:'Biochem-PHB104-ch2.pdf'}];
     try{ if(APP==='anatomy') return BOOK.pdf.map(function(x){return {f:x.f,n:x.n,mb:x.mb,name:'Anatomy-BI112-'+x.f.split('/').pop()};}); }catch(e){}
     try{ return CHAPTERS.filter(function(c){return c.ready&&c.pdf;}).map(function(c){return {f:c.pdf.f,n:'บทที่ '+c.id,mb:c.pdf.mb,name:'calc-PHT111-ch'+c.id+'.pdf'};}); }catch(e){}
     return [];

@@ -54,7 +54,7 @@ function vBook(v,k,pg){
      <div class="tt"><b>บทที่ ${k} ${esc(b.t)}</b><small id="pgno">PHB104 · หน้า ${start} จาก ${n}</small></div>
      <div class="seg" role="tablist" aria-label="เลือกเล่ม"><button class="${k===1?'on':''}" data-act="go" data-v="#/book/1">บทที่ 1</button><button class="${k===2?'on':''}" data-act="go" data-v="#/book/2">บทที่ 2</button></div>
      <span class="dv"></span><button class="ibtn" data-act="wide" aria-label="ขยายหรือย่อหน้าสมุด" title="ขยายหรือย่อหน้าสมุด">${ic('zoom_in')}</button>
-     <a class="ibtn" href="${b.pdf}" download="PHB104-บทที่${k}-${b.t}.pdf" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF (${b.mb} MB)">${ic('download')}</a>
+     <button class="ibtn" type="button" data-pxdl="1" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</button>
      <button class="ibtn" data-act="start" data-v="ch:${k}" aria-label="ทำข้อสอบบทนี้" title="ทำข้อสอบบทนี้">${ic('clipboard_check')}</button></div>
     <div class="pjump" aria-label="ข้ามไปหัวข้อ">${b.sec.map(s=>`<button class="chip" data-act="pgo" data-v="${s[1]}">${esc(s[0])}</button>`).join('')}</div>
     <div class="pgs">${Array.from({length:n},(_,i)=>`<figure id="pg${i+1}"><img src="${b.dir}/p-${String(i+1).padStart(3,'0')}.webp" alt="สมุด Biochem บทที่ ${k} หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / ${n}</figcaption></figure>`).join('')}</div>
