@@ -37,7 +37,7 @@ function vHome(v){
   const acc=DB.ans?pct(DB.ok,DB.ans)+'%':'–', rd=k=>pct((DB.pgMax[k]||1)-1,BOOKS[k].n-1);
   const bk=k=>{ const b=BOOKS[k]; return `<article class="bx-bk"><div class="cv" style="background-image:url(${b.img})"><span class="tag">บทที่ ${k}</span></div><div class="bd"><h3>${esc(b.t)}</h3><p>${esc(b.en)} · สมุด ${b.n} หน้า</p>
      <div class="bx-pr"><div class="bar"><i style="width:${rd(k)}%"></i></div><span class="num">อ่านแล้ว ${rd(k)}%</span></div>
-     <div class="ac"><a class="btn" href="#/book/${k}">${ic('book_open')}${(DB.pg[k]||1)>1?'อ่านต่อหน้า '+DB.pg[k]:'อ่านสมุด'}</a><button class="btn sec" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}ข้อสอบ</button><button class="btn dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF · ${b.mb} MB</button></div></div></article>`; };
+     <div class="ac"><a class="btn" href="#/book/${k}">${ic('book_open')}${(DB.pg[k]||1)>1?'อ่านต่อหน้า '+DB.pg[k]:'อ่านสมุด'}</a><button class="btn sec" data-act="bd" data-v="${k}">${ic('clipboard_check')}ข้อสอบ</button><button class="btn dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF · ${b.mb} MB</button></div></div></article>`; };
   v.innerHTML=top('')+`<main class="bx-pg"><section class="bx-hero"><div><span class="tag">PHB104</span><h1 style="margin-top:8px">Biochemistry</h1><p>สมุดสรุปบทที่ 1 คาร์โบไฮเดรต และบทที่ 2 ลิพิดส์ พร้อมคลังข้อสอบจากเนื้อหาในสไลด์เรียน เน้นความจำ มีวิเคราะห์เล็กน้อย และโจทย์โครงสร้างกรดไขมัน</p></div>
      <div class="bx-kp"><div><small>ทำแล้ว</small><b class="num">${DB.ans}</b></div><div><small>แม่นยำ</small><b class="num">${acc}</b></div></div></section>
     <section class="bx-books">${bk(1)}${bk(2)}
@@ -55,10 +55,10 @@ function vBook(v,k,pg){
      <div class="seg" role="tablist" aria-label="เลือกเล่ม"><button class="${k===1?'on':''}" data-act="go" data-v="#/book/1">บทที่ 1</button><button class="${k===2?'on':''}" data-act="go" data-v="#/book/2">บทที่ 2</button></div>
      <span class="dv"></span><button class="ibtn" data-act="wide" aria-label="ขยายหรือย่อหน้าสมุด" title="ขยายหรือย่อหน้าสมุด">${ic('zoom_in')}</button>
      <button class="dlb" type="button" data-pxdl="1" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}<span>PDF</span></button>
-     <button class="ibtn" data-act="start" data-v="ch:${k}" aria-label="ทำข้อสอบบทนี้" title="ทำข้อสอบบทนี้">${ic('clipboard_check')}</button></div>
+     <button class="ibtn" data-act="bd" data-v="${k}" aria-label="ทำข้อสอบบทนี้" title="ทำข้อสอบบทนี้">${ic('clipboard_check')}</button></div>
     <div class="pjump" aria-label="ข้ามไปหัวข้อ">${b.sec.map(s=>`<button class="chip" data-act="pgo" data-v="${s[1]}">${esc(s[0])}</button>`).join('')}</div>
     <div class="pgs">${Array.from({length:n},(_,i)=>`<figure id="pg${i+1}"><img src="${b.dir}/p-${String(i+1).padStart(3,'0')}.webp" alt="สมุด Biochem บทที่ ${k} หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / ${n}</figcaption></figure>`).join('')}</div>
-    <div class="dl"><button class="btn lg" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}อ่านจบแล้ว ทำข้อสอบบทที่ ${k}</button><button class="btn lg dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF</button></div></div>`;
+    <div class="dl"><button class="btn lg" data-act="bd" data-v="${k}">${ic('clipboard_check')}อ่านจบแล้ว ทำข้อสอบบทที่ ${k}</button><button class="btn lg dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF</button></div></div>`;
   const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
   const jump=p=>{ const f=figs[p-1]; if(f) scrollTo(0,f.getBoundingClientRect().top+scrollY-84); };
   if(start>1){ jump(start); requestAnimationFrame(()=>jump(start)); setTimeout(()=>jump(start),120); } else scrollTo(0,0);
@@ -74,17 +74,14 @@ function vExam(v){
   document.title='ข้อสอบ Biochem PHB104'; const C=DB.cfg, nw=DB.wrong.length, demo=FA.find(f=>f.c===18&&f.d.length===2);
   const acc=t=>{ const b=DB.tp[t]; return b&&b[0]?' · ทำแล้ว '+b[0]+' ข้อ ถูก '+pct(b[1],b[0])+'%':''; };
   const chSec=ch=>`<section class="group"><div class="gh"><div class="th" style="background-image:url(${BOOKS[ch].img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>บทที่ ${ch} ${esc(BOOKS[ch].t)}</h2><span class="tag">PHB104</span></div><p>ข้อสอบจากสไลด์เรียน${ch===2?' และโจทย์โครงสร้างกรดไขมันที่สุ่มใหม่ทุกครั้ง':''} กดถัดไปได้เรื่อยๆ จนกว่าจะพอ</p></div></div>
-    <div class="lst"><button class="item" data-act="start" data-v="ch:${ch}"><span class="n">${ic('shuffle')}</span><div class="grow"><h3>ทำต่อเนื่องทั้งบท</h3><p>คละทุกหัวข้อของบทที่ ${ch} ตามระดับที่เลือกไว้ด้านบน</p></div>${ic('chevron_right','ch')}</button>
+    <div class="lst"><button class="item" data-act="bd" data-v="${ch}"><span class="n">${ic('shuffle')}</span><div class="grow"><h3>ทำต่อเนื่องทั้งบท</h3><p>เลือกระดับและหัวข้อของบทที่ ${ch} แล้วเริ่มทำ</p></div>${ic('chevron_right','ch')}</button>
      ${tpsOf(ch).map((t,i)=>`<button class="item" data-act="start" data-v="tp:${t}"><span class="n num">${i+1}</span><div class="grow"><h3>${esc(TP[t].n)}</h3><p>${TP[t].gen?'สุ่มโครงสร้างใหม่ทุกข้อ':'ข้อสอบจากสไลด์หัวข้อนี้'}${acc(t)}</p></div>${ic('chevron_right','ch')}</button>`).join('')}</div></section>`;
   v.innerHTML=top('exam')+`<main class="bx-pg"><div class="ph"><h1>ข้อสอบ Biochem</h1><p>ปรนัย 4 ตัวเลือก ไม่มีคำใบ้ในโจทย์ ทำต่อเนื่องได้ไม่รู้จบ ตอบแล้วเห็นเฉลยทันที อยากหยุดเมื่อไรกดจบและดูผล</p></div>
-    <div class="card"><h2>ตั้งค่าชุดข้อสอบ</h2><div class="bx-set">
-      <div class="fld"><span class="lb">ระดับความยาก</span><div class="chips">${[['mix','คละระดับ'],['easy','ง่าย'],['mid','ปานกลาง'],['hard','ยาก']].map(x=>`<button class="chip ${C.lv===x[0]?'on':''}" data-act="cfg" data-k="lv" data-v="${x[0]}" aria-pressed="${C.lv===x[0]}">${x[1]}</button>`).join('')}</div></div>
-</div>
-     <div class="sw" style="margin-top:8px"><div><b style="font-weight:500">แสดงนาฬิกาจับเวลา</b><p>กดซ่อนหรือแสดงระหว่างทำได้</p></div><button class="tg" role="switch" aria-checked="${!!C.timer}" data-act="cfg" data-k="timer" data-v="toggle" aria-label="แสดงนาฬิกาจับเวลา"></button></div></div>
+    <section class="bx-bd"><div class="grow"><h2>จัดชุดโจทย์</h2><p>เลือกระดับ บท และหัวข้อที่อยากฝึก โจทย์สุ่มใหม่ทุกข้อ ทำต่อเนื่องไม่รู้จบ</p></div><button class="btn lg" data-act="bd">${ic('play')}จัดชุดโจทย์</button></section>
     <section class="bx-fa"><h2>${ic('flask_conical')}โจทย์โครงสร้างกรดไขมัน</h2><p>ระบบสร้างรูปโครงสร้างใหม่ทุกครั้ง ให้นับคาร์บอน นับพันธะคู่ แล้วเรียกชื่อย่อแบบ Delta (Δ) Omega (ω) และระบบ n</p>
      <div class="demo">${faSVG(demo)}</div>
      <div class="row">${[['mix','คละทุกแบบ'],['easy','นับคาร์บอนและพันธะคู่'],['mid','เรียกชื่อ Δ ω n'],['hard','เลือกโครงสร้างและแปลงระบบ']].map((x,i)=>`<button class="btn ${i?'sec':''}" data-act="start" data-v="fa:${x[0]}">${i?'':ic('play')}${x[1]}</button>`).join('')}</div></section>
-    <div class="quick" style="margin-top:18px"><button class="item" data-act="start" data-v="mock"><span class="n">${ic('timer')}</span><div class="grow"><h3>สอบจำลองรวม 2 บท 40 ข้อ</h3><p>คละทั้งคาร์โบไฮเดรตและลิพิดส์ จับเวลา เฉลยตอนส่ง</p></div>${ic('chevron_right','ch')}</button>
+    <div class="quick" style="margin-top:18px"><button class="item" data-act="start" data-v="mock"><span class="n">${ic('timer')}</span><div class="grow"><h3>สอบจำลองรวม 2 บท</h3><p>คละทั้งคาร์โบไฮเดรตและลิพิดส์ จับเวลา เฉลยตอนส่ง</p></div>${ic('chevron_right','ch')}</button>
      <button class="item" data-act="start" data-v="wrong" ${nw?'':'disabled style="opacity:.55"'}><span class="n">${ic('rotate_ccw')}</span><div class="grow"><h3>ทบทวนข้อที่เคยผิด</h3><p>${nw?'มี '+nw+' ข้อรอทบทวน ตอบถูกแล้วจะออกจากรายการ':'ยังไม่มีข้อที่ผิด'}</p></div>${ic('chevron_right','ch')}</button></div>
     ${chSec(1)}${chSec(2)}
     ${DB.sessions.length?`<div class="sec-h"><div><h2>ผลสอบล่าสุด</h2></div></div><div class="card" style="padding:8px 20px"><div class="hist">${DB.sessions.map((R,i)=>`<a href="#/result/${i}"><span>${esc(R.title)}</span><small>${new Date(R.d).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small><b class="num">${R.ok}/${R.n}</b></a>`).join('')}</div></div>`:''}</main>`;
@@ -95,6 +92,17 @@ let QZ=null, tmr=0;
 try{ QZ=JSON.parse(sessionStorage.getItem('payap.bio.qz')); }catch(e){}
 const keepQZ=()=>{ try{ QZ?sessionStorage.setItem('payap.bio.qz',JSON.stringify(QZ)):sessionStorage.removeItem('payap.bio.qz'); }catch(e){} };
 const LVT={mix:'คละระดับ',easy:'ง่าย',mid:'ปานกลาง',hard:'ยาก'};
+function openBD(ch){
+  const sv=DB.bd||{};
+  PKBuilder.open({eyebrow:'Biochem PHB104',chapters:[1,2].map(k=>({id:k,n:BOOKS[k].t})),topics:Object.keys(TP).map(k=>({id:k,ch:TP[k].ch,n:TP[k].n})),
+    ch:ch?[+ch]:(sv.ch||[]),tp:ch?[]:(sv.tp||[]),lv:DB.cfg.lv,
+    onSave:st=>{ DB.bd={ch:st.ch.slice(),tp:st.tp.slice()}; DB.cfg.lv=st.lv; save(); },
+    onStart:o=>startInf(o.tps,o.lv,o.title)});
+}
+function startInf(tps,lv,title){
+  QZ={title,mode:'instant',timer:!!DB.cfg.timer,kind:'inf',i:0,el:0,inf:{tps,lv},deck:[],qs:[]}; const q=moreQ(); if(!q){ QZ=null; toast('ยังไม่มีข้อสอบในชุดนี้'); return; }
+  QZ.qs.push(q); keepQZ(); touchMain('exam','bio/#/exam'); if(route()[0]==='quiz') render(); else location.hash='#/quiz';
+}
 function startQuiz(kind){
   const C=DB.cfg; let qs=[], title='', mode=C.mode, timer=!!C.timer; const m=kind.split(':');
   let inf=null;
@@ -183,6 +191,7 @@ function confirmExit(){ const d=document.createElement('div'); d.className='dlg'
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]'); if(!b) return; const a=b.dataset.act, val=b.dataset.v;
   if(a==='start') startQuiz(val);
+  else if(a==='bd') openBD(val);
   else if(a==='go') location.hash=val;
   else if(a==='theme'){ const d=document.documentElement, t=d.dataset.theme==='dark'?'light':'dark'; d.dataset.theme=t; try{ localStorage.setItem('payap.theme',t); }catch(e){} render.stay=true; render(); }
   else if(a==='wide'){ DB.wide=!DB.wide; save(); const r=$('.bx-rd'); if(r) r.classList.toggle('wide',DB.wide); }
