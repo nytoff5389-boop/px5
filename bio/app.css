@@ -70,3 +70,14 @@
 #px-dl .pd-a svg{width:18px;height:18px}
 #px-dl .pd-note{margin:12px 0 0;font-size:14px;color:var(--good)}
 @media (max-width:400px){#px-dl .pd-a{padding:0 11px;font-size:14px}#px-dl .pd-a.icon{display:none}}
+
+/* ปุ่มดาวน์โหลด PDF ให้เด่น */
+.fbar .dlb{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px 0 11px;border-radius:9999px;background:var(--pri);color:#fff;font-weight:600;font-size:13.5px;flex:none;box-shadow:0 2px 8px rgba(2,132,199,.35)}
+.fbar .dlb .ic{width:18px;height:18px}.fbar .dlb:hover{background:var(--pri-d)}
+:root[data-theme="dark"] .fbar .dlb{color:#06202F}
+.bx-bk .ac .dlw,.bx-rd .dl .dlw{flex:1 0 100%;justify-content:center;background:var(--pri-s);color:var(--pri-d);border:1.5px solid var(--pri);font-weight:600}
+.bx-bk .ac .dlw:hover,.bx-rd .dl .dlw:hover{background:var(--pri);color:#fff}
+.bx-rd .dl{flex-wrap:wrap;gap:10px}
+.bx-rd .dl .dlw{flex:0 1 auto}
+@media (max-width:640px){.bx-rd .dl .btn{width:100%;justify-content:center}}
+.bx-bk .ac .btn{flex:1 1 auto;min-width:max-content}

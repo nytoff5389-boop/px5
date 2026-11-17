@@ -37,7 +37,7 @@ function vHome(v){
   const acc=DB.ans?pct(DB.ok,DB.ans)+'%':'–', rd=k=>pct((DB.pgMax[k]||1)-1,BOOKS[k].n-1);
   const bk=k=>{ const b=BOOKS[k]; return `<article class="bx-bk"><div class="cv" style="background-image:url(${b.img})"><span class="tag">บทที่ ${k}</span></div><div class="bd"><h3>${esc(b.t)}</h3><p>${esc(b.en)} · สมุด ${b.n} หน้า</p>
      <div class="bx-pr"><div class="bar"><i style="width:${rd(k)}%"></i></div><span class="num">อ่านแล้ว ${rd(k)}%</span></div>
-     <div class="ac"><a class="btn" href="#/book/${k}">${ic('book_open')}${(DB.pg[k]||1)>1?'อ่านต่อหน้า '+DB.pg[k]:'อ่านสมุด'}</a><button class="btn sec" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}ข้อสอบ</button></div></div></article>`; };
+     <div class="ac"><a class="btn" href="#/book/${k}">${ic('book_open')}${(DB.pg[k]||1)>1?'อ่านต่อหน้า '+DB.pg[k]:'อ่านสมุด'}</a><button class="btn sec" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}ข้อสอบ</button><button class="btn dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF · ${b.mb} MB</button></div></div></article>`; };
   v.innerHTML=top('')+`<main class="bx-pg"><section class="bx-hero"><div><span class="tag">PHB104</span><h1 style="margin-top:8px">Biochemistry</h1><p>สมุดสรุปบทที่ 1 คาร์โบไฮเดรต และบทที่ 2 ลิพิดส์ พร้อมคลังข้อสอบจากเนื้อหาในสไลด์เรียน เน้นความจำ มีวิเคราะห์เล็กน้อย และโจทย์โครงสร้างกรดไขมัน</p></div>
      <div class="bx-kp"><div><small>ทำแล้ว</small><b class="num">${DB.ans}</b></div><div><small>แม่นยำ</small><b class="num">${acc}</b></div></div></section>
     <section class="bx-books">${bk(1)}${bk(2)}
@@ -54,11 +54,11 @@ function vBook(v,k,pg){
      <div class="tt"><b>บทที่ ${k} ${esc(b.t)}</b><small id="pgno">PHB104 · หน้า ${start} จาก ${n}</small></div>
      <div class="seg" role="tablist" aria-label="เลือกเล่ม"><button class="${k===1?'on':''}" data-act="go" data-v="#/book/1">บทที่ 1</button><button class="${k===2?'on':''}" data-act="go" data-v="#/book/2">บทที่ 2</button></div>
      <span class="dv"></span><button class="ibtn" data-act="wide" aria-label="ขยายหรือย่อหน้าสมุด" title="ขยายหรือย่อหน้าสมุด">${ic('zoom_in')}</button>
-     <button class="ibtn" type="button" data-pxdl="1" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</button>
+     <button class="dlb" type="button" data-pxdl="1" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}<span>PDF</span></button>
      <button class="ibtn" data-act="start" data-v="ch:${k}" aria-label="ทำข้อสอบบทนี้" title="ทำข้อสอบบทนี้">${ic('clipboard_check')}</button></div>
     <div class="pjump" aria-label="ข้ามไปหัวข้อ">${b.sec.map(s=>`<button class="chip" data-act="pgo" data-v="${s[1]}">${esc(s[0])}</button>`).join('')}</div>
     <div class="pgs">${Array.from({length:n},(_,i)=>`<figure id="pg${i+1}"><img src="${b.dir}/p-${String(i+1).padStart(3,'0')}.webp" alt="สมุด Biochem บทที่ ${k} หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / ${n}</figcaption></figure>`).join('')}</div>
-    <div class="dl"><button class="btn lg" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}อ่านจบแล้ว ทำข้อสอบบทที่ ${k}</button></div></div>`;
+    <div class="dl"><button class="btn lg" data-act="start" data-v="ch:${k}">${ic('clipboard_check')}อ่านจบแล้ว ทำข้อสอบบทที่ ${k}</button><button class="btn lg dlw" type="button" data-pxdl="1">${ic('download')}ดาวน์โหลด PDF</button></div></div>`;
   const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
   const jump=p=>{ const f=figs[p-1]; if(f) scrollTo(0,f.getBoundingClientRect().top+scrollY-84); };
   if(start>1){ jump(start); requestAnimationFrame(()=>jump(start)); setTimeout(()=>jump(start),120); } else scrollTo(0,0);
