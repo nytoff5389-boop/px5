@@ -41,7 +41,7 @@ function vHome(v){
   v.innerHTML=top('')+`<main class="bx-pg"><section class="bx-hero"><div><span class="tag">PHB104</span><h1 style="margin-top:8px">Biochemistry</h1><p>สมุดสรุปบทที่ 1 คาร์โบไฮเดรต และบทที่ 2 ลิพิดส์ พร้อมคลังข้อสอบจากเนื้อหาในสไลด์เรียน เน้นความจำ มีวิเคราะห์เล็กน้อย และโจทย์โครงสร้างกรดไขมัน</p></div>
      <div class="bx-kp"><div><small>ทำแล้ว</small><b class="num">${DB.ans}</b></div><div><small>แม่นยำ</small><b class="num">${acc}</b></div></div></section>
     <section class="bx-books">${bk(1)}${bk(2)}
-     <article class="bx-bk"><div class="cv" style="background-image:url(../ui/img/b-bioq.jpg)"><span class="tag">ข้อสอบ</span></div><div class="bd"><h3>คลังข้อสอบ Biochem</h3><p>บทที่ 1 ${BIO_COUNT(1)} ข้อ บทที่ 2 ${BIO_COUNT(2)} ข้อ และโจทย์โครงสร้างกรดไขมันสุ่มได้ไม่จำกัด</p>
+     <article class="bx-bk"><div class="cv" style="background-image:url(../ui/img/b-bioq.jpg)"><span class="tag">ข้อสอบ</span></div><div class="bd"><h3>คลังข้อสอบ Biochem</h3><p>ข้อสอบจากสไลด์บทที่ 1 และบทที่ 2 ทำต่อเนื่องได้ไม่รู้จบ และโจทย์โครงสร้างกรดไขมันที่สุ่มรูปใหม่ทุกข้อ</p>
       <div class="ac"><a class="btn" href="#/exam">${ic('clipboard_check')}เลือกชุดข้อสอบ</a><button class="btn sec" data-act="start" data-v="mock">${ic('timer')}สอบจำลอง</button></div></div></article></section>
     <p class="bx-note">เนื้อหาข้อสอบอ้างอิงจากสไลด์ PHB104 เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต และลิพิดส์</p></main>`;
 }
@@ -73,17 +73,14 @@ function vBook(v,k,pg){
 function vExam(v){
   document.title='ข้อสอบ Biochem PHB104'; const C=DB.cfg, nw=DB.wrong.length, demo=FA.find(f=>f.c===18&&f.d.length===2);
   const acc=t=>{ const b=DB.tp[t]; return b&&b[0]?' · ทำแล้ว '+b[0]+' ข้อ ถูก '+pct(b[1],b[0])+'%':''; };
-  const cnt=t=>BANK.filter(c=>c.t===t).length;
-  const chSec=ch=>`<section class="group"><div class="gh"><div class="th" style="background-image:url(${BOOKS[ch].img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>บทที่ ${ch} ${esc(BOOKS[ch].t)}</h2><span class="tag">PHB104</span></div><p>${BIO_COUNT(ch)} ข้อจากสไลด์เรียน${ch===2?' และโจทย์โครงสร้างกรดไขมันที่สุ่มใหม่ทุกครั้ง':''}</p></div></div>
-    <div class="lst"><button class="item" data-act="start" data-v="ch:${ch}"><span class="n">${ic('shuffle')}</span><div class="grow"><h3>สุ่มจากทั้งบท ${C.n} ข้อ</h3><p>คละทุกหัวข้อของบทที่ ${ch} ตามระดับที่เลือกไว้ด้านบน</p></div>${ic('chevron_right','ch')}</button>
-     <button class="item" data-act="start" data-v="all:${ch}"><span class="n">${ic('layers')}</span><div class="grow"><h3>ทำครบทั้งบท ${BIO_COUNT(ch)+(ch===2?15:0)} ข้อ</h3><p>ทุกข้อในคลังของบทนี้ สลับลำดับใหม่ทุกครั้ง</p></div>${ic('chevron_right','ch')}</button>
-     ${tpsOf(ch).map((t,i)=>`<button class="item" data-act="start" data-v="tp:${t}"><span class="n num">${i+1}</span><div class="grow"><h3>${esc(TP[t].n)}</h3><p>${TP[t].gen?'สุ่มโครงสร้างใหม่ทุกครั้ง ชุดละ '+C.n+' ข้อ':cnt(t)+' ข้อ'}${acc(t)}</p></div>${ic('chevron_right','ch')}</button>`).join('')}</div></section>`;
-  v.innerHTML=top('exam')+`<main class="bx-pg"><div class="ph"><h1>ข้อสอบ Biochem</h1><p>ปรนัย 4 ตัวเลือก ไม่มีคำใบ้ในโจทย์ เฉลยและคำอธิบายจะแสดงหลังตอบ</p></div>
+  const chSec=ch=>`<section class="group"><div class="gh"><div class="th" style="background-image:url(${BOOKS[ch].img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>บทที่ ${ch} ${esc(BOOKS[ch].t)}</h2><span class="tag">PHB104</span></div><p>ข้อสอบจากสไลด์เรียน${ch===2?' และโจทย์โครงสร้างกรดไขมันที่สุ่มใหม่ทุกครั้ง':''} กดถัดไปได้เรื่อยๆ จนกว่าจะพอ</p></div></div>
+    <div class="lst"><button class="item" data-act="start" data-v="ch:${ch}"><span class="n">${ic('shuffle')}</span><div class="grow"><h3>ทำต่อเนื่องทั้งบท</h3><p>คละทุกหัวข้อของบทที่ ${ch} ตามระดับที่เลือกไว้ด้านบน</p></div>${ic('chevron_right','ch')}</button>
+     ${tpsOf(ch).map((t,i)=>`<button class="item" data-act="start" data-v="tp:${t}"><span class="n num">${i+1}</span><div class="grow"><h3>${esc(TP[t].n)}</h3><p>${TP[t].gen?'สุ่มโครงสร้างใหม่ทุกข้อ':'ข้อสอบจากสไลด์หัวข้อนี้'}${acc(t)}</p></div>${ic('chevron_right','ch')}</button>`).join('')}</div></section>`;
+  v.innerHTML=top('exam')+`<main class="bx-pg"><div class="ph"><h1>ข้อสอบ Biochem</h1><p>ปรนัย 4 ตัวเลือก ไม่มีคำใบ้ในโจทย์ ทำต่อเนื่องได้ไม่รู้จบ ตอบแล้วเห็นเฉลยทันที อยากหยุดเมื่อไรกดจบและดูผล</p></div>
     <div class="card"><h2>ตั้งค่าชุดข้อสอบ</h2><div class="bx-set">
       <div class="fld"><span class="lb">ระดับความยาก</span><div class="chips">${[['mix','คละระดับ'],['easy','ง่าย'],['mid','ปานกลาง'],['hard','ยาก']].map(x=>`<button class="chip ${C.lv===x[0]?'on':''}" data-act="cfg" data-k="lv" data-v="${x[0]}" aria-pressed="${C.lv===x[0]}">${x[1]}</button>`).join('')}</div></div>
-      <div class="fld"><span class="lb">จำนวนข้อต่อชุด</span><div class="chips">${[10,20,30,50].map(n=>`<button class="chip num ${C.n===n?'on':''}" data-act="cfg" data-k="n" data-v="${n}" aria-pressed="${C.n===n}">${n} ข้อ</button>`).join('')}</div></div></div>
-     <div class="sw" style="margin-top:8px"><div><b style="font-weight:500">เฉลยทันทีหลังตอบ</b><p>ปิดไว้ถ้าอยากเห็นเฉลยตอนส่งข้อสอบทีเดียว</p></div><button class="tg" role="switch" aria-checked="${C.mode==='instant'}" data-act="cfg" data-k="mode" data-v="toggle" aria-label="เฉลยทันทีหลังตอบ"></button></div>
-     <div class="sw"><div><b style="font-weight:500">แสดงนาฬิกาจับเวลา</b><p>กดซ่อนหรือแสดงระหว่างทำได้</p></div><button class="tg" role="switch" aria-checked="${!!C.timer}" data-act="cfg" data-k="timer" data-v="toggle" aria-label="แสดงนาฬิกาจับเวลา"></button></div></div>
+</div>
+     <div class="sw" style="margin-top:8px"><div><b style="font-weight:500">แสดงนาฬิกาจับเวลา</b><p>กดซ่อนหรือแสดงระหว่างทำได้</p></div><button class="tg" role="switch" aria-checked="${!!C.timer}" data-act="cfg" data-k="timer" data-v="toggle" aria-label="แสดงนาฬิกาจับเวลา"></button></div></div>
     <section class="bx-fa"><h2>${ic('flask_conical')}โจทย์โครงสร้างกรดไขมัน</h2><p>ระบบสร้างรูปโครงสร้างใหม่ทุกครั้ง ให้นับคาร์บอน นับพันธะคู่ แล้วเรียกชื่อย่อแบบ Delta (Δ) Omega (ω) และระบบ n</p>
      <div class="demo">${faSVG(demo)}</div>
      <div class="row">${[['mix','คละทุกแบบ'],['easy','นับคาร์บอนและพันธะคู่'],['mid','เรียกชื่อ Δ ω n'],['hard','เลือกโครงสร้างและแปลงระบบ']].map((x,i)=>`<button class="btn ${i?'sec':''}" data-act="start" data-v="fa:${x[0]}">${i?'':ic('play')}${x[1]}</button>`).join('')}</div></section>
@@ -100,17 +97,26 @@ const keepQZ=()=>{ try{ QZ?sessionStorage.setItem('payap.bio.qz',JSON.stringify(
 const LVT={mix:'คละระดับ',easy:'ง่าย',mid:'ปานกลาง',hard:'ยาก'};
 function startQuiz(kind){
   const C=DB.cfg; let qs=[], title='', mode=C.mode, timer=!!C.timer; const m=kind.split(':');
-  if(m[0]==='ch'){ qs=bioSet(tpsOf(+m[1]),C.lv,C.n); title='บทที่ '+m[1]+' '+BOOKS[m[1]].t+' · '+LVT[C.lv]; }
-  else if(m[0]==='all'){ const ch=+m[1]; qs=shuf(BANK.filter(c=>TP[c.t].ch===ch).map(bankQ).concat(ch===2?bioSet(['l_name'],'mix',15):[])); title='บทที่ '+ch+' ครบทั้งบท'; }
-  else if(m[0]==='tp'){ const t=m[1]; qs=TP[t].gen?bioSet([t],C.lv,C.n):shuf(BANK.filter(c=>c.t===t).map(bankQ)); title=TP[t].n; }
-  else if(m[0]==='fa'){ qs=bioSet(['l_name'],m[1],C.n); title='โครงสร้างกรดไขมัน · '+({mix:'คละทุกแบบ',easy:'นับคาร์บอนและพันธะคู่',mid:'เรียกชื่อ Δ ω n',hard:'เลือกโครงสร้างและแปลงระบบ'})[m[1]]; }
+  let inf=null;
+  if(m[0]==='ch'||m[0]==='all'){ inf={tps:tpsOf(+m[1]),lv:C.lv}; title='บทที่ '+m[1]+' '+BOOKS[m[1]].t+' · '+LVT[C.lv]; }
+  else if(m[0]==='tp'){ inf={tps:[m[1]],lv:C.lv}; title=TP[m[1]].n; }
+  else if(m[0]==='fa'){ inf={tps:['l_name'],lv:m[1]}; title='โครงสร้างกรดไขมัน · '+({mix:'คละทุกแบบ',easy:'นับคาร์บอนและพันธะคู่',mid:'เรียกชื่อ Δ ω n',hard:'เลือกโครงสร้างและแปลงระบบ'})[m[1]]; }
   else if(kind==='mock'){ qs=shuf(bioSet(tpsOf(1),'mix',18).concat(bioSet(tpsOf(2),'mix',22))); title='สอบจำลองรวม 2 บท 40 ข้อ'; mode='end'; timer=true; }
   else if(kind==='wrong'){ qs=shuf(DB.wrong).slice(0,30).map(q=>{ const idx=shuf(q.opts.map((_,i)=>i)); return Object.assign({},q,{opts:idx.map(i=>q.opts[i]),optFig:q.optFig?idx.map(i=>q.optFig[i]):null,ans:idx.indexOf(q.ans)}); }); title='ทบทวนข้อที่เคยผิด'; }
-  qs=qs.filter(Boolean); if(!qs.length){ toast('ยังไม่มีข้อสอบในชุดนี้'); return; }
-  QZ={title,mode,timer,kind,i:0,el:0,qs:qs.map(q=>({t:q.t,lv:q.lv,stem:q.stem,opts:q.opts,ans:q.ans,exp:q.exp,fig:q.fig||'',optFig:q.optFig||null,pick:null,flag:false,rec:false}))}; keepQZ();
+  if(inf){ QZ={title,mode:'instant',timer,kind,i:0,el:0,inf,deck:[],qs:[]}; const q=moreQ(); if(!q){ QZ=null; toast('ยังไม่มีข้อสอบในชุดนี้'); return; } QZ.qs.push(q); keepQZ(); }
+  else{ qs=qs.filter(Boolean); if(!qs.length){ toast('ยังไม่มีข้อสอบในชุดนี้'); return; }
+  QZ={title,mode,timer,kind,i:0,el:0,qs:qs.map(mkQ)}; keepQZ(); }
   touchMain('exam','bio/#/exam');
   if(route()[0]==='quiz') render(); else location.hash='#/quiz';
 }
+const mkQ=q=>({t:q.t,lv:q.lv,stem:q.stem,opts:q.opts,ans:q.ans,exp:q.exp,fig:q.fig||'',optFig:q.optFig||null,pick:null,flag:false,rec:false});
+/* ข้อสอบไม่รู้จบ: สุ่มจากสำรับของคลัง วนครบทุกข้อก่อนจึงสับใหม่ ไม่ให้ข้อซ้ำติดกัน */
+function moreQ(){ const I=QZ.inf, th=I.tps.filter(t=>!TP[t].gen), hasGen=I.tps.length>th.length;
+  const idx=lv=>BANK.map((c,i)=>i).filter(i=>th.includes(BANK[i].t)&&(lv==='mix'||BANK[i].lv===lv));
+  const useGen=hasGen&&(!th.length||Math.random()<Math.min(.5,1.6/(th.length+1)));
+  if(useGen) return mkQ(genFA(I.lv));
+  if(!QZ.deck.length){ let d=idx(I.lv); if(!d.length) d=idx('mix'); const recent=new Set(QZ.qs.slice(-8).map(q=>q.stem)); d=shuf(d); d.sort((a,b)=>recent.has(BANK[a].q)-recent.has(BANK[b].q)); QZ.deck=d; }
+  const k=QZ.deck.shift(); return k==null?null:mkQ(bankQ(BANK[k])); }
 const slim=q=>({t:q.t,lv:q.lv,stem:q.stem,opts:q.opts,ans:q.ans,exp:q.exp,fig:q.fig||'',optFig:q.optFig||null});
 const qkey=q=>q.stem+'|'+q.opts[q.ans]+'|'+(q.fig||'').length;
 function record(q){ if(q.rec||q.pick==null) return; q.rec=true; const ok=q.pick===q.ans; DB.ans++; if(ok) DB.ok++;
@@ -119,25 +125,25 @@ function record(q){ if(q.rec||q.pick==null) return; q.rec=true; const ok=q.pick=
   if(ok) DB.wrong=DB.wrong.filter(x=>!same(x)); else if(!DB.wrong.some(same)){ DB.wrong.unshift(slim(q)); DB.wrong=DB.wrong.slice(0,60); }
   try{ const mm=JSON.parse(localStorage.getItem('payap.v1'))||{}; const t=dkey(new Date()); mm.days=mm.days||{}; mm.days[t]=(mm.days[t]||0)+1; localStorage.setItem('payap.v1',JSON.stringify(mm)); }catch(e){}
   save(); }
-function finishQuiz(){ if(!QZ) return; clearInterval(tmr); QZ.qs.forEach(record); const n=QZ.qs.length, ok=QZ.qs.filter(q=>q.pick===q.ans).length;
+function finishQuiz(){ if(!QZ) return; clearInterval(tmr); if(QZ.inf){ QZ.qs=QZ.qs.filter(q=>q.pick!=null); if(!QZ.qs.length){ QZ=null; keepQZ(); location.replace('#/exam'); return; } } QZ.qs.forEach(record); const n=QZ.qs.length, ok=QZ.qs.filter(q=>q.pick===q.ans).length;
   DB.sessions.unshift({d:Date.now(),title:QZ.title,el:Math.round(QZ.el),n,ok,qs:QZ.qs.map(q=>Object.assign(slim(q),{pick:q.pick,flag:q.flag}))});
   DB.sessions=DB.sessions.slice(0,8); save(); QZ=null; keepQZ(); location.replace('#/result/0'); }
 const optHTML=(q,k)=>q.optFig?`<span class="of">${q.optFig[k]}</span>`:`<span>${fx(q.opts[k])}</span>`;
 const expHTML=(q,open)=>`<details class="exp" ${open?'open':''}><summary>${ic('lightbulb')}<span>เฉลยและคำอธิบาย</span>${ic('chevron_right')}</summary><ol>${[].concat(q.exp||[]).map(e=>`<li>${fx(e)}</li>`).join('')}</ol></details>`;
 function vQuiz(v){
   if(!QZ){ location.replace('#/exam'); return; }
-  document.title='ทำข้อสอบ · Biochem'; const n=QZ.qs.length, q=QZ.qs[QZ.i], inst=QZ.mode==='instant', locked=inst&&q.pick!=null, done=QZ.qs.filter(x=>x.pick!=null).length, lastQ=QZ.i===n-1;
+  document.title='ทำข้อสอบ · Biochem'; const n=QZ.qs.length, q=QZ.qs[QZ.i], inst=QZ.mode==='instant', locked=inst&&q.pick!=null, done=QZ.qs.filter(x=>x.pick!=null).length, lastQ=!QZ.inf&&QZ.i===n-1, nOk=QZ.qs.filter(x=>x.pick!=null&&x.pick===x.ans).length;
   const cls=k=>locked?(k===q.ans?'ok':k===q.pick?'no':''):(k===q.pick?'sel':'');
   v.innerHTML=`<div class="qz"><div class="hd"><div class="r"><button class="ibtn" data-act="exit" aria-label="ออกจากข้อสอบ" title="ออกจากข้อสอบ">${ic('x')}</button>
-     <div class="ct">ข้อ <b class="num">${QZ.i+1}</b> จาก <span class="num">${n}</span> · ${esc(QZ.title)}</div>
+     <div class="ct">${QZ.inf?`ข้อที่ <b class="num">${QZ.i+1}</b> · ถูก <span class="num">${nOk}</span> จาก <span class="num">${done}</span>`:`ข้อ <b class="num">${QZ.i+1}</b> จาก <span class="num">${n}</span>`} · ${esc(QZ.title)}</div>
      <button class="tm ${QZ.timer?'':'off'}" data-act="timer" aria-label="ซ่อนหรือแสดงเวลา" title="ซ่อนหรือแสดงเวลา">${ic('timer')}<span id="tm">${clock(QZ.el)}</span></button></div>
-     <div class="bar"><i style="width:${pct(done,n)}%"></i></div></div>
+     ${QZ.inf?'':`<div class="bar"><i style="width:${pct(done,n)}%"></i></div>`}</div>
    <div class="bd"><div class="card q"><div class="tg2"><span class="tag">บทที่ ${TP[q.t]?TP[q.t].ch:''}</span><span class="tag g">${esc(TP[q.t]?TP[q.t].n:'PHB104')}</span><span class="tag g">${BIO_LV[q.lv]||'คละ'}</span>${q.flag?`<span class="tag wn">${ic('flag')}ติดธงไว้</span>`:''}</div>
      <p class="stem">${fx(q.stem)}</p>${q.fig?`<div class="fig">${q.fig}</div>`:''}
      <div class="opts" role="radiogroup" aria-label="ตัวเลือก">${q.opts.map((o,k)=>`<button class="opt ${q.optFig?'figo':''} ${cls(k)}" role="radio" aria-checked="${k===q.pick}" ${q.optFig?`aria-label="ตัวเลือก ${'ABCD'[k]}"`:''} data-act="pick" data-v="${k}" ${locked?'disabled':''}><span class="k">${'ABCDE'[k]}</span>${optHTML(q,k)}${ic(k===q.ans?'circle_check':'circle_x')}</button>`).join('')}</div>
      ${locked?expHTML(q,true):''}</div>
-     <div class="dots" aria-label="ข้ามไปข้อ">${QZ.qs.map((x,k)=>`<button class="${k===QZ.i?'cur ':''}${inst&&x.pick!=null?(x.pick===x.ans?'ok':'no'):x.pick!=null?'dn':''}${x.flag?' fg':''}" data-act="jump" data-v="${k}" aria-label="ข้อ ${k+1}">${k+1}</button>`).join('')}</div></div>
-   <div class="ft"><div class="r"><button class="btn sec flag ${q.flag?'on':''}" data-act="flag" aria-pressed="${q.flag}">${ic('flag')}<span class="lb">ติดธงทบทวน</span></button><span class="sp"></span>
+</div>
+   <div class="ft"><div class="r"><button class="btn sec flag ${q.flag?'on':''}" data-act="flag" aria-pressed="${q.flag}">${ic('flag')}<span class="lb">ติดธงทบทวน</span></button><span class="sp"></span>${QZ.inf?`<button class="btn sec" data-act="submit">${ic('check')}<span class="lb">จบและดูผล</span></button>`:''}
      <button class="btn sec" data-act="prev" ${QZ.i?'':'disabled'}>${ic('chevron_left')}<span class="lb">ก่อนหน้า</span></button>
      <button class="btn" data-act="${lastQ?'submit':'next'}">${lastQ?'ส่งข้อสอบ':'ถัดไป'}${ic(lastQ?'check':'chevron_right')}</button></div></div></div>`;
   clearInterval(tmr); let t0=performance.now();
@@ -185,12 +191,12 @@ document.addEventListener('click',e=>{
   else if(a==='rf'){ RF=val; render.stay=true; render(); }
   else if(!QZ) return;
   else if(a==='pick'){ const q=QZ.qs[QZ.i]; if(QZ.mode==='instant'&&q.pick!=null) return; q.pick=+val; if(QZ.mode==='instant') record(q); keepQZ(); render(); if(QZ.mode==='instant'){ const x=$('.exp'); if(x&&x.getBoundingClientRect().bottom>innerHeight-90) x.scrollIntoView({block:'center',behavior:'smooth'}); } }
-  else if(a==='next'){ QZ.i=Math.min(QZ.qs.length-1,QZ.i+1); keepQZ(); render.last=''; render(); }
+  else if(a==='next'){ if(QZ.inf&&QZ.i===QZ.qs.length-1){ const nq=moreQ(); if(nq) QZ.qs.push(nq); if(QZ.qs.length>400){ QZ.qs.shift(); QZ.i--; } } QZ.i=Math.min(QZ.qs.length-1,QZ.i+1); keepQZ(); render.last=''; render(); }
   else if(a==='prev'){ QZ.i=Math.max(0,QZ.i-1); keepQZ(); render.last=''; render(); }
   else if(a==='jump'){ QZ.i=+val; keepQZ(); render.last=''; render(); }
   else if(a==='flag'){ const q=QZ.qs[QZ.i]; q.flag=!q.flag; keepQZ(); render(); }
   else if(a==='timer'){ QZ.timer=!QZ.timer; keepQZ(); b.classList.toggle('off',!QZ.timer); }
-  else if(a==='submit'){ const left=QZ.qs.filter(x=>x.pick==null).length; if(left&&!submitAsk.ok){ submitAsk(left); return; } submitAsk.ok=false; finishQuiz(); }
+  else if(a==='submit'){ const left=QZ.inf?0:QZ.qs.filter(x=>x.pick==null).length; if(left&&!submitAsk.ok){ submitAsk(left); return; } submitAsk.ok=false; finishQuiz(); }
   else if(a==='exit') confirmExit();
 });
 function submitAsk(left){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t">ยังไม่ได้ตอบ ${left} ข้อ</h2><p>ส่งข้อสอบตอนนี้ ข้อที่ยังไม่ได้ตอบจะนับเป็นผิด</p><div class="row"><button class="btn sec" data-n>กลับไปทำต่อ</button><button class="btn" data-y>ส่งข้อสอบ</button></div></div>`;
