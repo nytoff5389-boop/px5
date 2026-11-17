@@ -377,7 +377,7 @@ const GEN_FA={
   ]
 };
 function genFA(lv){ const L=lv&&lv!=='mix'?lv:_pick(['easy','mid','mid','hard']); for(let i=0;i<30;i++){ const q=_pick(GEN_FA[L])(); if(q&&q.opts.length===4&&new Set(q.opts).size===4&&q.ans>=0) return q; } return _pick(GEN_FA.easy)(); }
-function bankQ(c){ const o=_shuf([c.right].concat(c.wrongs)); return {t:c.t,lv:c.lv,stem:c.q,opts:o,ans:o.indexOf(c.right),exp:[c.why]}; }
+function bankQ(c){ const w=c.pool?_shuf(c.pool.filter((x,i,a)=>x!==c.right&&a.indexOf(x)===i)).slice(0,3):c.wrongs; const o=_shuf([c.right].concat(w)); return {t:c.t,lv:c.lv,stem:c.q,opts:o,ans:o.indexOf(c.right),exp:[c.why]}; }
 /* สร้างชุดข้อสอบ: tps = รายชื่อหัวข้อ, lv = mix|easy|mid|hard, n = จำนวนข้อ, faShare = สัดส่วนโจทย์โครงสร้างเมื่อมีหัวข้อ l_name */
 function bioSet(tps,lv,n){
   const hasFA=tps.includes('l_name'), th=tps.filter(t=>t!=='l_name');
@@ -390,4 +390,4 @@ function bioSet(tps,lv,n){
   return _shuf(out);
 }
 const BIO_COUNT=ch=>BANK.filter(c=>BIO_TOPICS[c.t].ch===ch).length;
-if(typeof module!=='undefined') module.exports={BANK,BIO_TOPICS,FA,GEN_FA,genFA,bioSet,faSVG,faCond,faDelta,faOm,faN,faOmega};
+if(typeof module!=='undefined'&&typeof window==='undefined'){ try{ globalThis.BANK=BANK; }catch(e){} } if(typeof module!=='undefined') module.exports={BANK,BIO_TOPICS,FA,GEN_FA,genFA,bioSet,faSVG,faCond,faDelta,faOm,faN,faOmega};
