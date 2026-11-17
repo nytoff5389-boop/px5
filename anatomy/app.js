@@ -1870,7 +1870,7 @@ function srcLv(ch,tp,lv){
 }
 function sourcesFor(ch,tp,mode){
   const m=mode||QMODE;
-  if(m==='mix'){ const out=[]; for(const lv of ['easy','mid','hard']) for(const x of srcLv(ch,tp,lv)) out.push({...x,lv}); return out; }
+  if(m==='mix'){ const out=[]; const LW={easy:3,mid:1,hard:.3}; for(const lv of ['easy','mid','hard']) for(const x of srcLv(ch,tp,lv)) out.push({...x,lv,w:x.w*LW[lv]}); return out; }
   const order={easy:['easy','mid','hard'],mid:['mid','easy','hard'],hard:['hard','mid','easy']}[m]||['easy','mid','hard'];
   for(const lv of order){ const s=srcLv(ch,tp,lv); if(s.length) return s.map(x=>({...x,lv})); }
   return [];
