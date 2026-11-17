@@ -1,0 +1,49 @@
+/* Biochem PHB104 · ใช้ระบบดีไซน์เดียวกับหน้าเว็บหลัก (ui/base.css) */
+.bx-top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bx-top .r{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px}
+.bx-top .bk{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 10px;border-radius:9999px;border:1px solid var(--line);background:var(--surface);font-size:13.5px;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.bx-top .bk:hover{border-color:var(--pri);color:var(--pri-d)}
+.bx-top .tt{flex:1;min-width:0}.bx-top .tt b{display:block;font-weight:600;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx-top .tt small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx-nav{display:flex;gap:6px;max-width:1000px;margin:0 auto;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.bx-nav::-webkit-scrollbar{display:none}
+.bx-nav a{flex:none;display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9999px;font-size:13.5px;color:var(--ink-2);border:1px solid transparent}
+.bx-nav a .ic{width:16px;height:16px}
+.bx-nav a:hover{background:var(--surface);border-color:var(--line)}
+.bx-nav a.on{background:var(--pri-s);color:var(--pri-d);font-weight:600;border-color:var(--pri-s2)}
+.bx-pg{max-width:1000px;margin:0 auto;padding:8px 16px 72px}
+.bx-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;margin-top:16px}
+.bx-hero h1{font-size:26px;line-height:1.3}.bx-hero p{color:var(--ink-2);margin-top:6px;max-width:60ch}
+.bx-kp{display:flex;gap:10px}.bx-kp div{padding:10px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-width:92px}
+.bx-kp small{display:block;font-size:11.5px;color:var(--ink-2)}.bx-kp b{font:600 20px/1.3 var(--fn)}
+.bx-books{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:22px}
+.bx-bk{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);transition:transform .2s var(--ease),border-color .15s}
+.bx-bk:hover{transform:translateY(-2px);border-color:var(--pri)}
+.bx-bk .cv{aspect-ratio:16/10;background:var(--bg) center/cover;border-bottom:1px solid var(--line);position:relative}
+.bx-bk .cv .tag{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.94);color:#0284C7}
+.bx-bk .bd{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.bx-bk h3{font-size:16.5px;font-weight:600;line-height:1.35}.bx-bk p{font-size:13px;color:var(--ink-2);flex:1}
+.bx-bk .ac{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.bx-bk .ac .btn{flex:1;min-width:0;justify-content:center}
+.bx-pr{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-2)}.bx-pr .bar{flex:1;height:5px}
+.bx-fa{margin-top:18px;border-radius:var(--r);padding:22px;background:linear-gradient(135deg,var(--pri-s),var(--surface) 70%);border:1px solid var(--pri-s2)}
+.bx-fa h2{display:flex;align-items:center;gap:8px;font-size:18px}.bx-fa h2 .ic{color:var(--pri-d)}
+.bx-fa p{color:var(--ink-2);font-size:13.5px;margin-top:4px}
+.bx-fa .demo{margin:14px 0 4px;padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);overflow-x:auto;color:var(--ink)}
+.bx-fa .row{flex-wrap:wrap;gap:8px;margin-top:14px}
+.bx-set{display:flex;flex-wrap:wrap;gap:18px 28px;margin:6px 0 2px}
+.bx-set .fld{margin-top:10px}
+.fig{margin:16px 0 0;padding:16px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);overflow-x:auto;color:var(--ink);text-align:center}
+.fig svg{display:inline-block;vertical-align:middle}
+.opt .of{display:block;flex:1;min-width:0;color:var(--ink)}
+.opt .of svg{display:block}
+.opt.figo{padding:12px 14px}.opt.figo>span:nth-child(2){min-width:0;flex:1;overflow-x:auto}
+.rv .fig{margin-top:10px}
+.rv .ans .of svg{max-width:100%;height:auto}
+.stem sub,.opt sub,.exp sub,.ans sub{font-size:.72em;line-height:0}
+.bx-rd .fbar{top:10px}
+.bx-rd .pgs figure{scroll-margin-top:84px}
+.bx-rd.wide .pgs{max-width:1500px}
+.bx-rd .dl{display:flex;justify-content:center;padding:0 16px 60px}
+.bx-note{font-size:12.5px;color:var(--muted);margin-top:26px;text-align:center}
+@media (max-width:860px){ .bx-books{grid-template-columns:1fr} .bx-bk{flex-direction:row} .bx-bk .cv{width:118px;aspect-ratio:auto;border-bottom:0;border-right:1px solid var(--line);flex:none} .bx-hero{grid-template-columns:1fr} .bx-hero h1{font-size:22px} }
+@media (max-width:640px){ .bx-top .bk span{display:none} .bx-top .bk{padding:0;width:40px;justify-content:center} .fbar .seg{display:none} .q .stem{font-size:16.5px} .bx-kp div{flex:1;min-width:0} }

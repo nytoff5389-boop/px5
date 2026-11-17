@@ -33,20 +33,23 @@ const SUBJ={
     ch:2,chU:'บท',pages:34,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
   chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'เคมีฟิสิกส์',th:'เคมีฟิสิกส์',en:'บทที่ 1 ปริมาณสารสัมพันธ์ (Stoichiometry)',img:'ui/img/b-chem1.jpg',
     desc:'เคมีฟิสิกส์ (Physical Chemistry) บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
-    ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'}
+    ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'},
+  bio:{id:'bio',code:'PHB104',name:'Biochemistry',tab:'Biochem',th:'ชีวเคมี',en:'คาร์โบไฮเดรต และลิพิดส์',img:'ui/img/b-bio2.jpg',
+    desc:'ชีวเคมี (Biochemistry) บทที่ 1 เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต และบทที่ 2 ลิพิดส์ ข้อสอบมาจากเนื้อหาในสไลด์เรียน เน้นความจำ มีวิเคราะห์เล็กน้อย พร้อมโจทย์โครงสร้างกรดไขมัน นับคาร์บอน นับพันธะคู่ และเรียกชื่อแบบ Delta Omega และ n',
+    ch:2,chU:'บท',pages:49,qz:'ปรนัย และโจทย์โครงสร้างกรดไขมัน',read:'bio/#/book/1',exam:'bio/#/exam',home:'bio/'}
 };
-const ORDER=['anatomy','calc','chem'];
+const ORDER=['anatomy','calc','chem','bio'];
 const AN_CH=[['บทนำกายวิภาคศาสตร์','Introduction to Human Anatomy'],['เนื้อเยื่อและระบบปกคลุมร่างกาย','Tissues and Integumentary System'],['ระบบกระดูกโครงร่าง','The Skeletal System'],['ระบบกล้ามเนื้อ','The Muscular System'],['ระบบประสาท I','The Nervous System I'],['ระบบประสาท II','The Nervous System II'],['อวัยวะรับความรู้สึกพิเศษ','The Special Sense Organs']];
 const AN_PG=[3,13,35,67,93,110,123];
 const SEC_EN={intro:'Introduction',mol:'The Mole',conc:'Concentration of Solutions',formula:'Chemical Formula',equation:'Balancing Equations',reaction:'Limiting Reagent',yield:'Percent Yield'};
 const CREDITS=window.PHOTO_CREDITS||[];
 
 function stats(){
-  const a=J('anatomeow.v1'), c=J('jinoon.v1'), z=c.qz||{}, ch=DB.chem;
+  const a=J('anatomeow.v1'), c=J('jinoon.v1'), z=c.qz||{}, ch=DB.chem, bi=J('payap.bio.v1'), bm=bi.pgMax||{}, rdB=Math.max(0,(((bm[1]||1)-1)+((bm[2]||1)-1))/47);
   const rdA=Math.max(0,((a.bookPage||1)-1)/134), rdC=Math.max(0,((c.bookPage||1)-1)/33), rdX=Math.max(0,((ch.pgMax||1)-1)/27);
   const mk=(ans,ok,rd,goal)=>({ans:ans||0,ok:ok||0,acc:ans?Math.round(ok/ans*100):null,rd:Math.round(rd*100),done:Math.round((rd*.5+Math.min(1,(ans||0)/goal)*.5)*100),
     ready:Math.round((rd*.3+(ans?ok/ans:0)*Math.min(1,(ans||0)/goal)*.7)*100)});
-  return {anatomy:mk(a.answered,a.correct,rdA,200),calc:mk(z.ans,z.ok,rdC,60),chem:mk(ch.ans,ch.ok,rdX,80)};
+  return {anatomy:mk(a.answered,a.correct,rdA,200),calc:mk(z.ans,z.ok,rdC,60),chem:mk(ch.ans,ch.ok,rdX,80),bio:mk(bi.ans,bi.ok,rdB,120)};
 }
 const readiness=st=>Math.round(ORDER.reduce((s,k)=>s+st[k].ready,0)/ORDER.length);
 const show=id=>FILTER==='all'||FILTER===id;
@@ -54,7 +57,7 @@ const show=id=>FILTER==='all'||FILTER===id;
 /* ---------- ชิ้นส่วน ---------- */
 function ring(p,size,cls,label){ const r=(size-10)/2, c=2*Math.PI*r;
   return `<div class="ring ${cls||''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="tr" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-p/100)).toFixed(1)}"/></svg><b style="font-size:${Math.round(size*.24)}px">${label!=null?label:p+'<small>%</small>'}</b></div>`; }
-const pills=()=>{ const cnt=k=>k==='all'?12:k==='anatomy'?8:2;
+const pills=()=>{ const cnt=k=>({all:16,anatomy:8,calc:3,chem:2,bio:3})[k];
   return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ<small class="gh">แตะเพื่อกรองชั้นหนังสือตามวิชา</small></span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
@@ -108,6 +111,9 @@ function books(){
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
   L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
   L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบเคมีฟิสิกส์',short:'ข้อสอบ เคมีฟิสิกส์',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
+  L.push({s:'bio',code:'PHB104',no:'01',t:'เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต',short:'คาร์โบไฮเดรต',en:'Biochemistry · Carbohydrates',kind:'บทที่ 1',img:B+'bio1.jpg',read:'bio/#/book/1',exam:'bio/#/exam'});
+  L.push({s:'bio',code:'PHB104',no:'02',t:'เคมีและหน้าที่ทางชีวภาพของลิพิดส์',short:'ลิพิดส์',en:'Biochemistry · Lipids',kind:'บทที่ 2',img:B+'bio2.jpg',read:'bio/#/book/2',exam:'bio/#/exam'});
+  L.push({s:'bio',code:'PHB104',no:'Q',t:'ข้อสอบชีวเคมี',short:'ข้อสอบ Biochem',en:'Biochemistry question bank',kind:'ข้อสอบ',img:B+'bioq.jpg',read:'bio/#/book/1',exam:'bio/#/exam',q:1});
   return L.filter(x=>show(x.s));
 }
 function contBtn(){ const m=contCard(stats()).match(/<a class="btn lg" href="([^"]*)"([^>]*)>[\s\S]*?<\/svg>([^<]*)<\/a>/); return m?`<a class="btn" href="${m[1]}"${m[2]}>${ic('play')}${m[3]}</a>`:''; }
@@ -167,6 +173,7 @@ function vLibrary(v){
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
     <a class="item" href="#/read/chem/intro"><span class="n">${ic('list')}</span><div class="grow"><h3>สรุปย่อแบบข้อความ</h3><p>เวอร์ชันพิมพ์ใหม่ อ่านบนมือถือง่าย ปรับขนาดตัวอักษรได้</p></div>${ic('chevron_right','ch')}</a></div></section>`;
+  if(show('bio')) h+=`<section class="group">${gh('bio')}<div class="lst"><a class="item" href="bio/#/book/1" data-app="bio" data-mode="read"><span class="n">1</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต</h3><p>Monosaccharides, Oligosaccharides, Polysaccharides และ Complex carbohydrate · 21 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/book/2" data-app="bio" data-mode="read"><span class="n">2</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของลิพิดส์</h3><p>Fatty acids, Triglyceride, Phospholipids, Eicosanoids, Steroids และ Lipoproteins · 28 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/exam" data-app="bio" data-mode="exam"><span class="n">${ic('clipboard_check')}</span><div class="grow"><h3>ข้อสอบชีวเคมี</h3><p>ข้อสอบจากสไลด์เรียน และโจทย์โครงสร้างกรดไขมัน</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   v.innerHTML=h;
 }
 
@@ -231,7 +238,7 @@ function vExams(v){
      <button class="item" data-act="start" data-v="concept"><span class="n">${ic('lightbulb')}</span><div class="grow"><h3>ทฤษฎีล้วน 20 ข้อ</h3><p>นิยาม คำย่อ และข้อควรจำ ไม่ต้องคำนวณ</p></div>${ic('chevron_right','ch')}</button>
      <button class="item" data-act="start" data-v="wrong" ${nw?'':'disabled style="opacity:.55"'}><span class="n">${ic('rotate_ccw')}</span><div class="grow"><h3>ทบทวนข้อที่เคยผิด</h3><p>${nw?'มี '+nw+' ข้อรอทบทวน':'ยังไม่มีข้อที่ผิด'}</p></div>${ic('chevron_right','ch')}</button></div></div></section>`;
   const extc=k=>{ const s=SUBJ[k]; return `<a class="item" href="${s.exam}" data-app="${k}" data-mode="exam"><span class="n" style="background:var(--bg) center/cover;background-image:url(${s.img})"></span><div class="grow"><h3>${esc(s.th)} <span class="tag" style="margin-left:6px">${s.code}</span></h3><p>${esc(s.qz)}${st[k].ans?' · ทำไปแล้ว '+st[k].ans+' ข้อ แม่นยำ '+st[k].acc+'%':' · ยังไม่ได้เริ่ม'}</p></div>${ic('chevron_right','ch')}</a>`; };
-  if(show('anatomy')||show('calc')) h+=`<div class="sec-h"><div><h2>ข้อสอบวิชาอื่น</h2><p>เปิดคลังข้อสอบของแต่ละวิชา</p></div></div><div class="lst">${['anatomy','calc'].filter(show).map(extc).join('')}</div>`;
+  if(show('anatomy')||show('calc')||show('bio')) h+=`<div class="sec-h"><div><h2>ข้อสอบวิชาอื่น</h2><p>เปิดคลังข้อสอบของแต่ละวิชา</p></div></div><div class="lst">${['bio','anatomy','calc'].filter(show).map(extc).join('')}</div>`;
   v.innerHTML=h;
 }
 let QZ=null, tmr=0;
@@ -336,13 +343,14 @@ function palette(){
   CHEM_SECTIONS.forEach(c=>{ idx.push({t:c.t,s:'PHB102 · หนังสือหน้า '+c.pg,h:'#/pages/chem/'+c.pg,i:'book_open',g:'PHB102',x:c.html.replace(/<[^>]+>/g,' ')}); });
   Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
+  idx.push({t:'สมุดชีวเคมี บทที่ 1 คาร์โบไฮเดรต',s:'PHB104 · Monosaccharide Disaccharide Polysaccharide · 21 หน้า',h:'bio/#/book/1',i:'book_open',g:'PHB104',app:'bio'},{t:'สมุดชีวเคมี บทที่ 2 ลิพิดส์',s:'PHB104 · กรดไขมัน ไตรกลีเซอไรด์ ฟอสโฟลิพิด สเตียรอยด์ · 28 หน้า',h:'bio/#/book/2',i:'book_open',g:'PHB104',app:'bio'},{t:'ข้อสอบชีวเคมี Biochem',s:'PHB104 · คาร์โบไฮเดรต ลิพิดส์ โครงสร้างกรดไขมัน Delta Omega n',h:'bio/#/exam',i:'clipboard_check',g:'PHB104',app:'bio'});
   AN_CH.forEach((c,i)=>idx.push({t:'บทที่ '+(i+1)+' '+c[0],s:c[1],h:'anatomy/?tab=learn&ch='+(i+1),i:'graduation_cap',g:'BI112',app:'anatomy'}));
   idx.push({t:'หนังสือสรุปกายวิภาคศาสตร์',s:'BI112 · 5 เล่ม 135 หน้า',h:'anatomy/?tab=book',i:'book_open',g:'BI112',app:'anatomy'},{t:'เลขโรมันและเลขนัยสำคัญ',s:'PHT111 · อ่านสรุป',h:'calc/?tab=book',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบคำนวณเภสัช บทที่ 1',s:'PHT111 · Roman numerals, Significant figures',h:'calc/?tab=quiz&ch=1',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'มาตรชั่งและตวงทางเภสัชกรรม',s:'PHT111 · บทที่ 2 อ่านสรุป',h:'calc/?tab=book&page=17',i:'book_open',g:'PHT111',app:'calc'},{t:'โจทย์ปัญหา calc 500 ข้อ',s:'PHT111 · บทที่ 2 · ข้อเขียน เทียบบัญญัติไตรยางศ์ ยาน้ำ ช้อนชา grains หยด',h:'calc/?tab=quiz&ch=3',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'ข้อสอบบทที่ 2 มาตรชั่งและตวง',s:'PHT111 · เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน',h:'calc/?tab=quiz&ch=2',i:'clipboard_check',g:'PHT111',app:'calc'});
   const d=document.createElement('div'); d.className='pal'; d.innerHTML=`<div class="bx" role="dialog" aria-modal="true" aria-label="ค้นหา"><div class="in">${ic('search')}<input type="search" placeholder="ค้นหาบทเรียน หัวข้อ หรือชุดข้อสอบ" aria-label="คำค้น" autocomplete="off"><kbd>Esc</kbd></div><div class="rs"></div></div>`;
   document.body.appendChild(d); const inp=$('input',d), rs=$('.rs',d); let cur=0, res=[];
   const draw=()=>{ const q=inp.value.trim().toLowerCase(); res=(q?idx.filter(x=>(x.t+' '+x.s+' '+(x.g||'')).toLowerCase().includes(q)).concat(idx.filter(x=>x.x&&x.x.toLowerCase().includes(q)&&!(x.t+' '+x.s).toLowerCase().includes(q))):idx).slice(0,14); cur=Math.min(cur,Math.max(0,res.length-1));
     rs.innerHTML=res.length?res.map((x,i)=>`<a href="${x.h||'#/exams'}" data-i="${i}" class="${i===cur?'on':''}">${ic(x.i)}<div><b>${esc(x.t)}</b><small>${esc(x.s)}</small></div>${x.g?`<span class="tag">${x.g}</span>`:''}</a>`).join(''):`<div class="no">ไม่พบสิ่งที่ค้นหา ลองใช้คำอื่น เช่น โมล, กระดูก, เลขโรมัน</div>`; };
-  const pickR=x=>{ d.remove(); if(x.act){ if(/^topic:/.test(x.act)){ DB.cfg.topic=x.act.slice(6); save(); startQuiz('custom'); } else startQuiz(x.act); } else { if(x.app) lastApp(x.app,x.h,/quiz|learn/.test(x.h)?'exam':'read'); location.href=x.h; } };
+  const pickR=x=>{ d.remove(); if(x.act){ if(/^topic:/.test(x.act)){ DB.cfg.topic=x.act.slice(6); save(); startQuiz('custom'); } else startQuiz(x.act); } else { if(x.app) lastApp(x.app,x.h,/quiz|learn|exam/.test(x.h)?'exam':'read'); location.href=x.h; } };
   inp.addEventListener('input',()=>{cur=0;draw();});
   d.addEventListener('keydown',e=>{ if(e.key==='Escape') d.remove(); else if(e.key==='ArrowDown'){cur=Math.min(res.length-1,cur+1);draw();e.preventDefault();} else if(e.key==='ArrowUp'){cur=Math.max(0,cur-1);draw();e.preventDefault();} else if(e.key==='Enter'&&res[cur]){ e.preventDefault(); pickR(res[cur]); } });
   d.addEventListener('click',e=>{ if(e.target===d){ d.remove(); return; } const a=e.target.closest('[data-i]'); if(a){ e.preventDefault(); pickR(res[+a.dataset.i]); } });
