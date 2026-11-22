@@ -172,13 +172,19 @@ function vLibrary(v){
   if(show('chem')) h+=`<section class="group">${gh('chem',`<a class="btn sec sm" href="#/pages/chem">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
+    <a class="item" href="#/pages/ws"><span class="n">${ic('file_text')}</span><div class="grow"><h3>ใบงานแบบฝึกหัด บทที่ 1–6</h3><p>ดูออนไลน์ หรือดาวน์โหลด PDF ไปพิมพ์ · ${WS.n} หน้า</p></div>${ic('chevron_right','ch')}</a>
+    <a class="item" href="${WS.pdf}" download="${WS.name}"><span class="n">${ic('download')}</span><div class="grow"><h3>ดาวน์โหลดใบงาน PDF</h3><p>บันทึกไฟล์ลงเครื่อง ${WS.mb} MB</p></div>${ic('chevron_right','ch')}</a>
     <a class="item" href="#/read/chem/intro"><span class="n">${ic('list')}</span><div class="grow"><h3>สรุปย่อแบบข้อความ</h3><p>เวอร์ชันพิมพ์ใหม่ อ่านบนมือถือง่าย ปรับขนาดตัวอักษรได้</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   if(show('bio')) h+=`<section class="group">${gh('bio')}<div class="lst"><a class="item" href="bio/#/book/1" data-app="bio" data-mode="read"><span class="n">1</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต</h3><p>Monosaccharides, Oligosaccharides, Polysaccharides และ Complex carbohydrate · 21 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/book/2" data-app="bio" data-mode="read"><span class="n">2</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของลิพิดส์</h3><p>Fatty acids, Triglyceride, Phospholipids, Eicosanoids, Steroids และ Lipoproteins · 28 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/exam" data-app="bio" data-mode="exam"><span class="n">${ic('clipboard_check')}</span><div class="grow"><h3>ข้อสอบชีวเคมี</h3><p>ข้อสอบจากสไลด์เรียน และโจทย์โครงสร้างกรดไขมัน</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   v.innerHTML=h;
 }
 
 /* ---------- อ่านสรุป (โหมดโฟกัส) ---------- */
-function rbar(sec,mode){ const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
+const WS={n:27,pdf:'chem/pdf/ws1-6.pdf',name:'PHB102-Worksheet-ch1-6.pdf',mb:0.5,ch:[['บทที่ 1 ปริมาณสัมพันธ์',1],['บทที่ 2 สารประกอบเชิงซ้อน',14],['บทที่ 3 Chemical Kinetics',17],['บทที่ 4 สมดุลเคมี',21],['บทที่ 5 สมดุลวัฏภาค',24],['บทที่ 6 ไฟฟ้าเคมี',25]]};
+function rbar(sec,mode,ws){ const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
+  if(ws) return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
+    <div class="tt"><b>ใบงานแบบฝึกหัด บทที่ 1–6</b><small id="pgno">PHB102 · ${WS.n} หน้า</small></div>
+    <button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้า" title="ขยายหรือย่อหน้า">${ic('zoom_in')}</button><a class="btn sm" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด</a></div>`;
   return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
     <div class="tt"><b>${esc(sec?sec.t:'ปริมาณสารสัมพันธ์ บทที่ 1')}</b><small id="pgno">PHB102 · ${sec?'สรุปย่อ':'หนังสือ 28 หน้า'}</small></div>
     <div class="seg"><button class="${mode==='pages'?'on':''}" data-act="rmode" data-v="pages">หนังสือ</button><button class="${mode==='read'?'on':''}" data-act="rmode" data-v="read">สรุปย่อ</button></div>
@@ -206,6 +212,7 @@ function vRead(v,subj,id){
     addEventListener('scroll',spy,{passive:true}); spy(); cleanup.push(()=>removeEventListener('scroll',spy)); };
 }
 function vPages(v,subj,pg){
+  if(subj==='ws') return vWS(v,pg);
   v.dataset.title='หนังสือ เคมีฟิสิกส์'; DB.last={k:'pages'}; save();
   const start=Math.max(1,Math.min(28,+pg||DB.chem.pg||1));
   v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages')}
@@ -216,6 +223,21 @@ function vPages(v,subj,pg){
     if(start>1){ jump(start); setTimeout(()=>jump(start),60); }
     const spy=()=>{ tk=0; let cur=1; const mid=innerHeight*.4; for(let i=0;i<figs.length;i++){ if(figs[i].getBoundingClientRect().top<mid) cur=i+1; else break; }
       if(cur!==DB.chem.pg){ DB.chem.pg=cur; DB.chem.pgMax=Math.max(DB.chem.pgMax||1,cur); save(); } if(lab) lab.textContent='PHB102 · หน้า '+cur+' จาก 28'; };
+    const on=()=>{ if(!tk) tk=setTimeout(spy,160); };
+    addEventListener('scroll',on,{passive:true}); setTimeout(spy,300); cleanup.push(()=>{ removeEventListener('scroll',on); clearTimeout(tk); });
+    vPages.jump=jump; };
+}
+
+function vWS(v,pg){
+  v.dataset.title='ใบงานแบบฝึกหัด เคมีฟิสิกส์'; const N=WS.n, start=Math.max(1,Math.min(N,+pg||1));
+  v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages',1)}
+    <div class="wsdl card"><div class="grow"><b>ใบงานแบบฝึกหัด PHB102 บทที่ 1–6</b><small>PDF ${N} หน้า · ${WS.mb} MB · โหลดไปพิมพ์หรือเขียนตอบได้</small></div><div class="ac"><a class="btn" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด PDF</a><a class="btn sec" href="${WS.pdf}" target="_blank" rel="noopener">${ic('file_text')}เปิดไฟล์</a></div></div>
+    <div class="pjump" aria-label="ข้ามไปบท">${WS.ch.map(c=>`<button class="chip" data-act="pgo" data-v="${c[1]}">${esc(c[0])}</button>`).join('')}</div>
+    <div class="pgs">${Array.from({length:N},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="chem/ws/p-${String(i+1).padStart(3,'0')}.webp" alt="ใบงานแบบฝึกหัดเคมีฟิสิกส์ หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2263"><figcaption>${i+1} / ${N}</figcaption></figure>`).join('')}</div></div>`;
+  return ()=>{ const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
+    const jump=n=>{ const f=figs[n-1]; if(f) scrollTo(0,f.getBoundingClientRect().top+scrollY-84); };
+    if(start>1){ jump(start); setTimeout(()=>jump(start),60); }
+    const spy=()=>{ tk=0; let cur=1; const mid=innerHeight*.4; for(let i=0;i<figs.length;i++){ if(figs[i].getBoundingClientRect().top<mid) cur=i+1; else break; } if(lab) lab.textContent='PHB102 · หน้า '+cur+' จาก '+N; };
     const on=()=>{ if(!tk) tk=setTimeout(spy,160); };
     addEventListener('scroll',on,{passive:true}); setTimeout(spy,300); cleanup.push(()=>{ removeEventListener('scroll',on); clearTimeout(tk); });
     vPages.jump=jump; };
@@ -351,6 +373,7 @@ function vProgress(v){
 function palette(){
   if($('.pal')) return; const idx=[];
   NAV.forEach(n=>idx.push({t:n[2],s:n[3],h:'#/'+n[0],i:n[1]}));
+  idx.push({t:'ใบงานแบบฝึกหัด บทที่ 1–6',s:'PHB102 · ดูและดาวน์โหลด PDF',h:'#/pages/ws',i:'file_text',g:'PHB102'});
   CHEM_SECTIONS.forEach(c=>{ idx.push({t:c.t,s:'PHB102 · หนังสือหน้า '+c.pg,h:'#/pages/chem/'+c.pg,i:'book_open',g:'PHB102',x:c.html.replace(/<[^>]+>/g,' ')}); });
   Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
