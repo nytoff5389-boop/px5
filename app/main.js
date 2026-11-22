@@ -110,6 +110,7 @@ function books(){
   L.push({s:'calc',code:'PHT111',no:'02',t:'มาตรชั่งและตวงทางเภสัชกรรม',short:'มาตรชั่งและตวง',en:'Weights & measures · Metric, Apothecary, Avoirdupois, Household',kind:'บทที่ 2',img:B+'calc2.jpg',read:'calc/?tab=book&page=17',exam:'calc/?tab=quiz&ch=2'});
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
   L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
+  L.push({s:'chem',code:'PHB102',no:'W',t:'แบบฝึกหัด',short:'แบบฝึกหัด',en:'Physical Chemistry · Worksheets บทที่ 1–6',kind:'เล่มพิเศษ',desc:'ใบงานแบบฝึกหัดเคมีฟิสิกส์ บทที่ 1 ถึง 6: ปริมาณสัมพันธ์ สารประกอบเชิงซ้อน Chemical Kinetics สมดุลเคมี สมดุลวัฏภาค และไฟฟ้าเคมี อ่านบนเว็บหรือดาวน์โหลด PDF ไปพิมพ์เขียนตอบได้',img:B+'chemw.jpg',read:'#/pages/ws',exam:'#/pages/ws',dl:1});
   L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบเคมีฟิสิกส์',short:'ข้อสอบ เคมีฟิสิกส์',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
   L.push({s:'bio',code:'PHB104',no:'01',t:'เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต',short:'คาร์โบไฮเดรต',en:'Biochemistry · Carbohydrates',kind:'บทที่ 1',img:B+'bio1.jpg',read:'bio/#/book/1',exam:'bio/#/exam'});
   L.push({s:'bio',code:'PHB104',no:'02',t:'เคมีและหน้าที่ทางชีวภาพของลิพิดส์',short:'ลิพิดส์',en:'Biochemistry · Lipids',kind:'บทที่ 2',img:B+'bio2.jpg',read:'bio/#/book/2',exam:'bio/#/exam'});
@@ -155,9 +156,9 @@ function sheetHTML(it,L,st){
   return `<div class="in"><div class="tb"><span class="ln"><span>${s.code} — ${esc(it.kind)}</span></span><button class="cl" data-close>${ic('x')}ปิด</button></div>
   <div><span class="ln"><span class="tag">${esc(s.th)}</span></span>
     <h1><span class="ln"><span>${esc(it.t)}</span></span></h1><span class="ln"><span class="en">${esc(it.en||s.en)}</span></span>
-    <div class="rule"></div><span class="ln"><p class="ds">${esc(s.desc)}</p></span>
-    <span class="ln"><div class="facts"><div><small>เนื้อหา</small><b class="num">${s.ch}<span>${s.chU}</span></b></div><div><small>สมุดสรุป</small><b class="num">${s.pages}<span>หน้า</span></b></div><div><small>ความแม่นยำ</small><b class="num">${x.acc==null?'–':x.acc}<span>${x.acc==null?'ยังไม่ได้ทำ':'%'}</span></b></div></div></span>
-    <span class="ln"><div class="go"><a class="btn lg ${it.q?'sec':''}" href="${it.read}" ${ext(it.read)} data-mode="read" style="order:${it.q?2:1}">${ic('book_open')}อ่านหนังสือ</a><a class="btn lg ${it.q?'':'sec'}" href="${it.exam}" ${ext(it.exam)} data-mode="exam" style="order:${it.q?1:2}">${ic('clipboard_check')}ทำข้อสอบ</a>${it.s==='chem'&&!it.q?`<a class="btn lg soft" href="#/read/chem/${CHEM_SECTIONS[0].id}" style="order:3">${ic('file_text')}สรุปย่อ</a>`:''}</div></span>
+    <div class="rule"></div><span class="ln"><p class="ds">${esc(it.desc||s.desc)}</p></span>
+    <span class="ln">${it.dl?`<div class="facts"><div><small>เนื้อหา</small><b class="num">6<span>บท</span></b></div><div><small>ใบงาน</small><b class="num">${WS.n}<span>หน้า</span></b></div><div><small>ไฟล์ PDF</small><b class="num">${WS.mb}<span>MB</span></b></div></div></span>`:`<div class="facts"><div><small>เนื้อหา</small><b class="num">${s.ch}<span>${s.chU}</span></b></div><div><small>สมุดสรุป</small><b class="num">${s.pages}<span>หน้า</span></b></div><div><small>ความแม่นยำ</small><b class="num">${x.acc==null?'–':x.acc}<span>${x.acc==null?'ยังไม่ได้ทำ':'%'}</span></b></div></div></span>`}
+    <span class="ln"><div class="go">${it.dl?`<a class="btn lg" href="${it.read}" data-mode="read">${ic('book_open')}อ่านหนังสือ</a><a class="btn lg sec" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด PDF</a></div></span>`:`<a class="btn lg ${it.q?'sec':''}" href="${it.read}" ${ext(it.read)} data-mode="read" style="order:${it.q?2:1}">${ic('book_open')}อ่านหนังสือ</a><a class="btn lg ${it.q?'':'sec'}" href="${it.exam}" ${ext(it.exam)} data-mode="exam" style="order:${it.q?1:2}">${ic('clipboard_check')}ทำข้อสอบ</a>${it.s==='chem'&&!it.q?`<a class="btn lg soft" href="#/read/chem/${CHEM_SECTIONS[0].id}" style="order:3">${ic('file_text')}สรุปย่อ</a>`:''}</div></span>`}
     <ul class="toc">${sib.map(b=>`<li><a href="${b.q?b.exam:b.read}" ${ext(b.q?b.exam:b.read)}><span class="n num">${esc(b.no)}</span><span>${esc(b.t)}</span>${ic('arrow_right')}</a></li>`).join('')}</ul></div>
   <div class="ps"><svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="inkf" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".011 .017" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="110" xChannelSelector="R" yChannelSelector="G"/></filter><mask id="inkm" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="500"><g filter="url(#inkf)">${circ}</g></mask></defs>
     <image href="${it.img}" x="0" y="0" width="400" height="500" preserveAspectRatio="xMidYMid slice" mask="url(#inkm)"/></svg>${cr?`<span class="cr">ภาพ: ${esc(cr.by)} · ${esc(cr.lic)}</span>`:''}</div></div>`;
@@ -172,8 +173,7 @@ function vLibrary(v){
   if(show('chem')) h+=`<section class="group">${gh('chem',`<a class="btn sec sm" href="#/pages/chem">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
-    <a class="item" href="#/pages/ws"><span class="n">${ic('file_text')}</span><div class="grow"><h3>ใบงานแบบฝึกหัด บทที่ 1–6</h3><p>ดูออนไลน์ หรือดาวน์โหลด PDF ไปพิมพ์ · ${WS.n} หน้า</p></div>${ic('chevron_right','ch')}</a>
-    <a class="item" href="${WS.pdf}" download="${WS.name}"><span class="n">${ic('download')}</span><div class="grow"><h3>ดาวน์โหลดใบงาน PDF</h3><p>บันทึกไฟล์ลงเครื่อง ${WS.mb} MB</p></div>${ic('chevron_right','ch')}</a>
+    <a class="item" href="#/pages/ws"><span class="n">${ic('file_text')}</span><div class="grow"><h3>แบบฝึกหัด (เล่มพิเศษ)</h3><p>ใบงานบทที่ 1–6 · ${WS.n} หน้า · ดูออนไลน์หรือดาวน์โหลด PDF</p></div>${ic('chevron_right','ch')}</a>
     <a class="item" href="#/read/chem/intro"><span class="n">${ic('list')}</span><div class="grow"><h3>สรุปย่อแบบข้อความ</h3><p>เวอร์ชันพิมพ์ใหม่ อ่านบนมือถือง่าย ปรับขนาดตัวอักษรได้</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   if(show('bio')) h+=`<section class="group">${gh('bio')}<div class="lst"><a class="item" href="bio/#/book/1" data-app="bio" data-mode="read"><span class="n">1</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต</h3><p>Monosaccharides, Oligosaccharides, Polysaccharides และ Complex carbohydrate · 21 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/book/2" data-app="bio" data-mode="read"><span class="n">2</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของลิพิดส์</h3><p>Fatty acids, Triglyceride, Phospholipids, Eicosanoids, Steroids และ Lipoproteins · 28 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/exam" data-app="bio" data-mode="exam"><span class="n">${ic('clipboard_check')}</span><div class="grow"><h3>ข้อสอบชีวเคมี</h3><p>ข้อสอบจากสไลด์เรียน และโจทย์โครงสร้างกรดไขมัน</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   v.innerHTML=h;
@@ -183,7 +183,7 @@ function vLibrary(v){
 const WS={n:27,pdf:'chem/pdf/ws1-6.pdf',name:'PHB102-Worksheet-ch1-6.pdf',mb:0.5,ch:[['บทที่ 1 ปริมาณสัมพันธ์',1],['บทที่ 2 สารประกอบเชิงซ้อน',14],['บทที่ 3 Chemical Kinetics',17],['บทที่ 4 สมดุลเคมี',21],['บทที่ 5 สมดุลวัฏภาค',24],['บทที่ 6 ไฟฟ้าเคมี',25]]};
 function rbar(sec,mode,ws){ const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
   if(ws) return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
-    <div class="tt"><b>ใบงานแบบฝึกหัด บทที่ 1–6</b><small id="pgno">PHB102 · ${WS.n} หน้า</small></div>
+    <div class="tt"><b>แบบฝึกหัด เคมีฟิสิกส์</b><small id="pgno">PHB102 · ${WS.n} หน้า</small></div>
     <button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้า" title="ขยายหรือย่อหน้า">${ic('zoom_in')}</button><a class="btn sm" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด</a></div>`;
   return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
     <div class="tt"><b>${esc(sec?sec.t:'ปริมาณสารสัมพันธ์ บทที่ 1')}</b><small id="pgno">PHB102 · ${sec?'สรุปย่อ':'หนังสือ 28 หน้า'}</small></div>
@@ -229,9 +229,9 @@ function vPages(v,subj,pg){
 }
 
 function vWS(v,pg){
-  v.dataset.title='ใบงานแบบฝึกหัด เคมีฟิสิกส์'; const N=WS.n, start=Math.max(1,Math.min(N,+pg||1));
+  v.dataset.title='แบบฝึกหัด เคมีฟิสิกส์'; const N=WS.n, start=Math.max(1,Math.min(N,+pg||1));
   v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages',1)}
-    <div class="wsdl card"><div class="grow"><b>ใบงานแบบฝึกหัด PHB102 บทที่ 1–6</b><small>PDF ${N} หน้า · ${WS.mb} MB · โหลดไปพิมพ์หรือเขียนตอบได้</small></div><div class="ac"><a class="btn" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด PDF</a><a class="btn sec" href="${WS.pdf}" target="_blank" rel="noopener">${ic('file_text')}เปิดไฟล์</a></div></div>
+    <div class="wsdl card"><div class="grow"><b>แบบฝึกหัด PHB102 บทที่ 1–6</b><small>PDF ${N} หน้า · ${WS.mb} MB · โหลดไปพิมพ์หรือเขียนตอบได้</small></div><div class="ac"><a class="btn" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด PDF</a><a class="btn sec" href="${WS.pdf}" target="_blank" rel="noopener">${ic('file_text')}เปิดไฟล์</a></div></div>
     <div class="pjump" aria-label="ข้ามไปบท">${WS.ch.map(c=>`<button class="chip" data-act="pgo" data-v="${c[1]}">${esc(c[0])}</button>`).join('')}</div>
     <div class="pgs">${Array.from({length:N},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="chem/ws/p-${String(i+1).padStart(3,'0')}.webp" alt="ใบงานแบบฝึกหัดเคมีฟิสิกส์ หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2263"><figcaption>${i+1} / ${N}</figcaption></figure>`).join('')}</div></div>`;
   return ()=>{ const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
@@ -373,7 +373,7 @@ function vProgress(v){
 function palette(){
   if($('.pal')) return; const idx=[];
   NAV.forEach(n=>idx.push({t:n[2],s:n[3],h:'#/'+n[0],i:n[1]}));
-  idx.push({t:'ใบงานแบบฝึกหัด บทที่ 1–6',s:'PHB102 · ดูและดาวน์โหลด PDF',h:'#/pages/ws',i:'file_text',g:'PHB102'});
+  idx.push({t:'แบบฝึกหัด เคมีฟิสิกส์ บทที่ 1–6',s:'PHB102 · ดูและดาวน์โหลด PDF',h:'#/pages/ws',i:'file_text',g:'PHB102'});
   CHEM_SECTIONS.forEach(c=>{ idx.push({t:c.t,s:'PHB102 · หนังสือหน้า '+c.pg,h:'#/pages/chem/'+c.pg,i:'book_open',g:'PHB102',x:c.html.replace(/<[^>]+>/g,' ')}); });
   Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
