@@ -60,3 +60,20 @@
   }
   if(document.body) build(); else document.addEventListener('DOMContentLoaded',build);
 })();
+
+/* เช็กเวอร์ชันใหม่อัตโนมัติ: ถ้าเว็บอัปเดตแล้วแต่เครื่องยังเปิดหน้าเก่า ให้โหลดหน้าใหม่เอง */
+(function(){
+  var cs=document.currentScript, m=cs&&/[?&]v=(\d+)/.exec(cs.src); if(!m||!window.fetch) return;
+  var mine=m[1], vurl=new URL('../version.json',cs.src).href, busy=false;
+  function check(){
+    if(busy) return; busy=true;
+    fetch(vurl+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+      busy=false; if(!j||!j.v||String(j.v)===mine) return;
+      var k='px.upd.'+j.v; try{ if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); }catch(e){}
+      var u=new URL(location.href); u.searchParams.set('_v',j.v); location.replace(u.href);
+    }).catch(function(){busy=false;});
+  }
+  check();
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') check(); });
+  addEventListener('pageshow',function(e){ if(e.persisted) check(); });
+})();
