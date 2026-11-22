@@ -57,7 +57,7 @@ const show=id=>FILTER==='all'||FILTER===id;
 /* ---------- ชิ้นส่วน ---------- */
 function ring(p,size,cls,label){ const r=(size-10)/2, c=2*Math.PI*r;
   return `<div class="ring ${cls||''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="tr" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-p/100)).toFixed(1)}"/></svg><b style="font-size:${Math.round(size*.24)}px">${label!=null?label:p+'<small>%</small>'}</b></div>`; }
-const pills=()=>{ const cnt=k=>({all:16,anatomy:8,calc:3,chem:2,bio:3})[k];
+const pills=()=>{ const AB=books(1), cnt=k=>k==='all'?AB.length:AB.filter(b=>b.s===k).length;
   return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ<small class="gh">แตะเพื่อกรองชั้นหนังสือตามวิชา</small></span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
@@ -102,7 +102,7 @@ const rerender=()=>{ render.keep=true; render(); };
 
 /* ---------- หน้าหลัก ---------- */
 const B='ui/img/b-';
-function books(){
+function books(all){
   const L=[];
   AN_CH.forEach((c,i)=>L.push({s:'anatomy',code:'BI112',no:pad(i+1),t:c[0],en:c[1],kind:'บทที่ '+(i+1),img:B+'an'+(i+1)+'.jpg',read:'anatomy/?tab=book&page='+AN_PG[i],exam:'anatomy/?tab=learn&ch='+(i+1)}));
   L.push({s:'anatomy',code:'BI112',no:'Q',t:'ข้อสอบกายวิภาคศาสตร์',short:'ข้อสอบ Anatomy',en:'Anatomy question bank',kind:'ข้อสอบ',img:B+'anq.jpg',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',q:1});
@@ -115,7 +115,7 @@ function books(){
   L.push({s:'bio',code:'PHB104',no:'01',t:'เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต',short:'คาร์โบไฮเดรต',en:'Biochemistry · Carbohydrates',kind:'บทที่ 1',img:B+'bio1.jpg',read:'bio/#/book/1',exam:'bio/#/exam'});
   L.push({s:'bio',code:'PHB104',no:'02',t:'เคมีและหน้าที่ทางชีวภาพของลิพิดส์',short:'ลิพิดส์',en:'Biochemistry · Lipids',kind:'บทที่ 2',img:B+'bio2.jpg',read:'bio/#/book/2',exam:'bio/#/exam'});
   L.push({s:'bio',code:'PHB104',no:'Q',t:'ข้อสอบชีวเคมี',short:'ข้อสอบ Biochem',en:'Biochemistry question bank',kind:'ข้อสอบ',img:B+'bioq.jpg',read:'bio/#/book/1',exam:'bio/#/exam',q:1});
-  return L.filter(x=>show(x.s));
+  return all?L:L.filter(x=>show(x.s));
 }
 function contBtn(){ const m=contCard(stats()).match(/<a class="btn lg" href="([^"]*)"([^>]*)>[\s\S]*?<\/svg>([^<]*)<\/a>/); return m?`<a class="btn" href="${m[1]}"${m[2]}>${ic('play')}${m[3]}</a>`:''; }
 function contCard(st){
