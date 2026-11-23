@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795435198';
+import { DATA, SECS, LESSONS } from './data.js?v=1795436189';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -80,7 +80,7 @@ const st = { scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labe
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795435198').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795435198')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795436189').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795436189')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -334,7 +334,10 @@ function textSprite(t, foc) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
   sp.center.set(-.12, .5); sp.userData.aspect = w / h; return sp;
 }
-function sizeSprite(it) { const h = pinLen() * .5; it.spr.scale.set(h * it.spr.userData.aspect, h, 1); it.spr.position.copy(it.headP); }
+function sizeSprite(it) { // ป้าย 3D: สูงประมาณ 20px บนจอเสมอ (ไม่ใหญ่ล้นเวลาซูม) แต่ไม่ใหญ่เกินขนาดหมุด
+  const d = cam.position.distanceTo(it.headP), px = 20 / (stageRect().height || 800), h = Math.min(pinLen() * .7, 2 * d * Math.tan(cam.fov * Math.PI / 360) * px);
+  it.spr.scale.set(h * it.spr.userData.aspect, h, 1); it.spr.position.copy(it.headP);
+}
 function buildLabelDom() {
   lblBox.textContent = ''; svg.textContent = ''; pinGroup.traverse(o => o.material?.map?.dispose()); pinGroup.clear();
   labelItems.forEach((it, i) => {
@@ -567,6 +570,6 @@ R.setAnimationLoop(() => {
   ctl.update();
   if (!dirty) return; dirty = false;
   if (st.interior && st.iso) { const m = byName[st.iso[0]]; const c = m.userData.inAxis ? m.userData.inAxis.at(.5).c : visBox.getCenter(V3()); const n = ctl.target.clone().sub(cam.position).normalize(); clip.setFromNormalAndCoplanarPoint(n, c); }
-  R.render(scene, cam); drawLabels(); adapt(performance.now());
+  drawLabels(); labelItems.forEach(it => it.spr && sizeSprite(it)); R.render(scene, cam); adapt(performance.now());
 });
 window.__humnoi = { R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };

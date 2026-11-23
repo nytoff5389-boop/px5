@@ -4,5 +4,5 @@
 set -e
 python3 "$(dirname "$0")/build_glb.py" "$1" "$2/skeleton_raw.glb"
 python3 "$(dirname "$0")/landmarks.py" "$2/skeleton_raw.glb" "$2"
-npx @gltf-transform/cli@4.1.1 optimize "$2/skeleton_lm_raw.glb" skeleton.glb --compress meshopt --simplify false --join false --instance false --flatten false
+npx @gltf-transform/cli@4.1.1 optimize "$2/skeleton_lm_raw.glb" skeleton.glb --compress meshopt --simplify true --simplify-ratio 0.4 --simplify-error 0.001 --join false --instance false --flatten false
 cp "$2/landmarks.json" "$2/bones_map.json" .
