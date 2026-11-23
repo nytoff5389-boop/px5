@@ -283,10 +283,28 @@ for s_ in 'LR':
         rim = ci[dots[ci] < np.quantile(dots[ci], .12)]; dn = med * .8 - UP * .55 + FRONT * .25; dn /= np.linalg.norm(dn)  # ขอบหัวด้านใน-ล่าง
         setlm(n, 'Anatomical neck', V[rim[np.argmax((V[rim] - c) @ dn)]])
         p = F.pick({'v': (.76, .8)}, {'m': -1}); setlm(n, 'Surgical neck', p)
+        # Intertubercular (bicipital) groove: ตัดหน้าตัดตั้งฉากแกนกระดูกทีละระดับ (3–12% ใต้ยอด)
+        # หาจุดเว้าลึกที่สุดเทียบ convex hull บนผิวด้านหน้า (±70°) — ร่องจริงลึก ~4–5.5 มม. กว้าง 7–9 มม. (Radiopaedia; JCDR 2021)
+        from scipy.spatial import ConvexHull
+        c0 = V.mean(0); _, _, vt = np.linalg.svd(V - c0, full_matrices=False); ay = vt[0] * (1 if vt[0][1] > 0 else -1)
+        az = FRONT - ay * ay[2]; az /= np.linalg.norm(az); axx = np.cross(ay, az); hh = (V - c0) @ ay; top = hh.max(); Lb = top - hh.min()
+        bestg = None
+        for f in np.linspace(.03, .12, 19):
+            o = c0 + ay * (top - f * Lb); sec = G[n].section(plane_origin=o, plane_normal=ay)
+            if sec is None: continue
+            Pp = np.asarray(sec.vertices); uv = np.c_[(Pp - o) @ axx, (Pp - o) @ az]
+            if len(uv) < 10: continue
+            hl = ConvexHull(uv); dep = -(uv @ hl.equations[:, :2].T + hl.equations[:, 2]).max(1)
+            cen = uv.mean(0); ang = np.degrees(np.arctan2(uv[:, 0] - cen[0], uv[:, 1] - cen[1])); fr = np.where(np.abs(ang) < 70)[0]
+            if not len(fr): continue
+            i = fr[np.argmax(dep[fr])]
+            if bestg is None or dep[i] > bestg[0]: bestg = (dep[i], Pp[i])
+        if bestg is not None and bestg[0] > .0015:
+            setlm(n, 'Intertubercular groove', bestg[1])
         g_ = np.asarray(LM[n]['Greater tubercle']); l_ = np.asarray(LM[n]['Lesser tubercle'])
         mid = (g_ + l_) / 2; ylo = min(g_[1], l_[1]) - .02
         k = (V[:, 1] > ylo) & (V[:, 1] < max(g_[1], l_[1])) & (N[:, 2] > .35) & (np.abs(V[:, 0] - mid[0]) < abs(g_[0] - l_[0]) * .3 + .002)
-        if k.any(): ii = np.where(k)[0]; setlm(n, 'Intertubercular groove', V[ii[np.argmin(V[ii, 2] - .15 * V[ii, 1])]])  # จุดลึกสุดของร่องด้านหน้า
+        if k.any() and (bestg is None or bestg[0] <= .0015): ii = np.where(k)[0]; setlm(n, 'Intertubercular groove', V[ii[np.argmin(V[ii, 2] - .15 * V[ii, 1])]])  # สำรอง
     # --- femur: head = ผิวหัวด้านบน-หน้า, fovea = ขั้วด้านในตามแนวคอ (ค่อนล่าง-หลัง), neck = กลางคอด้านหน้า
     n = f'femur_{s_}'
     if n in G:
