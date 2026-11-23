@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795437010';
+import { DATA, SECS, LESSONS } from './data.js?v=1795437105';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,7 +81,7 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795437010').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795437010')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795437105').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795437105')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -471,7 +471,7 @@ function renderCrumbs() {
   const s = SEC[st.scope]; if (st.scope !== 'all') { if (s.parent) c.push(`<button data-c="${s.parent}">${esc(SEC[s.parent].t)}</button>`); c.push(`<button data-c="${st.scope}">${esc(s.t)}${s.side ? ' · ' + SIDE_TH[st.side] : ''}</button>`); }
   if (st.lesson) c.push(`<span>${esc(LESSONS.find(l => l.id === st.lesson).t)}</span>`);
   else if (st.entry) c.push(`<span>${esc(st.iso?.length === 1 ? nodeTitle(st.iso[0]) : D[st.entry].en)}</span>`);
-  $('#crumbs').innerHTML = (st.hist.length ? `<button class="back" id="back" aria-label="ย้อนกลับ">‹</button>` : '') + c.join('<i>›</i>');
+  $('#crumbs').innerHTML = (st.hist.length ? `<button class="back" id="back" aria-label="ย้อนกลับ"><b>‹</b><small>ย้อนกลับ</small></button>` : '') + c.join('<i>›</i>');
 }
 $('#crumbs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'back') return back(); openScope(b.dataset.c); });
 
