@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795444592';
+import { DATA, SECS, LESSONS } from './data.js?v=1795445290';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,7 +81,7 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795444592').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795444592')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795445290').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795445290')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -144,19 +144,21 @@ function viewOff() { freeC = null; const f = freeRect(); cam.setViewOffset(f.w, 
 function boxOf(list) { const b = new THREE.Box3(); list.forEach(m => b.expandByObject(m)); return b; }
 let tw = null;
 function frame(list, dir, instant) {
-  if (!list.length) return; const b = boxOf(list), c = b.getCenter(V3()), sph = b.getBoundingSphere(new THREE.Sphere());
+  const sr = stage.getBoundingClientRect(); if (!list.length || sr.width < 2 || sr.height < 2) return; // ยังไม่มีพื้นที่ (กัน NaN)
+  if (Math.abs(rectC?.width - sr.width) > 1 || Math.abs(rectC?.height - sr.height) > 1 || !rectC) { rectC = freeC = null; cam.aspect = sr.width / sr.height; } const b = boxOf(list), c = b.getCenter(V3()), sph = b.getBoundingSphere(new THREE.Sphere());
   const f = freeRect(), fov = cam.fov * Math.PI / 180, fw = st.labels && st.lstyle === 'line' ? .5 : .86, fh = (f.b - f.t) / f.h * (st.labels && st.lstyle === 'pin' ? .8 : .9);
-  const d = (dir || cam.position.clone().sub(ctl.target)).clone().normalize();
+  let d = (dir || cam.position.clone().sub(ctl.target)).clone(); if (!(d.lengthSq() > 1e-10) || !isFinite(d.x + d.y + d.z)) d = V3(0, 0, 1); d.normalize();
   const upv = Math.abs(d.y) > .99 ? V3(0, 0, -1) : V3(0, 1, 0), rt = V3().crossVectors(upv, d).normalize(), uu = V3().crossVectors(d, rt);
   let ex = 0, ey = 0, ez = 0; for (let i = 0; i < 8; i++) { const q = V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(c); ex = Math.max(ex, Math.abs(q.dot(rt))); ey = Math.max(ey, Math.abs(q.dot(uu))); ez = Math.max(ez, Math.abs(q.dot(d))); }
   const th = Math.tan(fov / 2), dist = Math.max(ey / (th * fh), ex / (th * cam.aspect * fw * f.r / f.w)) + ez;
+  if (!isFinite(dist) || dist <= 0) return;
   const p = c.clone().add(d.multiplyScalar(dist));
   ctl.minDistance = sph.radius * .3; ctl.maxDistance = dist * 4;
   if (instant) { ctl.target.copy(c); cam.position.copy(p); ctl.update(); } else tw = { t0: performance.now(), ft: ctl.target.clone(), fp: cam.position.clone(), t: c, p };
   dirty = true;
 }
 function resize() {
-  invalidate(); const r = stageRect(); R.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; viewOff();
+  invalidate(); const r = stageRect(); if (r.width < 2 || r.height < 2) return; R.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; viewOff();
 }
 let roT = 0; new ResizeObserver(() => { resize(); clearTimeout(roT); roT = setTimeout(() => frame(visibleList()), 120); }).observe(stage);
 addEventListener('orientationchange', () => setTimeout(() => { resize(); frame(visibleList(), null, true); }, 300));
