@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795445558';
+import { DATA, SECS, LESSONS } from './data.js?v=1795446828';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,12 +81,12 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795445558').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795445558')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795446828').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795446828')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
     if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
-    o.material = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .5, metalness: 0 });
+    o.material = o.userData_mat = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .5, metalness: 0 });
     o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
     o.userData = { n, id: p.id, side: p.side }; meshes.push(o); byName[n] = o;
     // anchor = จุดบนผิวที่ใกล้ centroid
@@ -103,7 +103,16 @@ Promise.all([fetch('landmarks.json?v=1795445558').then(r => r.json()).catch(() =
 /* ---------- visibility / colours ---------- */
 let visCache = [], visBox = new THREE.Box3();
 function visibleList() { return visCache; }
-function setVisible(pred) { meshes.forEach(m => m.visible = !!pred(m)); visCache = meshes.filter(m => m.visible); visBox = boxOf(visCache); }
+// ชิ้นที่ไม่ได้เลือก: ไม่ซ่อน แต่แสดงจางใส (ghost) ให้เห็นตำแหน่งในร่างกาย
+const ghostMat = new THREE.MeshStandardMaterial({ color: 0xcfd4dc, roughness: .6, transparent: true, opacity: .1, depthWrite: false });
+let ghostList = [];
+function setVisible(pred) {
+  visCache = []; ghostList = [];
+  meshes.forEach(m => { const on = !!pred(m); m.visible = true; m.userData.ghost = !on;
+    if (on) { if (m.material === ghostMat) m.material = m.userData_mat; visCache.push(m); } else { m.material = ghostMat; ghostList.push(m); m.renderOrder = -1; } });
+  if (!visCache.length) { meshes.forEach(m => { m.material = m.userData_mat; m.userData.ghost = false; }); visCache = meshes.slice(); ghostList = []; }
+  visBox = boxOf(visCache);
+}
 function regionOf(name) { return LMJ.regions.findIndex(r => r[0].toLowerCase() === String(name).toLowerCase()); }
 function applyColor() {
   const hiReg = st.focus ? regionOf(st.focus) : -1, entryReg = st.entry && D[st.entry]?.region ? regionOf(D[st.entry].region) : -1;
@@ -213,12 +222,16 @@ cvs.addEventListener('pointermove', e => { if (down && Math.hypot(e.clientX - do
 const up = e => { nP = Math.max(0, nP - 1); if (!down || e.type !== 'pointerup') return down = null; const ok = performance.now() - down.t < 300; down = null; if (ok) tap(e.clientX, e.clientY); };
 cvs.addEventListener('pointerup', up); cvs.addEventListener('pointercancel', up);
 function pick(x, y) {
-  return ray.intersectObjects(visibleList(), false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0)?.object;
+  const h = ray.intersectObjects(visibleList(), false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0)?.object;
+  if (h) return h;
+  const g = ray.intersectObjects(ghostList, false)[0]?.object; // แตะชิ้นจาง ๆ = ไปดูชิ้นนั้น
+  if (g) g.userData.tappedGhost = true; return g;
 }
 function tap(x, y) {
   { const r = cvs.getBoundingClientRect(); ptr.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, cam); }
   if (labelItems.length && st.lstyle === 'pin') { const h = ray.intersectObjects(labelItems.map(i => i.spr).filter(Boolean), false)[0]; if (h) return labelClick(h.object.userData.item); }
   const m = pick(x, y); if (!m || !m.userData.id) return;
+  if (m.userData.tappedGhost) { m.userData.tappedGhost = false; st.side = m.userData.side || st.side; return openEntry(m.userData.id, m.userData.n, {}); }
   const { id, n, side } = m.userData;
   if (st.iso && st.iso.length === 1) return;
   if (st.iso) return openEntry(id, n, { keepScope: 1 });
