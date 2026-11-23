@@ -174,7 +174,7 @@ S['occipital'] = [
  ('External occipital protuberance', {'m': (.45, .55)}, {'a': -1, 'v': -.2}),
  ('Lambdoid suture', {'m': (.4, .6)}, {'v': 1}),
 ]
-S['frontal'] = [('Frontal sinus (หลังหัวคิ้ว)', {'m': (.3, .45), 'v': (.1, .3)}, {'a': 1})]
+S['frontal'] = [('Frontal sinus', {'m': (.3, .45), 'v': (.1, .3)}, {'a': 1})]
 S['parietal'] = []
 S['sphenoid'] = [('Sella turcica (pituitary gland)', {'m': (.45, .55), 'a': (.3, .6)}, {'v': 1})]
 S['ethmoid'] = [('Crista galli', {'m': (.45, .55)}, {'v': 1}), ('Cribriform plate', {'m': (.3, .4), 'v': (.75, .95)}, {'v': 1})]
@@ -232,14 +232,15 @@ def near(a, b):  # จุดบน a ที่ใกล้ b ที่สุด
     A = np.asarray(G[a].vertices); d, i = cKDTree(np.asarray(G[b].vertices)).query(A); return A, d
 for s in 'LR':
     if f'parietal_{s}' in G:
-        A, d = near(f'parietal_{s}', 'frontal'); k = d < .004
+        A, d = near(f'parietal_{s}', 'frontal'); Np_ = np.asarray(G[f'parietal_{s}'].vertex_normals); cc_ = np.asarray(G['frontal'].vertices).mean(0) * .5 + np.asarray(G['occipital'].vertices).mean(0) * .5
+        outer = ((A - cc_) * Np_).sum(1) > 0; k = (d < .004) & outer
         if k.any():
             P = A[k][np.argsort(A[k][:, 1])]; LM[f'parietal_{s}']['Coronal suture'] = list(map(float, P[int(len(P) * .6)]))
-        A, d = near(f'parietal_{s}', f'parietal_{"R" if s=="L" else "L"}'); k = d < .004
+        A, d = near(f'parietal_{s}', f'parietal_{"R" if s=="L" else "L"}'); k = (d < .004) & outer
         if k.any():
             Q = A[k][np.argsort(A[k][:, 2])]; LM[f'parietal_{s}']['Sagittal suture'] = list(map(float, Q[len(Q) // 2])); P = A[k]
             LM[f'parietal_{s}']['Lambda'] = list(map(float, P[np.argmin(P[:, 2])]))
-        A, d = near(f'parietal_{s}', 'occipital'); k = d < .004
+        A, d = near(f'parietal_{s}', 'occipital'); k = (d < .004) & outer
         if k.any():
             P = A[k]; LM[f'parietal_{s}']['Lambdoid suture'] = list(map(float, P[len(P)//2]))
     if f'temporal_{s}' in G and 'sphenoid' in G:
@@ -345,6 +346,97 @@ if 'sphenoid' in G:
     V = np.asarray(G['sphenoid'].vertices); N = np.asarray(G['sphenoid'].vertex_normals); F = Frame(V, '')
     k = (N[:, 1] > .5) & (np.abs(V[:, 0] - V[:, 0].mean()) < .006) & (F.a > .3) & (F.a < .65) & (F.v > .5)
     if k.any(): ii = np.where(k)[0]; setlm('sphenoid', 'Sella turcica (pituitary gland)', V[ii[np.argmin(V[ii, 1])]])
+
+# ---------- เติมหมุดให้ครบทุก "ส่วนประกอบ" ที่แสดงในแผงข้อมูล ----------
+from scipy import ndimage
+def surf_near(n, q):
+    V = np.asarray(G[n].vertices); return V[np.argmin(np.linalg.norm(V - q, axis=1))]
+def hole_center(P, ax2, n_=110):  # หารูปิดล้อม (ภาพฉายบน 2 แกน) คืนค่าศูนย์กลางรูที่ใหญ่สุด
+    lo2 = P[:, ax2].min(0); hi2 = P[:, ax2].max(0); cell = (hi2 - lo2) / (n_ - 1)
+    ij = ((P[:, ax2] - lo2) / cell).astype(int); occ = np.zeros((n_, n_), bool); occ[ij[:, 0], ij[:, 1]] = True
+    occ = ndimage.binary_closing(occ, iterations=1); hole = ndimage.binary_fill_holes(occ) & ~occ
+    lab, k = ndimage.label(hole)
+    if not k: return None
+    sz = [(lab == q).sum() for q in range(1, k + 1)]; big = 1 + int(np.argmax(sz)); ii, jj = np.where(lab == big)
+    return lo2 + np.array([ii.mean(), jj.mean()]) * cell, sz[big - 1]
+LM.setdefault('frontal', {})
+if 'frontal' in G and 'parietal_R' in G:
+    A, d = near('frontal', 'parietal_R'); k = d < .004
+    Nf = np.asarray(G['frontal'].vertex_normals); cc = (np.asarray(G['frontal'].vertices).mean(0) + np.asarray(G['occipital'].vertices).mean(0)) / 2 if 'occipital' in G else A.mean(0)
+    k &= ((A - cc) * Nf).sum(1) > 0  # เฉพาะผิวนอกกะโหลก
+    if k.any(): P = A[k][np.argsort(A[k][:, 1])]; setlm('frontal', 'Coronal suture', P[int(len(P) * .7)])
+for s_ in 'LR':
+    n = f'temporal_{s_}'
+    if n in G and 'Mastoid process' in LM.get(n, {}):  # mastoid part = ผิวหลังรูหู เหนือ mastoid process
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); mp = np.asarray(LM[n]['Mastoid process'])
+        osg = -1 if s_ == 'R' else 1; k = (N[:, 0] * osg > .4) & (V[:, 1] > mp[1] + .008) & (V[:, 1] < mp[1] + .022) & (np.abs(V[:, 2] - mp[2]) < .012)
+        if k.any(): setlm(n, 'Mastoid part', V[k].mean(0) * 0 + V[np.where(k)[0][np.argmax(V[k][:, 0] * osg)]])
+    n = f'maxilla_{s_}'
+    if n in G:  # maxillary sinus อยู่ในตัว maxilla ใต้เบ้าตา → ปักผิวหน้าตัว maxilla (canine fossa)
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); F = Frame(V, s_)
+        k = (N[:, 2] > .5) & (F.v > .4) & (F.v < .65) & (F.m < .55)
+        if k.any(): c = V[k].mean(0); setlm(n, 'Maxillary sinus', V[np.where(k)[0][np.argmin(np.linalg.norm(V[k] - c, axis=1))]])
+    n = f'concha_{s_}'
+    if n in G:
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); osg = 1 if s_ == 'R' else -1
+        k = N[:, 0] * osg > .4
+        c = V.mean(0); ii = np.where(k)[0] if k.any() else np.arange(len(V)); LM.setdefault(n, {})
+        setlm(n, 'Nasal conchae', V[ii[np.argmin(np.linalg.norm(V[ii] - c, axis=1))]])
+if 'sphenoid' in G:  # sphenoidal sinus ในตัว sphenoid → ปักผิวหน้าของตัวกระดูก (กลาง)
+    V = np.asarray(G['sphenoid'].vertices); N = np.asarray(G['sphenoid'].vertex_normals); F = Frame(V, '')
+    k = (N[:, 2] > .5) & (np.abs(V[:, 0] - V[:, 0].mean()) < .008) & (F.v > .25) & (F.v < .7)
+    if k.any(): setlm('sphenoid', 'Sphenoidal sinus', V[np.where(k)[0][np.argmax(V[k][:, 2])]])
+if 'ethmoid' in G:  # ethmoidal sinus (labyrinth) → ผิวด้านข้าง (orbital plate) กลางความสูง
+    V = np.asarray(G['ethmoid'].vertices); F = Frame(V, '')
+    k = (F.v > .35) & (F.v < .65) & (F.a > .3) & (F.a < .7)
+    if k.any(): setlm('ethmoid', 'Ethmoidal sinus', V[np.where(k)[0][np.argmax(V[k][:, 0] - V[:, 0].mean())]])
+# กระดูกสันหลัง: Body, Vertebral arch, Vertebral foramen (+ cervical: transverse foramen, bifid spinous; thoracic: facets)
+for n in list(G):
+    if not n.startswith('vert_') or n in ('vert_C1',): continue
+    V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); lm = LM.setdefault(n, {}); cx = np.median(V[:, 0])
+    if 'Vertebral body' in lm: setlm(n, 'Body', lm['Vertebral body'])
+    if 'Spinous process' in lm and n[5] == 'C': setlm(n, 'Bifid spinous process', lm['Spinous process'])
+    Ps, _ = trimesh.sample.sample_surface(G[n], 60000, seed=2)
+    hc = hole_center(Ps, [0, 2])  # มองจากบน (x,z): รูใหญ่สุด = vertebral foramen
+    if hc is not None:
+        (fx, fz), _ = hc; fy = np.median(V[:, 1])
+        back = V[(V[:, 2] < fz) & (np.abs(V[:, 0] - fx) < .004)]
+        if len(back): setlm(n, 'Vertebral foramen', back[np.argmin(np.hypot(back[:, 2] - fz, back[:, 1] - fy))])  # ขอบหลังของรู (ด้านใน lamina)
+        arch = V[(V[:, 2] < fz) & (np.abs(V[:, 0] - fx) > .006) & (np.abs(V[:, 0] - fx) < .014) & (N[:, 1] > .5)]
+        if len(arch): setlm(n, 'Vertebral arch (neural arch)', arch[np.argmax(arch[:, 1])])
+        if n[5] == 'C' and n not in ('vert_C2',):  # transverse foramen: รูในแต่ละข้าง
+            side = Ps[(Ps[:, 0] - fx) < -.012]
+            hc2 = hole_center(side, [0, 2], 80) if len(side) > 500 else None
+            if hc2 is not None:
+                (tx, tz), _ = hc2; rim = V[(np.hypot(V[:, 0] - tx, V[:, 2] - tz) < .006) & (N[:, 1] > .4)]
+                if len(rim): setlm(n, 'Transverse foramen', rim[np.argmax(rim[:, 1])])
+    if n[5] == 'T' and 'Transverse process' in lm:
+        tp = np.asarray(lm['Transverse process']); k = (np.abs(V[:, 0] - tp[0]) < .006) & (V[:, 2] > tp[2]) & (np.abs(V[:, 1] - tp[1]) < .006)
+        setlm(n, 'Costotransverse facet', V[np.where(k)[0][np.argmax(V[k][:, 2])]] if k.any() else tp)
+        if 'Vertebral body' in lm:
+            bz = np.asarray(lm['Vertebral body'])[2]; k = (V[:, 2] < bz - .008) & (V[:, 2] > bz - .022) & (V[:, 1] > np.median(V[:, 1]))
+            if k.any(): setlm(n, 'Costal facet', V[np.where(k)[0][np.argmax(np.abs(V[k][:, 0] - cx))]])
+# หมอนรองกระดูก: nucleus pulposus = กลางผิวบน, annulus fibrosus = ขอบหน้า
+for n in list(G):
+    if not n.startswith('disc_'): continue
+    V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); c = V.mean(0); LM.setdefault(n, {})
+    up = np.where(N[:, 1] > .6)[0]
+    if len(up): setlm(n, 'Nucleus pulposus', V[up[np.argmin(np.hypot(V[up, 0] - c[0], V[up, 2] - c[2]))]])
+    setlm(n, 'Annulus fibrosus', V[np.argmax(V[:, 2] - .3 * np.abs(V[:, 0] - c[0]))])
+# ซี่โครง: ชนิดของซี่ (true/false/floating) + costal cartilage
+for n in list(G):
+    if n.startswith('rib_'):
+        k_ = int(n.split('_')[1]); nm = 'True ribs (1–7)' if k_ <= 7 else 'False ribs (8–10)' if k_ <= 10 else 'Floating ribs (11–12)'
+        V = np.asarray(G[n].vertices); LM.setdefault(n, {}); setlm(n, nm, V[np.argmax(V[:, 2] * 1.0 - np.abs(V[:, 1] - np.median(V[:, 1])))] if k_ <= 10 else V[np.argmax(np.abs(V[:, 0]))])
+    elif n.startswith('costal_cartilage_'):
+        V = np.asarray(G[n].vertices); LM.setdefault(n, {}); c = V.mean(0); setlm(n, 'Costal cartilage', V[np.argmin(np.linalg.norm(V - c, axis=1) - V[:, 2] * .5)])
+# นิ้วมือ/นิ้วเท้า: ชื่อตามข้อนิ้ว (proximal / middle / distal)
+for n in list(G):
+    if n.startswith('phalanx_'):
+        t = n.split('_')[2][1]; nm = {'p': 'Proximal phalanges', 'm': 'Middle phalanges', 'd': 'Distal phalanges'}[t]
+        V = np.asarray(G[n].vertices); c = V.mean(0); dz = -1 if n[8] == 'h' else 0  # มือ: หลังมือ (-z), เท้า: ด้านบน (+y)
+        scr = (V[:, 2] - c[2]) * dz + (V[:, 1] - c[1]) * (1 if n[8] == 'f' else .2) - np.linalg.norm(V - c, axis=1) * .5
+        LM.setdefault(n, {}); setlm(n, nm, V[np.argmax(scr)])
 
 # ---------- regions (สีแยกส่วนตามสมุด) ----------
 REG = [('—', '#e8e0cc')]
