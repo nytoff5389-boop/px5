@@ -1,0 +1,201 @@
+// เนื้อหาทั้งหมดสรุปจากสมุด Anatomy เล่ม 2 บทที่ 3 (pg = หน้าในสมุด)
+const VG = [
+  ['Vertebral body', 'แผ่นกลมหนาอยู่ด้านหน้า เป็นส่วนรับน้ำหนัก'],
+  ['Vertebral arch (neural arch)', 'แท่งกระดูกโค้งด้านหลังของ body ประกอบด้วย pedicles 2 แท่ง และ lamina ที่เชื่อม pedicle'],
+  ['Pedicle', 'แท่งกระดูก 2 แท่งยื่นจากด้านหลังของ body; ขอบบน-ล่างมีรอยเว้า → intervertebral foramen'],
+  ['Lamina', 'แผ่นกระดูกแบนที่เชื่อมต่อ pedicle'],
+  ['Vertebral foramen', 'ช่องที่ล้อมด้วย body และ vertebral arch เป็นทางผ่านของไขสันหลัง (spinal cord)'],
+  ['Transverse process', '2 อัน ยื่นจากจุดเชื่อมของ pedicle กับ lamina ออกไปด้านข้าง'],
+  ['Spinous process', '1 อัน ยื่นจากกึ่งกลางด้านหลัง (จุดที่ lamina 2 ข้างเชื่อมกัน) ชี้ไปด้านหลังและลงล่าง คือปุ่มที่คลำได้กลางหลัง'],
+  ['Superior articular process', 'articular process 4 อัน (บน 2 ล่าง 2) เป็นข้อต่อกับกระดูกสันหลังชิ้นที่อยู่ติดกัน'],
+];
+const B = (id, o) => Object.assign({ id, con: [], pass: [], clin: [], tip: [], parts: [], pg: [] }, o);
+const CARP = { tip: ['ท่องชื่อจากด้านนิ้วหัวแม่มือ: แถวบน S L T P และแถวล่าง T T C H'], pg: [26] };
+const DATA = [
+  // ---------- 3.8 Skull ----------
+  B('frontal', { en: 'Frontal bone', th: 'กระดูกหน้าผาก', n: 1, g: 'ax', sec: 'cranial', pg: [15, 17], loc: 'บริเวณหน้าผาก',
+    parts: [['Frontal sinus', 'ส่วนที่ตรงกับหัวคิ้วมีโพรงอากาศทั้งสองข้าง'], ['Coronal suture', 'รอยเชื่อมด้านหน้ากับ parietal bones']],
+    con: [['parietal', 'Fibrous (suture)', 'coronal suture'], ['sphenoid', 'Fibrous (suture)', 'pterion']] }),
+  B('parietal', { en: 'Parietal bones', th: 'กระดูกข้างกระหม่อม', n: 2, g: 'ax', sec: 'cranial', pg: [15, 17], loc: 'ด้านบนของกะโหลก ขวาและซ้าย',
+    parts: [['Sagittal suture', 'ข้อต่อตรงกลางระหว่าง parietal 2 ชิ้น'], ['Coronal suture', 'รอยเชื่อมด้านหน้ากับ frontal bone'], ['Lambdoid suture', 'รอยเชื่อมด้านหลังกับ occipital bone'], ['Lambda', 'จุดด้านหลังที่ sagittal suture พบ lambdoid suture']],
+    con: [['frontal', 'Fibrous (suture)', 'coronal suture'], ['occipital', 'Fibrous (suture)', 'lambdoid suture'], ['temporal', 'Fibrous (suture)', 'pterion']] }),
+  B('temporal', { en: 'Temporal bones', th: 'กระดูกขมับ', n: 2, g: 'ax', sec: 'cranial', pg: [15, 16, 17], loc: 'ด้านข้างสองข้าง ประกอบด้วย 4 ส่วน',
+    parts: [['Petrous part', 'อยู่ที่ฐานภายในกะโหลก เป็นที่อยู่ของหูชั้นกลางและหูชั้นใน'], ['Tympanic part', 'ที่อยู่ของหูชั้นนอก ด้านล่างมีปุ่มยาวแหลม = styloid process'],
+      ['Styloid process', 'ปุ่มกระดูกยาวแหลมใต้ tympanic part (ยึด hyoid ด้วยกล้ามเนื้อ stylohyoid)'], ['Squamous part', 'อยู่เหนือรูหู มีรอยเชื่อมกับกระดูกหลายชิ้นเป็นจุดบาง = ทัดดอกไม้ (pterion)'],
+      ['Zygomatic process', 'ยื่นจาก squamous part ไปเชื่อมกับ zygomatic bone'], ['Mastoid part', 'อยู่ด้านหลังรูหู มีปุ่มกระดูก mastoid process'], ['Mastoid process', 'ปุ่มกระดูกหลังรูหู'],
+      ['Pterion (ทัดดอกไม้)', 'รอยเชื่อมของ squamous temporal + parietal + frontal + sphenoid']],
+    con: [['zygomatic', 'Fibrous (suture)', 'zygomatic process'], ['parietal', 'Fibrous (suture)', 'pterion'], ['hyoid', 'ไม่ใช่ข้อต่อ', 'styloid process ยึด hyoid ด้วยกล้ามเนื้อ stylohyoid']],
+    clin: ['Pterion เป็นจุดเชื่อมที่เปราะบาง ถ้าแตกจะเป็นอันตรายต่อ middle meningeal artery ที่อยู่ใต้กะโหลก → เลือดออกในกะโหลก'],
+    tip: ['ทัดดอกไม้ (pterion) = squamous part ของ temporal + parietal + frontal + sphenoid'] }),
+  B('occipital', { en: 'Occipital bone', th: 'กระดูกท้ายทอย', n: 1, g: 'ax', sec: 'cranial', pg: [16, 17], loc: 'บริเวณท้ายทอยและฐานกะโหลก',
+    parts: [['Foramen magnum', 'รูขนาดใหญ่ด้านล่าง ทางผ่านของ medulla oblongata ที่ต่อกับ spinal cord'], ['External occipital protuberance', 'ปุ่มนูนผิวนอกด้านหลัง คลำได้ที่ท้ายทอยสูงจากต้นคอเล็กน้อย'], ['Lambdoid suture', 'ขอบบนเชื่อมกับ parietal ทั้ง 2 ข้าง']],
+    con: [['parietal', 'Fibrous (suture)', 'lambdoid suture'], ['c1', 'Synovial', '']], pass: ['Foramen magnum: medulla oblongata → spinal cord'] }),
+  B('sphenoid', { en: 'Sphenoid bone', th: 'กระดูกรูปผีเสื้อ', n: 1, g: 'ax', sec: 'cranial', pg: [16, 17], loc: 'ส่วนกลางของฐานกะโหลก',
+    parts: [['Sella turcica (pituitary gland)', 'แอ่งเว้าลึกที่ผนังด้านใน เป็นที่อยู่ของต่อมใต้สมอง (pituitary gland)'], ['Sphenoidal sinus', 'โพรงอากาศด้านลึก']],
+    con: [['frontal', 'Fibrous (suture)', 'pterion'], ['temporal', 'Fibrous (suture)', 'pterion']], tip: ['Sphenoid → sella turcica เป็นที่อยู่ของ pituitary gland'] }),
+  B('ethmoid', { en: 'Ethmoid bone', th: 'กระดูกเอทมอยด์', n: 1, g: 'ax', sec: 'cranial', pg: [16, 17], loc: 'ระหว่างโพรงจมูกและเบ้าตา',
+    parts: [['Cribriform plate', 'โครงสร้างรูพรุน ทางผ่านของ olfactory nerve นำกระแสประสาทรับกลิ่นเข้าสู่สมอง'], ['Crista galli', 'สันอยู่ตรงกลาง'], ['Ethmoidal sinus', 'โพรงอากาศระหว่างตา']],
+    pass: ['Cribriform plate: olfactory nerve (รับกลิ่น)'] }),
+  B('nasal', { en: 'Nasal bones', th: 'กระดูกจมูก', n: 2, g: 'ax', sec: 'facial', pg: [14], loc: 'สันจมูก' }),
+  B('maxilla', { en: 'Maxilla', th: 'กระดูกขากรรไกรบน', n: 2, g: 'ax', sec: 'facial', pg: [14, 15], loc: 'ขากรรไกรบน',
+    parts: [['Palatine process', 'เพดานปากส่วนหน้า'], ['Maxillary sinus', 'โพรงอากาศที่แก้ม']] }),
+  B('zygomatic', { en: 'Zygomatic bones', th: 'กระดูกโหนกแก้ม', n: 2, g: 'ax', sec: 'facial', pg: [14, 16], loc: 'โหนกแก้ม', con: [['temporal', 'Fibrous (suture)', 'รับ zygomatic process ของ temporal']] }),
+  B('mandible', { en: 'Mandible', th: 'กระดูกขากรรไกรล่าง', n: 1, g: 'ax', sec: 'facial', pg: [14, 11], loc: 'ขากรรไกรล่าง',
+    parts: [['Mandible (รากฟัน = gomphosis)', 'รากฟันฝังในร่องของกระดูกขากรรไกร ยึดด้วย periodontal ligament (fibrous joint)']], con: [['hyoid', 'ไม่ใช่ข้อต่อ', 'hyoid อยู่ระหว่างขากรรไกรล่างกับกล่องเสียง']] }),
+  B('lacrimal', { en: 'Lacrimal bones', th: 'กระดูกน้ำตา', n: 2, g: 'ax', sec: 'facial', pg: [14], loc: 'ผนังด้านในเบ้าตา' }),
+  B('palatine', { en: 'Palatine bones', th: 'กระดูกเพดานปาก', n: 2, g: 'ax', sec: 'facial', pg: [14], loc: 'เพดานปากส่วนหลัง', con: [['maxilla', 'Fibrous (suture)', 'palatine process ของ maxilla = เพดานส่วนหน้า']] }),
+  B('vomer', { en: 'Vomer', th: 'กระดูกโวเมอร์', n: 1, g: 'ax', sec: 'facial', pg: [14], loc: 'ผนังกั้นช่องจมูก' }),
+  B('concha', { en: 'Inferior nasal concha', th: 'กระดูกเทอร์บิเนตล่าง', n: 2, g: 'ax', sec: 'facial', pg: [14], loc: 'แผ่นกระดูกในช่องจมูก', parts: [['Nasal conchae', 'superior, middle และ inferior']] }),
+  B('hyoid', { en: 'Hyoid bone', th: 'กระดูกโคนลิ้น', n: 1, g: 'ax', sec: 'skull', pg: [13], loc: 'รูปตัว U ลอยอยู่ในลำคอ ระหว่างขากรรไกรล่างกับกล่องเสียง เหนือ larynx',
+    parts: [['Body', ''], ['Greater horn', ''], ['Lesser horn', '']], con: [['temporal', 'ไม่เป็นข้อต่อกับกระดูกชิ้นอื่น', 'ยึดด้วยกล้ามเนื้อและเอ็น; ยึดกับ styloid process ด้วย m. stylohyoid']] }),
+  // ---------- 3.9 Spine ----------
+  B('c1', { en: 'C1 · Atlas', th: 'กระดูกสันหลังส่วนคอชิ้นที่ 1', n: 1, g: 'ax', sec: 'spine', pg: [19], loc: 'คอ บนสุด',
+    parts: [['Anterior arch', ''], ['Posterior arch', ''], ['Transverse process', 'มี transverse foramen']], desc: 'รูปร่างเหมือนวงแหวน ไม่มี body',
+    con: [['occipital', 'Synovial', ''], ['c2', 'Synovial', 'dens ของ axis สวมในวง atlas']], pass: ['Vertebral foramen: spinal cord', 'Transverse foramen: vertebral artery'] }),
+  B('c2', { en: 'C2 · Axis', th: 'กระดูกสันหลังส่วนคอชิ้นที่ 2', n: 1, g: 'ax', sec: 'spine', pg: [19], loc: 'คอ',
+    parts: [['Dens', 'ปุ่มยื่นขึ้นจากส่วนบนของ body เชื่อมต่อกับ atlas'], ['Body', ''], ['Bifid spinous process', '']], desc: 'dens + atlas เป็นข้อต่อที่ทำให้หันหน้าซ้ายขวาได้',
+    con: [['c1', 'Synovial', 'dens–atlas'], ['disc', 'Cartilaginous', '']] }),
+  B('cervical', { en: 'Cervical vertebrae', th: 'กระดูกสันหลังส่วนคอ', n: '7 (C1–C7)', g: 'ax', sec: 'spine', pg: [18, 19], loc: 'คอ',
+    parts: [['Body', 'มีขนาดเล็กกว่ากระดูกสันหลังส่วนอื่น'], ['Transverse foramen', 'รูที่ transverse process ทั้งสองข้าง (foramen transversarium) ทางผ่านของ vertebral artery'], ['Bifid spinous process', 'ระดับ C2–C6 ปลายแยกเป็น 2 แฉก'], ...VG],
+    con: [['c2', 'Cartilaginous', 'intervertebral disc'], ['thoracic', 'Cartilaginous', 'C7–T1']], pass: ['Transverse foramen: vertebral artery ไปเลี้ยงสมองส่วนหลัง', 'Vertebral foramen: spinal cord', 'Intervertebral foramen: spinal nerve root'],
+    clin: ['vertebral artery อุดตัน → เวียนศีรษะ'], tip: ['กินข้าวเช้า 7 โมง = คอ 7'] }),
+  B('thoracic', { en: 'Thoracic vertebrae', th: 'กระดูกสันหลังส่วนอก', n: '12 (T1–T12)', g: 'ax', sec: 'spine', pg: [19], loc: 'อก',
+    parts: [['Spinous process', 'ยาว ชี้ลงล่าง'], ['Costal facet', 'รอยบุ๋มด้านข้างที่ body เป็นข้อต่อกับซี่โครง'], ['Costotransverse facet', 'รอยบุ๋มที่ transverse process ต่อกับซี่โครง'], ...VG],
+    con: [['rib', 'Synovial', 'costal facet / costotransverse facet'], ['cervical', 'Cartilaginous', ''], ['lumbar', 'Cartilaginous', '']], pass: ['Vertebral foramen: spinal cord', 'Intervertebral foramen: spinal nerve root'], tip: ['กลางวัน 12 นาฬิกา = อก 12'] }),
+  B('lumbar', { en: 'Lumbar vertebrae', th: 'กระดูกสันหลังส่วนเอว', n: '5 (L1–L5)', g: 'ax', sec: 'spine', pg: [19, 10], loc: 'เอว',
+    parts: [['Body', 'ขนาดใหญ่'], ['Spinous process', 'สั้น หนา เป็นแผ่นสี่เหลี่ยม'], ...VG], desc: 'ใหญ่และแข็งแรงที่สุดใน vertebral column เพราะรับน้ำหนักมากที่สุด',
+    con: [['thoracic', 'Cartilaginous', ''], ['sacrum', 'Cartilaginous', 'L5–S1']], clin: ['กระดูกพรุนพบบ่อยที่กระดูกสันหลัง (สันหลังยุบตัว หลังค่อม) – ภาพ L2 ชาย 37 ปี vs หญิง 75 ปี'], tip: ['เย็น 5 โมง = เอว 5'] }),
+  B('disc', { en: 'Intervertebral disc', th: 'หมอนรองกระดูกสันหลัง', n: '—', g: 'ax', sec: 'spine', pg: [20, 5, 11], loc: 'กระดูกอ่อน (fibrocartilage) ระหว่าง body ของกระดูกสันหลัง',
+    parts: [['Nucleus pulposus', 'ส่วนกลางคล้ายวุ้น'], ['Annulus fibrosus', 'กระดูกอ่อนล้อมรอบด้านนอก']], desc: 'รับน้ำหนักของร่างกายและกระจายแรง (absorber) ที่กระทำต่อกระดูกสันหลัง เป็น cartilaginous joint',
+    con: [['lumbar', 'Cartilaginous', ''], ['thoracic', 'Cartilaginous', '']],
+    clin: ['หมอนรองเคลื่อน (herniated disc): annulus fibrosus ฉีกขาด nucleus pulposus ปลิ้นไปกดรากประสาทหรือไขสันหลัง → ปวดหลังร้าวลงขา', 'หมอนรองเสื่อม (disc degeneration) → กระดูกงอก (osteophytes/spurs) อันตรายต่อรากประสาท หลอดเลือด อวัยวะข้างเคียง', 'ชนิดปัญหา: normal, degenerated, bulging, herniated, thinning, osteophyte formation'],
+    tip: ['Tip สอบ: กระดูกสันหลังเสื่อมและหมอนรองเคลื่อนรุนแรง รักษาด้วยการผ่าตัดเอาหมอนรองออก = lumbar discectomy'] }),
+  B('sacrum', { en: 'Sacrum', th: 'กระดูกกระเบนเหน็บ', n: 1, g: 'ax', sec: 'spine', pg: [21], loc: 'รูปสามเหลี่ยม ระหว่างกระดูกสะโพก 2 ข้าง', desc: 'มี 5 ชิ้นแต่เชื่อมติดกันเป็นชิ้นเดียว',
+    con: [['lumbar', 'Cartilaginous', 'L5'], ['ilium', 'Synovial (SI joint)', 'ถ่ายน้ำหนักจากกระดูกสันหลังลงสู่ขา'], ['coccyx', '', 'ต่อล่าง']] }),
+  B('coccyx', { en: 'Coccyx', th: 'กระดูกก้นกบ', n: 1, g: 'ax', sec: 'spine', pg: [21], loc: 'ส่วนล่างต่อจาก sacrum', desc: 'รูปสามเหลี่ยม กระดูก 4 ชิ้นเชื่อมติดกันเป็น 1 ชิ้น (โมเดล BodyParts3D ไม่มีชิ้นนี้)' }),
+  // ---------- 3.10 Thorax ----------
+  B('sternum', { en: 'Sternum', th: 'กระดูกหน้าอก', n: 1, g: 'ax', sec: 'thorax', pg: [21, 22], loc: 'กลางหน้าอก มี 3 ส่วน',
+    parts: [['Suprasternal notch', 'รอยเว้าขอบบนของ manubrium คลำได้ที่คอ'], ['Manubrium', 'ส่วนบนสุด ด้านซ้ายขวามีแอ่งเป็นข้อต่อกับ clavicle และซี่โครงคู่ที่ 1'], ['Sternomanubrial angle', 'มุมระหว่าง manubrium กับ body'],
+      ['Body', 'ส่วนที่ใหญ่ที่สุด ด้านข้างเชื่อมกับซี่โครงด้วย costal cartilage'], ['Xiphoid process', 'ส่วนล่างสุด (ลิ้นปี่) เป็นที่เกาะของกล้ามเนื้อผนังหน้าท้อง']],
+    con: [['clavicle', 'Synovial', 'manubrium'], ['rib', 'costal cartilage', 'true ribs คู่ 1–7']] }),
+  B('rib', { en: 'Ribs', th: 'กระดูกซี่โครง', n: '24 (12 คู่)', g: 'ax', sec: 'thorax', pg: [22, 4], loc: 'ทรวงอก',
+    parts: [['True ribs (1–7)', 'ปลาย costal cartilage ยึดติดกับ sternum โดยตรง'], ['False ribs (8–10)', 'costal cartilage ไม่ได้ยึดกับ sternum โดยตรง แต่ยึดกับ costal cartilage ของซี่บน'], ['Floating ribs (11–12)', 'ปลายหน้าไม่เกาะกับกระดูกอกหรือกระดูกอ่อนใด ๆ'], ['Costal cartilage', 'hyaline cartilage เชื่อมซี่โครงกับ sternum']],
+    con: [['sternum', 'costal cartilage', 'true ribs'], ['thoracic', 'Synovial', 'costal facet ของ thoracic vertebra']], clin: ['Floating ribs หักได้ง่ายถ้าบาดเจ็บที่ด้านหลังของช่องอกตอนล่างหรือช่องท้อง'] }),
+  // ---------- 3.11 Appendicular ----------
+  B('scapula', { en: 'Scapula', th: 'กระดูกสะบัก', n: 2, g: 'ap', sec: 'shoulder', pg: [22, 23], loc: 'กระดูกแบนรูปสามเหลี่ยม ด้านหลังทรวงอก',
+    parts: [['Spine of scapula', '(หลัง) สันนูนตามขวาง'], ['Acromion process', '(หลัง) ตุ่มแบนใหญ่ที่ปลายนอกของ spine เป็นข้อต่อกับ clavicle'], ['Supraspinous fossa', '(หลัง) แอ่งเหนือ spine'], ['Infraspinous fossa', '(หลัง) แอ่งใต้ spine'],
+      ['Glenoid fossa', '(หลัง) แอ่งเว้ากลมขอบนอกใต้ acromion เป็นส่วนของข้อไหล่'], ['Coracoid process', '(หน้า) ปุ่มขอบบนด้านนอก ยื่นไปด้านหน้าคล้ายตะขอ ที่เกาะ short head of biceps brachii'],
+      ['Subscapular fossa', '(หน้า) ผิวด้านหน้าทั้งหมดที่เป็นแอ่ง'], ['Scapular notch', ''], ['Axillary (lateral) border', ''], ['Medial border', ''], ['Inferior angle', '']],
+    con: [['humerus', 'Synovial', 'ข้อไหล่ (shoulder joint)'], ['clavicle', 'Synovial', 'acromion']] }),
+  B('clavicle', { en: 'Clavicle', th: 'กระดูกไหปลาร้า', n: 2, g: 'ap', sec: 'shoulder', pg: [23], loc: 'หน้าไหล่ พาดจาก sternum ไปยังไหล่',
+    parts: [['ปลายใน (–sternum)', 'ข้อต่อกับ sternum'], ['ปลายนอก (–acromion)', 'ข้อต่อกับ acromion process ของ scapula']],
+    con: [['sternum', 'Synovial', 'ปลายใน'], ['scapula', 'Synovial', 'acromion']], clin: ['กระดูกไหปลาร้าหัก (broken collarbone) พบบ่อยจากการล้มเอามือหรือไหล่ลง'] }),
+  B('humerus', { en: 'Humerus', th: 'กระดูกต้นแขน', n: 2, g: 'ap', sec: 'upper', pg: [24, 26], loc: 'ต้นแขน รูปร่างยาว', long: 1,
+    parts: [['Head', 'ปลายบน ลักษณะกลม'], ['Anatomical neck', 'รอยคอดใต้ head'], ['Surgical neck', 'ล่างลงมา หักบ่อยเมื่อมีแรงกระแทก'], ['Greater tubercle', 'ปุ่มนูนใหญ่ด้านข้าง ใกล้ anatomical neck'],
+      ['Lesser tubercle', 'ปุ่มนูนเล็กด้านหน้า ต่อจาก anatomical neck'], ['Intertubercular groove', 'ร่องระหว่าง greater และ lesser tubercle (bicipital groove)'], ['Shaft', 'แท่งกระดูกรูปทรงกระบอก'],
+      ['Deltoid tuberosity', 'สันนูนที่ shaft เป็นที่เกาะของกล้ามเนื้อ deltoid'], ['Capitulum', 'ปุ่มกลมด้านนอก เป็นข้อต่อกับ head ของ radius'], ['Trochlea', 'ปุ่มด้านในรูปร่างคล้ายรอก'],
+      ['Olecranon fossa', 'แอ่งใหญ่ด้านหลังเหนือ trochlea + trochlear notch ของ ulna = ข้อศอก'], ['Coronoid fossa', 'แอ่งด้านหน้า'], ['Radial fossa', 'แอ่งด้านหน้า ด้านนอก'],
+      ['Medial epicondyle', 'ปุ่มนูนขรุขระปลายด้านใน'], ['Lateral epicondyle', 'ปุ่มนูนขรุขระปลายด้านนอก']],
+    con: [['scapula', 'Synovial', 'ข้อไหล่ (glenoid fossa)'], ['radius', 'Synovial', 'capitulum–head of radius'], ['ulna', 'Synovial', 'ข้อศอก']], clin: ['Surgical neck หักบ่อยเมื่อมีแรงกระแทก'] }),
+  B('radius', { en: 'Radius', th: 'กระดูกปลายแขนด้านนิ้วหัวแม่มือ', n: 2, g: 'ap', sec: 'upper', pg: [25], loc: 'ด้านนอกของปลายแขน ด้านเดียวกับนิ้วหัวแม่มือ', long: 1,
+    parts: [['Head', 'ปลายบนรูปร่างกลมแบน'], ['Neck', 'ถัดลงมาจาก head'], ['Radial tuberosity', 'ปุ่มนูนด้านใน ด้านที่ติดกับ ulna'], ['Shaft', 'แท่งยาว ส่วนล่างค่อย ๆ กว้างขึ้น ปลายล่างเป็นแอ่งเว้าต่อกับกระดูกข้อมือ'], ['Styloid process', '']],
+    con: [['humerus', 'Synovial', 'capitulum'], ['ulna', 'Fibrous (radioulnar syndesmosis)', 'interosseous membrane เคลื่อนไหวได้เล็กน้อย; ปลายล่างมี articular disk คั่น'], ['scaphoid', 'Synovial', 'ปลายล่าง'], ['lunate', 'Synovial', 'ปลายล่าง']] }),
+  B('ulna', { en: 'Ulna', th: 'กระดูกปลายแขนด้านนิ้วก้อย', n: 2, g: 'ap', sec: 'upper', pg: [25, 26], loc: 'ด้านในของปลายแขน (ด้านนิ้วก้อย)', long: 1,
+    parts: [['Olecranon process', 'ปลายบน งองุ้มคล้ายตะขอหรืออักษร C คือปุ่มศอกที่คลำได้'], ['Trochlear notch', 'แอ่งเว้าของ olecranon เป็นข้อต่อกับ trochlea และ olecranon fossa ของ humerus'], ['Coronoid process', ''], ['Radial notch', ''], ['Head', 'ปุ่มนูนที่ปลายด้านล่าง'], ['Styloid process', '']],
+    con: [['humerus', 'Synovial', 'ข้อศอก'], ['radius', 'Fibrous (radioulnar syndesmosis)', 'interosseous membrane']] }),
+  B('scaphoid', { en: 'Scaphoid', th: 'กระดูกข้อมือ (แถวบน)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวบน (proximal) ชิ้นที่ 1 จากนิ้วหัวแม่มือ', con: [['radius', 'Synovial', '']], ...CARP }),
+  B('lunate', { en: 'Lunate', th: 'กระดูกข้อมือ (แถวบน)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวบน ชิ้นที่ 2', con: [['radius', 'Synovial', '']], ...CARP }),
+  B('triquetrum', { en: 'Triquetrum', th: 'กระดูกข้อมือ (แถวบน)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวบน ชิ้นที่ 3', ...CARP }),
+  B('pisiform', { en: 'Pisiform', th: 'กระดูกข้อมือ (แถวบน)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวบน ชิ้นที่ 4', ...CARP }),
+  B('trapezium', { en: 'Trapezium', th: 'กระดูกข้อมือ (แถวล่าง)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวล่าง (distal) ชิ้นที่ 1', ...CARP }),
+  B('trapezoid', { en: 'Trapezoid', th: 'กระดูกข้อมือ (แถวล่าง)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวล่าง ชิ้นที่ 2', ...CARP }),
+  B('capitate', { en: 'Capitate', th: 'กระดูกข้อมือ (แถวล่าง)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวล่าง ชิ้นที่ 3', ...CARP }),
+  B('hamate', { en: 'Hamate', th: 'กระดูกข้อมือ (แถวล่าง)', n: 2, g: 'ap', sec: 'hand', loc: 'Carpal แถวล่าง ชิ้นที่ 4', ...CARP }),
+  B('metacarpal', { en: 'Metacarpals', th: 'กระดูกฝ่ามือ', n: '5 ต่อข้าง', g: 'ap', sec: 'hand', pg: [26, 32], loc: 'ระหว่าง carpal bones กับ phalanges' }),
+  B('phalanx_h', { en: 'Phalanges (มือ)', th: 'กระดูกนิ้วมือ', n: '14 ต่อข้าง', g: 'ap', sec: 'hand', pg: [26, 32], loc: 'นิ้วมือ',
+    parts: [['Proximal phalanges', 'โคนนิ้ว'], ['Middle phalanges', 'กลางนิ้ว'], ['Distal phalanges', 'ปลายนิ้ว']], tip: ['แต่ละนิ้วมี 3 ชิ้น ยกเว้นนิ้วหัวแม่มือมี 2 ชิ้น (ไม่มี middle phalanx)'] }),
+  B('hip', { en: 'Hip bone (Pelvis)', th: 'กระดูกสะโพก', n: 2, g: 'ap', sec: 'pelvis', pg: [26, 27, 29], loc: 'Pelvis = hip bone 2 ชิ้น แต่ละชิ้นมี ilium + ischium + pubis', lm: ['Acetabulum', 'Obturator foramen', 'Iliac crest', 'Ischial tuberosity', 'Pubic body / pubic symphysis'],
+    parts: [['Acetabulum', 'หลุมด้านข้างที่กระดูกทั้ง 3 ชิ้นเชื่อมกัน เบ้ารับ head ของ femur = ข้อสะโพก (มี acetabular labrum, ligament of head of femur; เด็กมี triradiate cartilage)'],
+      ['Obturator foramen', 'รูใหญ่ระหว่าง ischium และ pubis คลุมด้วย obturator membrane ส่วนบนมีช่อง obturator canal'], ['Ilium', 'ด้านบน'], ['Ischium', 'ด้านล่างค่อนไปด้านหลัง'], ['Pubis', 'ด้านล่างค่อนมาด้านหน้า']],
+    con: [['femur', 'Synovial', 'ข้อสะโพก'], ['sacrum', 'Synovial (SI joint)', ''], ['pubis', 'Cartilaginous', 'pubic symphysis']], pass: ['Obturator canal: obturator nerve + obturator vessels ไปเลี้ยงต้นขาด้านใน'],
+    clin: ['เพศหญิง: pubic arch กว้างกว่า และ pelvic brim กว้างกลม เพื่อการคลอดบุตร; เพศชาย pubic arch แคบ'] }),
+  B('ilium', { en: 'Ilium', th: 'กระดูกปีกสะโพก', n: 2, g: 'ap', sec: 'pelvis', pg: [27, 28], loc: 'ด้านบนของ hip bone', node: 'hip', region: 'Ilium',
+    lm: ['Iliac crest', 'ASIS', 'AIIS', 'PSIS', 'PIIS', 'Iliac fossa', 'Greater sciatic notch', 'Acetabulum'],
+    parts: [['Iliac crest', 'ขอบบนของปีกสะโพก คลำได้ที่เอว'], ['ASIS', 'anterior superior iliac spine ปุ่มด้านหน้าบน'], ['AIIS', 'anterior inferior iliac spine ปุ่มด้านหน้าล่าง'], ['PSIS', 'posterior superior iliac spine ปุ่มด้านหลังบน'], ['PIIS', 'posterior inferior iliac spine ปุ่มด้านหลังล่าง'], ['Iliac fossa', 'แอ่งด้านในของปีกสะโพก'], ['Greater sciatic notch', 'รอยเว้าใหญ่ด้านหลัง']],
+    con: [['sacrum', 'Synovial (sacroiliac joint, SIJ)', 'ถ่ายน้ำหนักจากกระดูกสันหลังลงสู่ขา']], tip: ['McBurney\'s point ≈ 1/3 ของระยะจาก ASIS ไปสะดือ = ตำแหน่งไส้ติ่ง (appendix)'] }),
+  B('pubis', { en: 'Pubic bone (Pubis)', th: 'กระดูกหัวหน่าว', n: 2, g: 'ap', sec: 'pelvis', pg: [28, 29], loc: 'ด้านล่างค่อนมาด้านหน้า', node: 'hip', region: 'Pubis',
+    lm: ['Superior pubic ramus', 'Inferior pubic ramus', 'Pubic tubercle', 'Pubic body / pubic symphysis', 'Obturator foramen'],
+    parts: [['Superior pubic ramus', ''], ['Inferior pubic ramus', ''], ['Pubic tubercle', ''], ['Pubic body / pubic symphysis', 'pubic bone ทั้งสองข้างเชื่อมกันด้วยกระดูกอ่อน = pubic symphysis']],
+    con: [['hip', 'Cartilaginous (pubic symphysis)', 'เชื่อม 2 ข้าง']] }),
+  B('ischium', { en: 'Ischium', th: 'กระดูกก้น', n: 2, g: 'ap', sec: 'pelvis', pg: [27, 29], loc: 'ด้านล่างค่อนไปด้านหลัง', node: 'hip', region: 'Ischium',
+    lm: ['Ischial tuberosity', 'Ischial spine', 'Obturator foramen'],
+    parts: [['Ischial tuberosity', 'ปุ่มขนาดใหญ่อยู่ล่างสุด เวลานั่งปุ่มนี้กดลงบนที่นั่ง'], ['Ischial spine', ''], ['Superior / inferior ischial ramus', '']], clin: ['นั่งนาน ๆ อาจทำให้ถุงน้ำ (bursa) ที่ ischial tuberosity อักเสบและเจ็บขณะนั่ง'] }),
+  B('femur', { en: 'Femur', th: 'กระดูกต้นขา', n: 2, g: 'ap', sec: 'lower', pg: [30, 31, 6], loc: 'ต้นขา', long: 1,
+    parts: [['Head', 'ปลายบน รูปร่างกลม'], ['Fovea capitis', ''], ['Neck', 'ต่อจาก head เป็นก้านยาว'], ['Greater trochanter', 'ปุ่มนูนใหญ่ใกล้ neck'], ['Lesser trochanter', 'ปุ่มนูนเล็กด้านในใต้ neck'],
+      ['Intertrochanteric line', 'สันนูนด้านหน้าที่เชื่อม neck กับ shaft'], ['Intertrochanteric crest', 'สันนูนด้านหลัง จาก greater ไป lesser trochanter'], ['Gluteal tuberosity', ''], ['Pectineal line', ''],
+      ['Shaft (body)', 'ส่วนกลางของกระดูก'], ['Linea aspera', 'สันนูนด้านหลังตามยาวของแท่งกระดูก'], ['Adductor tubercle', ''], ['Medial epicondyle', ''], ['Lateral epicondyle', ''],
+      ['Medial condyle', 'ปุ่มปลายล่างด้านหลังทางด้านใน'], ['Lateral condyle', 'ปุ่มปลายล่างด้านหลังทางด้านนอก'], ['Intercondylar fossa', ''], ['Patellar surface', 'ผิวข้อสำหรับกระดูกสะบ้า']],
+    con: [['hip', 'Synovial', 'head ใน acetabulum = ข้อสะโพก'], ['tibia', 'Synovial', 'ข้อเข่า'], ['patella', 'Synovial', 'patellar surface']],
+    clin: ['ผู้สูงอายุ มวลกระดูกบริเวณ epiphysis ลดลงมากและเปราะ → คอกระดูก femur (ข้อสะโพก) หักง่าย (hip fracture due to osteoporosis)'], tip: ['จำแยก: line อยู่ด้านหน้า (intertrochanteric line) ส่วน crest อยู่ด้านหลัง (intertrochanteric crest)'] }),
+  B('patella', { en: 'Patella', th: 'กระดูกสะบ้า', n: 2, g: 'ap', sec: 'lower', pg: [31], loc: 'รูปสามเหลี่ยม เป็นส่วนประกอบของข้อเข่า', desc: 'กระดูกที่ฝังอยู่ในเอ็นของกล้ามเนื้อต้นขา (quadriceps) ต่อลงมาเป็น patellar ligament',
+    con: [['femur', 'Synovial', 'ข้อเข่า'], ['tibia', 'patellar ligament', 'เกาะ tibial tuberosity']] }),
+  B('tibia', { en: 'Tibia', th: 'กระดูกหน้าแข้ง', n: 2, g: 'ap', sec: 'lower', pg: [31, 32], loc: 'ด้านในของปลายขา', long: 1,
+    parts: [['Medial condyle', 'ปลายบนสุดด้านใน'], ['Lateral condyle', 'ปลายบนสุดด้านนอก'], ['Intercondylar eminence', ''], ['Tibial tuberosity', 'ปุ่มนูนด้านหน้า ที่เกาะของ patellar ligament'], ['Anterior crest', 'สันนูนด้านหน้า คือหน้าแข้งที่คลำได้'], ['Shaft', ''], ['Medial malleolus', 'ตาตุ่มด้านใน ปลายล่างสุดด้านใน']],
+    con: [['femur', 'Synovial', 'ข้อเข่า'], ['fibula', 'proximal / distal tibiofibular joint', ''], ['talus', 'Synovial', '']], tip: ['ตาตุ่มใน = tibia, ตาตุ่มนอก = fibula'] }),
+  B('fibula', { en: 'Fibula', th: 'กระดูกปลายขาด้านนอก', n: 2, g: 'ap', sec: 'lower', pg: [32], loc: 'ด้านนอก ขนานกับ tibia', long: 1,
+    parts: [['Head', 'ปลายบน'], ['Neck', ''], ['Lateral malleolus', 'ตาตุ่มด้านนอก ปลายล่าง']], con: [['tibia', 'proximal / distal tibiofibular joint', ''], ['talus', 'Synovial', '']], tip: ['ตาตุ่มใน = tibia, ตาตุ่มนอก = fibula'] }),
+  B('calcaneus', { en: 'Calcaneus', th: 'กระดูกส้นเท้า', n: 2, g: 'ap', sec: 'foot', pg: [32], loc: 'ส้นเท้า (tarsal)' }),
+  B('talus', { en: 'Talus', th: 'กระดูกข้อเท้า', n: 2, g: 'ap', sec: 'foot', pg: [32], loc: 'Tarsal ต่อกับ tibia และ fibula', con: [['tibia', 'Synovial', ''], ['fibula', 'Synovial', '']] }),
+  B('navicular', { en: 'Navicular', th: 'กระดูกเรือ', n: 2, g: 'ap', sec: 'foot', pg: [32], loc: 'Tarsal กลางเท้าด้านใน' }),
+  B('cuboid', { en: 'Cuboid', th: 'กระดูกลูกบาศก์', n: 2, g: 'ap', sec: 'foot', pg: [32], loc: 'Tarsal กลางเท้าด้านนอก' }),
+  B('cuneiform', { en: 'Cuneiforms', th: 'กระดูกคูนิฟอร์ม', n: '3 ต่อข้าง', g: 'ap', sec: 'foot', pg: [32], loc: 'Tarsal กลางเท้า (medial, intermediate, lateral)' }),
+  B('metatarsal', { en: 'Metatarsals', th: 'กระดูกฝ่าเท้า', n: '5 ต่อข้าง', g: 'ap', sec: 'foot', pg: [32], loc: 'นับ 1 ถึง 5 จากด้านในออกด้านนอก' }),
+  B('phalanx_f', { en: 'Phalanges (เท้า)', th: 'กระดูกนิ้วเท้า', n: '14 ต่อข้าง', g: 'ap', sec: 'foot', pg: [32], loc: 'นิ้วเท้า', parts: [['Proximal phalanges', ''], ['Middle phalanges', ''], ['Distal phalanges', '']] }),
+];
+
+// ---------- หมวดตามหัวข้อในสมุด ----------
+const SECS = [
+  { id: 'all', t: 'ทั้งตัว', s: '206 ชิ้น', pg: [12], info: ['กระดูกแข็งในร่างกายมีทั้งหมด 206 ชิ้น = กระดูกแกน 80 + กระดูกระยางค์ 126', 'osteoBlast = Build (สร้าง) · osteoClast = Cut (สลาย)'] },
+  { id: 'axial', t: '3.7 กระดูกแกน', s: 'Axial 80', pg: [12, 13], info: ['กะโหลกศีรษะ (skull), กระดูกหู (auditory ossicles), กระดูกโคนลิ้น (hyoid), ซี่โครง (ribs), กระดูกหน้าอก (sternum) และกระดูกสันหลัง (vertebrae)'] },
+  { id: 'appendicular', t: '3.7 กระดูกระยางค์', s: 'Appendicular 126', pg: [12, 22], info: ['กระดูกช่วงไหล่ (shoulder girdle), กระดูกแขน (upper extremities), กระดูกสะโพก (hip bone) และกระดูกขา (lower extremities)'] },
+  { id: 'skull', t: '3.8 กะโหลกศีรษะ', s: 'Skull 22', pg: [13, 14, 15, 16, 17], info: ['Skull = facial bones 14 + cranial bones 8', 'Sinuses: frontal (เหนือคิ้ว), ethmoidal (ระหว่างตา), sphenoidal (ด้านลึก), maxillary (ที่แก้ม)'] },
+  { id: 'facial', t: 'Facial bones', s: '14 ชิ้น', pg: [14], parent: 'skull', info: ['nasal 2, maxilla 2, zygomatic 2, mandible 1, lacrimal 2, palatine 2, vomer 1, inferior nasal concha 2'] },
+  { id: 'cranial', t: 'Cranial bones', s: '8 ชิ้น', pg: [15, 16, 17], parent: 'skull', info: ['frontal 1, parietal 2, temporal 2, occipital 1, sphenoid 1, ethmoid 1'] },
+  { id: 'spine', t: '3.9 กระดูกสันหลัง', s: 'Vertebrae 26', pg: [17, 18, 19, 20, 21], info: ['cervical 7 · thoracic 12 · lumbar 5 · sacrum 1 · coccyx 1 = 26 ชิ้น', 'ความโค้ง 4 แห่ง: cervical, thoracic, lumbar, sacral curvature', 'Tip: กินข้าวเช้า 7 โมง (คอ 7) กลางวัน 12 นาฬิกา (อก 12) เย็น 5 โมง (เอว 5)'] },
+  { id: 'thorax', t: '3.10 ทรวงอก', s: 'Thorax', pg: [21, 22], info: ['ประกอบด้วย sternum, ribs และ body ของกระดูกสันหลังส่วนอก'] },
+  { id: 'shoulder', t: '1) กระดูกช่วงไหล่', s: 'Shoulder girdle', pg: [22, 23], side: 1, info: ['ยึดกระดูกแขนไว้กับกระดูกแกน แต่ละข้างมี scapula + clavicle'] },
+  { id: 'upper', t: '2) กระดูกแขน', s: 'Upper limb', pg: [23, 24, 25, 26], side: 1, info: ['humerus, radius และ ulna, carpal bones 8, metacarpals 5, phalanges 14'] },
+  { id: 'hand', t: 'กระดูกของมือ', s: 'Hand', pg: [26], side: 1, parent: 'upper', info: ['Carpal bones 8 ชิ้น เรียง 2 แถว: แถวบน scaphoid, lunate, triquetrum, pisiform · แถวล่าง trapezium, trapezoid, capitate, hamate', 'Phalanges ข้างละ 14 ชิ้น (นิ้วโป้งไม่มี middle)', 'Metacarpals 5 ชิ้น'] },
+  { id: 'pelvis', t: '3) กระดูกเชิงกราน', s: 'Pelvis', pg: [26, 27, 28, 29], info: ['Pelvis = hip bone 2 ชิ้น แต่ละชิ้น = ilium + pubis + ischium เชื่อมกันเมื่ออายุมากขึ้น', 'Sacroiliac joint (SIJ): ilium–sacrum ถ่ายน้ำหนักลงขา', 'เพศหญิง pubic arch กว้างกว่า (คลอดบุตร)'] },
+  { id: 'lower', t: '4) กระดูกขา', s: 'Lower limb', pg: [30, 31, 32], side: 1, info: ['femur, patella, tibia และ fibula, tarsals 7, metatarsals 5, phalanges 14'] },
+  { id: 'foot', t: 'กระดูกเท้า', s: 'Foot', pg: [32], side: 1, parent: 'lower', info: ['Tarsals 7: calcaneus, talus, cuboid, navicular, cuneiform 3', 'มือ–เท้า: carpals 8 / tarsals 7 · metacarpals 5 / metatarsals 5 · phalanges 14 / 14'] },
+];
+
+// ---------- บทเรียน (หัวข้อ 3.1–3.6) ----------
+const LESSONS = [
+  { id: 'cart', t: '3.1–3.2 กระดูกอ่อน', pg: [3, 4, 5], html: `<p>กระดูกโครงร่างมี 2 ชนิด: กระดูกอ่อน (cartilage) และกระดูกแข็ง (compact bone)</p>
+<p>กระดูกอ่อนเป็นเนื้อเยื่อเกี่ยวพัน เซลล์ <b>chondrocyte</b> อยู่ในแอ่ง <b>lacuna</b> มี collagenous และ elastic fibers จึงยืดหยุ่นและทนแรงอัดได้ดี</p>
+<table><tr><th>ชนิด</th><th>เส้นใยเด่น</th><th>พบที่</th></tr>
+<tr><td>Hyaline</td><td>collagen น้อย · พบมากที่สุด</td><td>ปลายกระดูกแขนขา จมูก กล่องเสียง หลอดลม costal cartilage</td></tr>
+<tr><td>Elastic</td><td>elastic มาก · ยืดหยุ่นสูง</td><td>epiglottis, ใบหู (pinna)</td></tr>
+<tr><td>Fibrocartilage</td><td>collagen มาก · ทนแรงกดอัด</td><td>intervertebral disc, pubic symphysis, meniscus</td></tr></table>
+<p><b>การเสื่อม:</b> ผิวกระดูกสึกกร่อน ขรุขระ ปวดหรือมีเสียงกระดูกขัดสีกัน (degenerative osteoarthritis, bone spurs) · <b>meniscus</b> ฉีกขาดจากการบิดเข่าขณะเล่นกีฬา</p>`, show: ['costal', 'disc'] },
+  { id: 'gross', t: '3.3 โครงสร้างกระดูกยาว', pg: [6, 7], html: `<p>long bone = <b>diaphysis</b> (shaft) + <b>epiphysis</b> + <b>metaphysis</b> ผิวนอกหุ้มด้วย <b>periosteum</b></p>
+<ul><li><b>Diaphysis</b> ตอนกลาง: compact bone ที่ขอบ และ <b>medullary cavity</b> ตรงกลางบรรจุไขกระดูกเหลือง (yellow bone marrow)</li>
+<li><b>Epiphysis</b> ปลายสองข้าง: ภายในเป็น <b>spongy bone</b> (ไขกระดูกแดง)</li>
+<li><b>Metaphysis</b> เชื่อม diaphysis–epiphysis มี <b>epiphyseal plate</b> (growth plate) สร้างกระดูกให้ยาวขึ้น หลังหยุดยาว (18–21 ปี) กลายเป็น <b>epiphyseal line</b></li></ul>
+<p class="tip">Tip สอบ: ผู้สูงอายุมวลกระดูกบริเวณ epiphysis ลดลงและเปราะ → ข้อสะโพกหักง่าย</p>
+<p>กด <b>ภายใน</b> ที่แถบเครื่องมือเพื่อดูภาพตัดของ femur</p>`, iso: 'femur', interior: 1 },
+  { id: 'micro', t: '3.4 จุลกายวิภาคกระดูกแข็ง', pg: [7, 8, 9], html: `<ul><li><b>Spongy bone</b>: พรุนคล้ายฟองน้ำ บรรจุไขกระดูกแดง (สร้างเม็ดเลือด)</li>
+<li><b>Compact bone</b>: แน่น สีขาวคล้ายงาช้าง lamellae ซ้อนกัน 4–20 ชั้น เป็นวง = <b>osteon / haversian system</b></li></ul>
+<p><b>Osteon มี 4 ส่วน:</b> Lamellae (organic: collagen + inorganic: hydroxyapatite, Ca carbonate ฯลฯ) · Haversian (central) canal ตามแนวยาว ทางผ่านหลอดเลือด หลอดน้ำเหลือง เส้นประสาท · Volkmann's (perforating) canal ตามแนวขวาง · Osteocytes ใน lacunae เชื่อมกันด้วย canaliculi</p>
+<p><b>เซลล์ 3 ชนิด:</b> Osteoblast (สร้าง) · Osteocyte (บำรุงรักษา) · Osteoclast (เซลล์ใหญ่หลายนิวเคลียส สลายกระดูก)</p><p class="tip">osteoBlast = Build · osteoClast = Cut</p>` },
+  { id: 'osteo', t: '3.5 ภาวะกระดูกพรุน', pg: [10], html: `<p>เนื้อกระดูกถูกสลายมากกว่าถูกสร้าง → บาง เปราะ หักง่าย พบบ่อยที่ <b>กระดูกสันหลัง</b> (ยุบตัว หลังค่อม) ข้อสะโพก และข้อมือ</p>
+<p>ออกกำลังกายแบบ <b>ลงน้ำหนักที่เท้า</b> (วิ่ง เดิน แอโรบิก รำ) แรงกระแทกกระตุ้น osteoblast สร้างกระดูกเพิ่ม</p>`, show: ['vert_L2'] },
+  { id: 'joint', t: '3.6 ชนิดของข้อต่อ', pg: [11, 12], html: `<table><tr><th>ชนิด</th><th>ยึดด้วย</th><th>เคลื่อนไหว</th><th>ตัวอย่าง</th></tr>
+<tr><td>Fibrous</td><td>เนื้อเยื่อเส้นใย</td><td>น้อยมาก/ไม่ได้</td><td>suture, radius–ulna (interosseous membrane), รากฟัน (gomphosis)</td></tr>
+<tr><td>Cartilaginous</td><td>กระดูกอ่อน</td><td>เล็กน้อย</td><td>pubic symphysis, intervertebral disc</td></tr>
+<tr><td>Synovial</td><td>ช่อง + synovial fluid</td><td>มาก รอบทิศ</td><td>ข้อเข่า สะโพก ไหล่</td></tr></table>
+<p>Synovial joint: joint cavity, articular (hyaline) cartilage, articular capsule (fibrous capsule นอก / synovial membrane ใน), ligament, periosteum</p>` },
+];
+export { DATA, SECS, LESSONS };
