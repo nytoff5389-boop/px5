@@ -47,7 +47,7 @@ a{color:var(--ac)}
 <section class="card guide">
 <h2>วิธีเชื่อม GitHub กับ AI</h2>
 <p class="sub">ใช้ prompt นี้ให้ AI สร้างเว็บแล้ว push / เปิด PR / merge ขึ้น GitHub ให้เอง ต้องใช้ตัวที่เขียนโค้ดลง repo ได้</p>
-<div class="tabs"><button class="on" data-t="claude">Claude</button><button data-t="chatgpt">ChatGPT</button><button data-t="gemini">Gemini</button></div>
+<div class="tabs"><button class="on" data-t="claude">Claude</button><button data-t="chatgpt">ChatGPT</button><button data-t="gemini">Gemini</button><button data-t="antigravity">Antigravity</button></div>
 
 <div class="pane on" id="t-claude">
 <span class="tag y">push · เปิด PR · merge ได้</span>
@@ -91,7 +91,20 @@ a{color:var(--ac)}
 <div class="note">แอป Gemini นำเข้าโค้ดเป็นภาพนิ่ง ไม่ซิงก์และเขียนกลับ repo ไม่ได้ ได้ 1 repo ต่อแชต (ไม่เกิน 5,000 ไฟล์ / 100 MB) และใช้ได้เฉพาะบนคอมพิวเตอร์ ถ้าต้องการให้ push / PR ให้ใช้ Jules</div>
 </div>
 
-<div class="src">ข้อมูลจาก: <a href="https://code.claude.com/docs/en/web-quickstart" target="_blank" rel="noopener">Claude Code docs</a> · <a href="https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt-deep-research%5D" target="_blank" rel="noopener">OpenAI Help</a> · <a href="https://jules.google/docs" target="_blank" rel="noopener">Jules docs</a> · <a href="https://support.google.com/gemini/answer/16176929?hl=en" target="_blank" rel="noopener">Gemini Help</a> · ชื่อปุ่มอาจเปลี่ยนตามเวอร์ชัน</div>
+<div class="pane" id="t-antigravity">
+<span class="tag y">push · เปิด PR · merge ได้ (ผ่าน git + gh)</span><span class="tag n">แอปบนคอมพิวเตอร์ ไม่มีบน iPad</span>
+<p><b>Google Antigravity</b> (IDE ที่มีเอเจนต์ AI ในตัว)</p>
+<ol>
+<li>ติดตั้ง Antigravity บนคอมพิวเตอร์ (Mac / Windows / Linux) แล้วล็อกอินด้วยบัญชี Google</li>
+<li>ติดตั้ง <b>Git</b> และ <b>GitHub CLI</b> แล้วเปิด Terminal ใน Antigravity พิมพ์ <code>gh auth login</code> เลือก GitHub.com → HTTPS → ล็อกอินผ่านเบราว์เซอร์ (เช็กได้ด้วย <code>gh auth status</code>)</li>
+<li>ตอนเปิดแอปเลือก <b>Clone repository</b> หรือพิมพ์ <code>gh repo clone ชื่อบัญชี/ชื่อrepo</code> แล้วเปิดโฟลเดอร์นั้น</li>
+<li>เปิดแผงเอเจนต์ วาง prompt จากไฟล์นี้ เอเจนต์จะใช้ <code>git</code> กับ <code>gh</code> ทำ commit → push → <code>gh pr create</code> → <code>gh pr merge --merge</code> ให้เอง</li>
+<li>(ทางเลือก) เพิ่ม <b>GitHub MCP server</b> ในการตั้งค่า MCP ของ Antigravity เพื่อให้เอเจนต์จัดการ issue / PR ได้โดยตรง</li>
+</ol>
+<div class="note">ถ้าต้องให้เอเจนต์รันคำสั่ง Terminal เองโดยไม่ถามทุกครั้ง ให้ปรับโหมดสิทธิ์การรันคำสั่งในการตั้งค่าเอเจนต์ · ยังไม่มีคู่มือทางการของ Google เรื่องเชื่อม GitHub โดยตรง ขั้นตอนนี้อิงวิธีมาตรฐาน git + GitHub CLI</div>
+</div>
+
+<div class="src">ข้อมูลจาก: <a href="https://code.claude.com/docs/en/web-quickstart" target="_blank" rel="noopener">Claude Code docs</a> · <a href="https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt-deep-research%5D" target="_blank" rel="noopener">OpenAI Help</a> · <a href="https://jules.google/docs" target="_blank" rel="noopener">Jules docs</a> · <a href="https://support.google.com/gemini/answer/16176929?hl=en" target="_blank" rel="noopener">Gemini Help</a> · <a href="https://codelabs.developers.google.com/agy-cli-sdk-code-review" target="_blank" rel="noopener">Antigravity Codelab</a> · ชื่อปุ่มอาจเปลี่ยนตามเวอร์ชัน</div>
 </section>
 </main>
 <script>
