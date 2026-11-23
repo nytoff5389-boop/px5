@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795436189';
+import { DATA, SECS, LESSONS } from './data.js?v=1795436885';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -76,11 +76,12 @@ function motion() { // ระหว่างหมุนใช้ความล
 ctl.addEventListener('change', () => { need(); motion(); });
 
 let LMJ = { landmarks: {}, regions: [] }, meshes = [], byName = {}, root = null;
-const st = { scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labels: true, color: 'parts', interior: false, focus: null, hist: [] };
+let LSTYLE = 'pin'; try { LSTYLE = localStorage.getItem('hn-lstyle') || 'pin'; } catch (e) { }
+const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labels: true, color: 'parts', interior: false, focus: null, hist: [] };
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795436189').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795436189')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795436885').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795436885')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -144,7 +145,7 @@ function boxOf(list) { const b = new THREE.Box3(); list.forEach(m => b.expandByO
 let tw = null;
 function frame(list, dir, instant) {
   if (!list.length) return; const b = boxOf(list), c = b.getCenter(V3()), sph = b.getBoundingSphere(new THREE.Sphere());
-  const f = freeRect(), fov = cam.fov * Math.PI / 180, fw = .86, fh = (f.b - f.t) / f.h * (st.labels ? .8 : .9);
+  const f = freeRect(), fov = cam.fov * Math.PI / 180, fw = st.labels && st.lstyle === 'line' ? .5 : .86, fh = (f.b - f.t) / f.h * (st.labels && st.lstyle === 'pin' ? .8 : .9);
   const d = (dir || cam.position.clone().sub(ctl.target)).clone().normalize();
   const upv = Math.abs(d.y) > .99 ? V3(0, 0, -1) : V3(0, 1, 0), rt = V3().crossVectors(upv, d).normalize(), uu = V3().crossVectors(d, rt);
   let ex = 0, ey = 0, ez = 0; for (let i = 0; i < 8; i++) { const q = V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(c); ex = Math.max(ex, Math.abs(q.dot(rt))); ey = Math.max(ey, Math.abs(q.dot(uu))); ez = Math.max(ez, Math.abs(q.dot(d))); }
@@ -214,7 +215,7 @@ function pick(x, y) {
 }
 function tap(x, y) {
   { const r = cvs.getBoundingClientRect(); ptr.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, cam); }
-  if (labelItems.length) { const h = ray.intersectObjects(labelItems.map(i => i.spr), false)[0]; if (h) return labelClick(h.object.userData.item); }
+  if (labelItems.length && st.lstyle === 'pin') { const h = ray.intersectObjects(labelItems.map(i => i.spr).filter(Boolean), false)[0]; if (h) return labelClick(h.object.userData.item); }
   const m = pick(x, y); if (!m || !m.userData.id) return;
   const { id, n, side } = m.userData;
   if (st.iso && st.iso.length === 1) return;
@@ -340,6 +341,14 @@ function sizeSprite(it) { // ป้าย 3D: สูงประมาณ 20px �
 }
 function buildLabelDom() {
   lblBox.textContent = ''; svg.textContent = ''; pinGroup.traverse(o => o.material?.map?.dispose()); pinGroup.clear();
+  if (st.lstyle === 'line') { // แบบเส้นชี้: ป้ายเรียงซ้าย-ขวา มีเส้นลากไปที่จุดบนกระดูก
+    labelItems.forEach((it, i) => {
+      const e = document.createElement('button'); e.className = 'lbl ln'; e.textContent = it.t; e.onclick = () => labelClick(it); e.style.animationDelay = Math.min(i * 18, 300) + 'ms'; lblBox.appendChild(e); it.el = e;
+      it.line = document.createElementNS(SVGNS, 'polyline'); it.line.setAttribute('fill', 'none'); it.dot = document.createElementNS(SVGNS, 'circle'); svg.append(it.line, it.dot);
+    });
+    labelItems.forEach(it => { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; }); svg.setAttribute('viewBox', `0 0 ${stageRect().width} ${stageRect().height}`);
+    occDirty = true; return;
+  }
   labelItems.forEach((it, i) => {
     it.needle = new THREE.Mesh(NEEDLE, needleMat); it.head = new THREE.Mesh(HEADG, headMat); it.needle.raycast = it.head.raycast = () => { };
     pinGroup.add(it.needle, it.head); placePin(it, i);
@@ -351,9 +360,39 @@ function updateOcclusion() {
   if (vis.length > 80) { labelItems.forEach(it => it.hidden = false); return; } // ทั้งตัว: ข้ามเพื่อความลื่น
   labelItems.forEach(it => { const tp = it.headP || it.p, dir = tp.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
 }
+function drawLines() {
+  const r = stageRect(), f = freeRect(), bb = visBox, pts = [];
+  if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f2, i) => labelItems[i] && (labelItems[i].p = f2.p)); }
+  for (let i = 0; i < 8; i++) pts.push(project(V3(i & 1 ? bb.max.x : bb.min.x, i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z), r));
+  const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x)), midX = (minX + maxX) / 2;
+  if (occDirty && !moving) updateOcclusion();
+  labelItems.forEach(it => { it.s = project(it.p, r); });
+  const L = labelItems.filter(i => i.s.x < midX).sort((a, b) => a.s.y - b.s.y), Rr = labelItems.filter(i => i.s.x >= midX).sort((a, b) => a.s.y - b.s.y);
+  const gap = 5, top = f.t + 4, bot = f.b - 4;
+  const place = (col, left) => {
+    let y = top; col.forEach(it => { it.ly = Math.max(y, it.s.y - it.h / 2); y = it.ly + it.h + gap; });
+    const over = y - gap - bot; if (over > 0) col.forEach(it => it.ly -= over);
+    for (let i = 0; i < col.length; i++) { const lim = i ? col[i - 1].ly + col[i - 1].h + gap : top; if (col[i].ly < lim) col[i].ly = lim; }
+    col.forEach(it => { let x = left ? minX - 28 - it.w : maxX + 28; x = Math.max(8, Math.min(f.r - it.w - 8, x)); it.lx = x; });
+  };
+  place(L, true); place(Rr, false);
+  labelItems.forEach(it => {
+    const left = it.lx + it.w / 2 < it.s.x, ex = left ? it.lx + it.w : it.lx, ey = it.ly + it.h / 2, foc = !!(st.focus && st.focus === it.part);
+    it.el.style.transform = `translate3d(${it.lx | 0}px,${it.ly | 0}px,0)`;
+    if (it._hid !== !!it.hidden) { it.el.classList.toggle('dim', !!it.hidden); it._hid = !!it.hidden; }
+    if (it._foc !== foc) { it.el.classList.toggle('foc', foc); it._foc = foc; }
+    const colr = foc ? '#ff9f43' : '#e8e8e8';
+    it.line.setAttribute('points', `${ex | 0},${ey | 0} ${(ex + (left ? 10 : -10)) | 0},${ey | 0} ${it.s.x | 0},${it.s.y | 0}`);
+    it.line.setAttribute('stroke', colr); it.line.setAttribute('stroke-opacity', it.hidden ? .35 : .85); it.line.setAttribute('stroke-width', foc ? 1.8 : 1.1);
+    it.dot.setAttribute('cx', it.s.x | 0); it.dot.setAttribute('cy', it.s.y | 0); it.dot.setAttribute('r', 3.4);
+    it.dot.setAttribute('fill', it.hidden ? 'none' : colr); it.dot.setAttribute('stroke', it.hidden ? colr : '#000'); it.dot.setAttribute('stroke-opacity', it.hidden ? .6 : 1);
+  });
+}
 function drawLabels() {
-  if (!st.labels || !root) { if (labelItems.length) { pinGroup.clear(); labelItems = []; } return; }
+  if (!st.labels || !root) { if (labelItems.length) { pinGroup.clear(); lblBox.textContent = ''; svg.textContent = ''; labelItems = []; } return; }
   if (labelsDirty) { labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
+  if (!labelItems.length) return;
+  if (st.lstyle === 'line') return drawLines();
   else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => { const it = labelItems[i]; if (it) { it.p = f.p; it.dirv = f.dirv; placePin(it, i); sizeSprite(it); } }); }
   if (occDirty && !moving) { updateOcclusion(); labelItems.forEach(it => { it.spr.material.opacity = it.hidden ? .3 : 1; it.spr.renderOrder = it.hidden ? 1 : 3; }); }
   labelItems.forEach(it => {
@@ -474,13 +513,20 @@ function bookTarget() {
 function syncDock() {
   const set = (id, on, sub) => { const b = $(id); b.classList.toggle('on', !!on); b.querySelector('small').textContent = sub; };
   set('#tLabels', st.labels, st.labels ? 'เปิด' : 'ปิด');
+  set('#tStyle', false, st.lstyle === 'pin' ? 'หมุด 3D' : 'เส้นชี้'); $('#tStyle').classList.toggle('na', !st.labels);
+  $('#tStyle').querySelector('.ic-pin').style.display = st.lstyle === 'pin' ? '' : 'none'; $('#tStyle').querySelector('.ic-line').style.display = st.lstyle === 'line' ? '' : 'none';
   $$('[data-cmode]').forEach(b => b.classList.toggle('on', b.dataset.cmode === st.color));
   set('#tColor', st.color !== 'off', st.color === 'off' ? 'ปิด' : COLOR_MODES.find(c => c[0] === st.color)[1]);
   set('#tInterior', st.interior, st.canInterior ? (st.interior ? 'เปิด' : 'ปิด') : 'กระดูกยาว');
   $('#tInterior').classList.toggle('na', !st.canInterior);
   const bt = bookTarget(); set('#tBook', false, bt.pg ? 'หน้า ' + bt.pg : '—');
 }
-$('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดหมุดชื่อ' : 'ปิดหมุดชื่อ', st.labels ? 'หมุดปักบนกระดูกบอกชื่อแต่ละส่วน · แตะชื่อเพื่อไฮไลต์' : 'ซ่อนหมุดทั้งหมด'); };
+$('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดป้ายชื่อ' : 'ปิดป้ายชื่อ', st.labels ? (st.lstyle === 'pin' ? 'แบบหมุด 3D' : 'แบบเส้นชี้') + ' · แตะชื่อเพื่อไฮไลต์' : 'ซ่อนป้ายชื่อทั้งหมด'); };
+$('#tStyle').onclick = () => {
+  st.lstyle = st.lstyle === 'pin' ? 'line' : 'pin'; try { localStorage.setItem('hn-lstyle', st.lstyle); } catch (e) { }
+  st.labels = true; labelsDirty = true; frame(visibleList()); syncDock();
+  toast(st.lstyle === 'pin' ? 'แบบหมุด 3D' : 'แบบเส้นชี้', st.lstyle === 'pin' ? 'หมุดปักบนกระดูก ป้ายชื่อติดหัวหมุด หมุนตามโมเดล' : 'ป้ายเรียงด้านข้าง มีเส้นลากไปชี้จุดบนกระดูก');
+};
 $('#tColor').onclick = () => setColor(st.color === 'off' ? colorMode : 'off');
 $('#tInterior').onclick = toggleInterior;
 $('#tBook').onclick = () => { const bt = bookTarget(); if (!bt.pg) return; openBook(bt.pg, bt.name); };
