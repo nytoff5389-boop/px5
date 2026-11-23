@@ -11,6 +11,7 @@
     {img:B+'an7.jpg',title:'Anatomical model of an eye, Italy, 1601-1700',by:W,lic:'CC BY 4.0',url:C+'Anatomical_model_of_an_eye,_Italy,_1601-1700_Wellcome_L0058732.jpg'},
     {img:B+'anq.jpg',title:'Wax anatomical model of human head, Europe',by:W,lic:'CC BY 4.0',url:C+'Wax_anatomical_model_of_human_head,_Europe_Wellcome_L0059770.jpg'},
     {img:B+'calc1.jpg',title:'Antique Scale for Herbs',by:'GabrielleMerk',lic:'CC BY-SA 4.0',url:C+'Antique-Scale-for-Herbs.jpg'},
+    {img:B+'calc3.jpg',title:'Analytical balance Mettler AE-260',by:'US DEA',lic:'Public domain',url:C+'Analytical_balance_mettler_ae-260.jpg'},
     {img:B+'calcq.jpg',title:'Mortar and pestle, sand casting, bronze',by:'Hans Chr. R.',lic:'CC BY-SA 3.0',url:C+'Mortar_and_pestle_-_sand_casting,_bronze.jpg'},
     {img:B+'chem1.jpg',title:'Brand volumetric flask 100 ml',by:'Lucasbosch',lic:'CC BY-SA 3.0',url:C+'Brand_volumetric_flask_100ml_detail.jpg'},
     {img:B+'chemw.jpg',title:'Lab glassware',by:'Tweenk',lic:'CC BY 3.0',url:C+'Lab_glassware.jpg'},

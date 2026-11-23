@@ -29,8 +29,8 @@ const SUBJ={
     desc:'ทบทวนกายวิภาคศาสตร์ บทที่ 1 ถึง 7 ตั้งแต่บทนำ เนื้อเยื่อ กระดูก กล้ามเนื้อ ระบบประสาท จนถึงอวัยวะรับความรู้สึกพิเศษ พร้อมโจทย์สุ่มไม่จำกัดและเฉลยละเอียด',
     ch:7,chU:'บท',pages:135,qz:'โจทย์สุ่มไม่จำกัด',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',home:'anatomy/'},
   calc:{id:'calc',code:'PHT111',name:'calc',th:'การคำนวณทางเภสัชกรรม',en:'Pharmaceutical Calculations',img:'ui/img/b-calc1.jpg',
-    desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 ระบบเลขโรมันและเลขนัยสำคัญ และบทที่ 2 มาตรชั่งและตวง (เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน) มีทั้งโจทย์ปรนัยและโจทย์เติมคำตอบ พร้อมวิธีคิดทีละขั้น',
-    ch:2,chU:'บท',pages:34,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
+    desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 เลขโรมันและเลขนัยสำคัญ บทที่ 2 มาตรชั่งและตวง และบทที่ 3 วิธีแบ่งส่วน Aliquot method มีทั้งข้อสอบทฤษฎี แบบฝึกหัดจากชีทและสไลด์ และโจทย์สุ่มไม่จำกัด',
+    ch:3,chU:'บท',pages:50,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
   chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'เคมีฟิสิกส์',th:'เคมีฟิสิกส์',en:'บทที่ 1 ปริมาณสารสัมพันธ์ (Stoichiometry)',img:'ui/img/b-chem1.jpg',
     desc:'เคมีฟิสิกส์ (Physical Chemistry) บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
     ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'},
@@ -58,28 +58,26 @@ const show=id=>FILTER==='all'||FILTER===id;
 function ring(p,size,cls,label){ const r=(size-10)/2, c=2*Math.PI*r;
   return `<div class="ring ${cls||''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="tr" cx="${size/2}" cy="${size/2}" r="${r}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c*(1-p/100)).toFixed(1)}"/></svg><b style="font-size:${Math.round(size*.24)}px">${label!=null?label:p+'<small>%</small>'}</b></div>`; }
 const pills=()=>{ const AB=books(1), cnt=k=>k==='all'?AB.length:AB.filter(b=>b.s===k).length;
-  return `<div class="grp" role="tablist" aria-label="เลือกกลุ่มหนังสือ"><span class="gl">${ic('layers')}เลือกกลุ่มหนังสือ<small class="gh">แตะเพื่อกรองชั้นหนังสือตามวิชา</small></span><div class="gt">`+[['all','ทุกวิชา','รวมทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name,k==='chem'?'Physical Chemistry':SUBJ[k].code])).map(([k,n,c])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}"><b>${n}</b><small>${c} · ${cnt(k)} เล่ม</small></button>`).join('')+`</div></div>`; };
+  return `<div class="grp" role="tablist" aria-label="เลือกวิชา">`+[['all','ทั้งหมด']].concat(ORDER.map(k=>[k,SUBJ[k].tab||SUBJ[k].name])).map(([k,n])=>`<button class="gb ${FILTER===k?'on':''}" data-act="filter" data-v="${k}" role="tab" aria-selected="${FILTER===k}">${n}<small class="num">${cnt(k)}</small></button>`).join('')+`</div>`; };
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
   document.body.appendChild(d); d.addEventListener('click',e=>{ if(e.target===d||e.target.closest('[data-n]')) d.remove(); else if(e.target.closest('[data-y]')){ d.remove(); cb(); } }); $('[data-y]',d).focus(); }
 const expHTML=(q,open)=>`<details class="exp" ${open?'open':''}><summary>${ic('lightbulb')}<span>เฉลยละเอียด (Explanation)</span>${ic('chevron_right')}</summary><ol>${[].concat(q.exp||[]).map(e=>`<li>${chemTxt(e)}</li>`).join('')}</ol>${CHEM_TOPICS[q.t]?`<p class="src">อ้างอิงหนังสือหน้า ${CHEM_TOPICS[q.t].pg} · <a href="#/pages/chem/${CHEM_TOPICS[q.t].pg}">เปิดอ่านหน้านี้</a></p>`:''}</details>`;
 
 /* ---------- โครงหลัก ---------- */
-const NAV=[['','house','หน้าหลัก','Overview'],['library','library','อ่านหนังสือ','Study Library'],['exams','clipboard_check','ทำข้อสอบ','Practice Exams'],['bookmarks','bookmark','บุ๊กมาร์ก','Saved Bookmarks'],['progress','chart_no_axes_column','ความก้าวหน้า','Progress & Analytics']];
+const NAV=[['','house','หน้าหลัก','Overview'],['library','library','อ่านหนังสือ','Study Library'],['exams','clipboard_check','ทำข้อสอบ','Practice Exams'],['progress','chart_no_axes_column','ความก้าวหน้า','Progress & Analytics']];
 function shell(){
   $('#app').innerHTML=`<aside class="side" aria-label="เมนูหลัก">
     <a class="brand" href="#/" aria-label="PAYAPkuytok หน้าหลัก"><span class="lg">${ic('book_open_check')}</span><b>PAYAP<i>kuytok</i></b></a>
-    <nav class="nav">${NAV.map(n=>`<a href="#/${n[0]}" data-nav="${n[0]}" title="${n[2]}">${ic(n[1])}<span>${n[2]}<small>${n[3]}</small></span></a>`).join('')}</nav>
-    <div class="sp"></div><p class="cred">สรุปและข้อสอบ 3 วิชา<br>BI112 · PHT111 · PHB102</p>
-    <button class="col" data-act="mini" title="ย่อหรือขยายเมนู">${ic('panel_left')}<span>ย่อเมนู</span></button></aside>
+    <nav class="nav">${NAV.map(n=>`<a href="#/${n[0]}" data-nav="${n[0]}" title="${n[2]}">${ic(n[1])}<span>${n[2]}</span></a>`).join('')}</nav>
+    <div class="sp"></div><p class="cred">สรุปและข้อสอบ 4 วิชา<br>BI112 · PHT111 · PHB102 · PHB104</p></aside>
   <div class="main"><header class="top">
-    <button class="search" data-act="pal" aria-label="ค้นหา">${ic('search')}<span>ค้นหาบทเรียน หัวข้อ หรือชุดข้อสอบ</span><kbd>⌘K</kbd></button>
+    <button class="search" data-act="pal" aria-label="ค้นหา">${ic('search')}<span>ค้นหาบท หัวข้อ หรือข้อสอบ</span><kbd>⌘K</kbd></button>
     <span class="grow"></span>
-    <button class="ibtn" data-act="theme" aria-label="สลับโหมดสว่างและมืด" title="สลับโหมดสว่างและมืด">${ic('moon')}</button>
-    <a class="avatar" href="#/progress" aria-label="ความก้าวหน้าของฉัน">${ic('user')}</a></header>
+    <button class="ibtn" data-act="theme" aria-label="สลับโหมดสว่างและมืด" title="สลับโหมดสว่างและมืด">${ic('moon')}</button></header>
     <main id="view" class="page"></main></div>
   <nav class="tabbar" aria-label="เมนูหลัก">${NAV.map(n=>`<a href="#/${n[0]}" data-nav="${n[0]}">${ic(n[1])}<span>${n[2]}</span></a>`).join('')}</nav>`;
-  $('#app').classList.toggle('mini',!!DB.mini);
+  $('#app').classList.remove('mini');
   addEventListener('scroll',()=>{ const t=$('.top'); if(t) t.classList.toggle('sc',scrollY>8); },{passive:true});
 }
 function setTheme(t){ document.documentElement.dataset.theme=t; try{localStorage.setItem('payap.theme',t);}catch(e){} const b=$('[data-act="theme"]'); if(b) b.innerHTML=ic(t==='dark'?'sun':'moon'); const m=$('meta[name="theme-color"]'); if(m) m.content=t==='dark'?'#0B1220':'#F8FAFC'; }
@@ -89,10 +87,11 @@ const route=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/').map(d
 let shelfApi=null, cleanup=[], shelfAt=-1;
 function render(){
   cleanup.forEach(f=>f()); cleanup=[]; if(shelfApi){ shelfAt=render.reset?-1:shelfApi.index(); shelfApi.destroy(); shelfApi=null; } render.reset=false;
-  const [r,a,b]=route(); const V={'':vHome,library:vLibrary,exams:vExams,bookmarks:vBookmarks,progress:vProgress,read:vRead,pages:vPages,quiz:vQuiz,result:vResult};
+  const [r,a,b]=route(); const NAVOF={bookmarks:'progress'};
+  const V={'':vHome,library:vLibrary,exams:vExams,bookmarks:vBookmarks,progress:vProgress,read:vRead,pages:vPages,quiz:vQuiz,result:vResult};
   const fn=V[r]||vHome, focus=['read','pages','quiz','result'].includes(r);
   document.body.classList.toggle('focus',focus);
-  $$('[data-nav]').forEach(x=>x.classList.toggle('on',x.dataset.nav===(V[r]?r:'')));
+  $$('[data-nav]').forEach(x=>x.classList.toggle('on',x.dataset.nav===(NAVOF[r]||(V[r]?r:''))));
   const v=$('#view'); v.style.animation='none'; void v.offsetWidth; v.style.animation='';
   const after=fn(v,a,b); if(typeof after==='function') after();
   if(!render.keep) scrollTo(0,0); render.keep=false;
@@ -108,6 +107,7 @@ function books(all){
   L.push({s:'anatomy',code:'BI112',no:'Q',t:'ข้อสอบกายวิภาคศาสตร์',short:'ข้อสอบ Anatomy',en:'Anatomy question bank',kind:'ข้อสอบ',img:B+'anq.jpg',read:'anatomy/?tab=book',exam:'anatomy/?tab=learn',q:1});
   L.push({s:'calc',code:'PHT111',no:'01',t:'เลขโรมันและเลขนัยสำคัญ',short:'เลขโรมัน เลขนัยสำคัญ',en:'Roman numerals & Significant figures',kind:'บทที่ 1',img:B+'calc1.jpg',read:'calc/?tab=book&page=1',exam:'calc/?tab=quiz&ch=1'});
   L.push({s:'calc',code:'PHT111',no:'02',t:'มาตรชั่งและตวงทางเภสัชกรรม',short:'มาตรชั่งและตวง',en:'Weights & measures · Metric, Apothecary, Avoirdupois, Household',kind:'บทที่ 2',img:B+'calc2.jpg',read:'calc/?tab=book&page=17',exam:'calc/?tab=quiz&ch=2'});
+  L.push({s:'calc',code:'PHT111',no:'03',t:'วิธีแบ่งส่วน Aliquot method',short:'Aliquot method',en:'Aliquot method · Sensitivity requirement, factor & diluent',kind:'บทที่ 3',img:B+'calc3.jpg',read:'calc/?tab=book&page=35',exam:'calc/?tab=quiz&ch=3'});
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
   L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
   L.push({s:'chem',code:'PHB102',no:'W',t:'แบบฝึกหัด',short:'แบบฝึกหัด',en:'Physical Chemistry · Worksheets บทที่ 1–6',kind:'เล่มพิเศษ',desc:'ใบงานแบบฝึกหัดเคมีฟิสิกส์ บทที่ 1 ถึง 6: ปริมาณสัมพันธ์ สารประกอบเชิงซ้อน Chemical Kinetics สมดุลเคมี สมดุลวัฏภาค และไฟฟ้าเคมี อ่านบนเว็บหรือดาวน์โหลด PDF ไปพิมพ์เขียนตอบได้',img:B+'chemw.jpg',read:'#/pages/ws',exam:'#/pages/ws',dl:1});
@@ -128,23 +128,18 @@ function contCard(st){
     <a class="btn lg" href="${href}" ${/^#/.test(href)?'':`data-app="${s.id}"`}>${ic('book_open')}${btn}</a></div>`;
 }
 function subjCard(k,st){ const s=SUBJ[k], x=st[k];
-  return `<article class="card subj hov"><div class="cv" style="background-image:url(${s.img})"><span class="tag">${s.code}</span></div><div class="bd">
-    <h2>${esc(s.th)}</h2><p>${esc(s.name)} · ${esc(s.en)}</p>
-    <div class="mt"><span>${ic('layers')}${s.ch} ${s.chU}</span><span>${ic('file_text')}${s.pages} หน้า</span><span>${ic('clipboard_check')}${esc(s.qz)}</span></div>
-    <div class="pr"><div class="bar"><i style="width:${x.done}%"></i></div><b>${x.done}%</b></div>
-    <div class="ac"><a class="btn sec sm" href="${s.read}" data-app="${k}" data-mode="read">${ic('book_open')}อ่านหนังสือ</a><a class="btn sm" href="${s.exam}" data-app="${k}" data-mode="exam">${ic('clipboard_check')}ทำข้อสอบ</a></div></div></article>`; }
+  return `<article class="srow"><div class="th" style="background-image:url(${s.img})"></div><div class="grow"><h3>${esc(s.th)}</h3><p><span class="num">${s.code}</span> · ${s.ch} ${s.chU} · ${s.pages} หน้า · ทำไปแล้ว ${x.done}%</p></div>
+    <div class="ac"><a class="btn sec sm" href="${s.read}" data-app="${k}" data-mode="read">อ่าน</a><a class="btn sm" href="${s.exam}" data-app="${k}" data-mode="exam">ข้อสอบ</a></div></article>`; }
 function vHome(v){
   v.dataset.title='';
-  const st=stats(), sk=streak(), rd=readiness(st), h=new Date().getHours(), hi=h<12?'สวัสดีตอนเช้า':h<17?'สวัสดีตอนบ่าย':'สวัสดีตอนเย็น';
+  const st=stats();
   const L=books();
-  v.innerHTML=`<section class="hello"><div class="card hi"><span class="eyebrow">PAYAPkuytok</span><h1>${hi}</h1><p>พร้อมอ่านต่อหรือยัง อ่านสรุปให้เข้าใจ แล้วลองทำข้อสอบได้ทันที ทุกวิชาอยู่ในที่เดียว</p><div class="cta">${contBtn()}<a class="btn sec" href="#/exams">${ic('clipboard_check')}ทำข้อสอบ</a></div></div>
-    <div class="card stat"><span class="fl">${ic('flame')}</span><div><div class="k">อ่านต่อเนื่อง</div><div class="v">${sk}<small>วัน</small></div></div></div>
-    <div class="card stat">${ring(rd,58)}<div><div class="k">ความพร้อมสอบ</div><div class="v" style="font-size:15px;font-family:var(--f);font-weight:500">${rd>=80?'พร้อมมาก':rd>=50?'กำลังไปได้ดี':rd>0?'เริ่มต้นแล้ว':'ยังไม่เริ่ม'}</div></div></div></section>
+  v.innerHTML=`<div class="hd"><h1>ชั้นหนังสือ</h1><p>แตะปกเพื่ออ่านหรือทำข้อสอบ</p></div>
   ${pills()}
   <section class="shelf" id="shelf" tabindex="0"></section>
-  <div class="sec-h"><div><h2>เรียนต่อจากเดิม</h2><p>Continue Studying</p></div></div>${contCard(st)}
-  <div class="sec-h"><div><h2>วิชาทั้งหมด</h2><p>${ORDER.filter(show).length} วิชา · เลือกอ่านสรุปหรือทำข้อสอบได้เลย</p></div><a href="#/library">ดูคลังหนังสือ${ic('chevron_right')}</a></div>
-  <div class="grid3">${ORDER.filter(show).map(k=>subjCard(k,st)).join('')}</div>
+  <div class="sec-h"><div><h2>อ่านต่อจากครั้งก่อน</h2></div></div>${contCard(st)}
+  <div class="sec-h"><div><h2>รายวิชา</h2></div></div>
+  <div class="sl">${ORDER.filter(show).map(k=>subjCard(k,st)).join('')}</div>
   ${CREDITS.length?`<details class="credits"><summary>ที่มาของภาพปก (ภาพถ่ายจริงจาก Wikimedia Commons)</summary><p>${CREDITS.map(c=>`<a href="${c.url}" target="_blank" rel="noopener">${esc(c.title)}</a> โดย ${esc(c.by)} (${esc(c.lic)})`).join(' · ')}</p></details>`:''}`;
   return ()=>{ const el=$('#shelf'); if(!el||!L.length) return;
     shelfApi=mountShelf(el,L,{start:shelfAt<0?(FILTER==='all'?Math.max(0,L.findIndex(x=>x.s==='chem')):0):Math.min(shelfAt,L.length-1),intro:!vHome.seen,onOpen:(i,rect)=>openSheet(sheetHTML(L[i],L,st),rect,()=>shelfApi&&shelfApi.rect())}); vHome.seen=true; };
@@ -166,10 +161,10 @@ function sheetHTML(it,L,st){
 
 /* ---------- คลังสรุป ---------- */
 function vLibrary(v){
-  v.dataset.title='อ่านหนังสือ'; const st=stats(); let h=`${pills()}<div class="ph"><h1>คลังหนังสือ</h1><p>Study Library · เปิดอ่านหนังสือสรุปฉบับ PDF ของแต่ละวิชา เลือกข้ามไปบทหรือหัวข้อที่ต้องการได้</p></div>`;
+  v.dataset.title='อ่านหนังสือ'; const st=stats(); let h=`${pills()}<div class="ph"><h1>คลังหนังสือ</h1><p>เปิดอ่านหนังสือสรุปฉบับ PDF ของแต่ละวิชา เลือกข้ามไปบทหรือหัวข้อที่ต้องการได้</p></div>`;
   const gh=(k,extra)=>{ const s=SUBJ[k]; return `<div class="gh"><div class="th" style="background-image:url(${s.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>${esc(s.th)}</h2><span class="tag">${s.code}</span></div><p>${esc(s.name)} · ${s.ch} ${s.chU} · ${s.pages} หน้า · อ่านแล้ว ${st[k].rd}%</p></div>${extra||''}</div>`; };
   if(show('anatomy')) h+=`<section class="group">${gh('anatomy',`<a class="btn sec sm" href="anatomy/?tab=book" data-app="anatomy" data-mode="read">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">${AN_CH.map((c,i)=>`<a class="item" href="anatomy/?tab=book&page=${AN_PG[i]}" data-app="anatomy" data-mode="read"><span class="n">${i+1}</span><div class="grow"><h3>${c[0]}</h3><p>${c[1]} · เริ่มหน้า ${AN_PG[i]}</p></div>${ic('chevron_right','ch')}</a>`).join('')}</div></section>`;
-  if(show('calc')) h+=`<section class="group">${gh('calc')}<div class="lst"><a class="item" href="calc/?tab=book" data-app="calc" data-mode="read"><span class="n">1</span><div class="grow"><h3>พื้นฐานที่เกี่ยวข้องกับการคำนวณทางเภสัชกรรม</h3><p>Roman numerals และ Significant figures · 16 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="calc/?tab=book&page=17" data-app="calc" data-mode="read"><span class="n">2</span><div class="grow"><h3>มาตรชั่งและตวงทางเภสัชกรรม (เล่ม 2)</h3><p>Metric, Apothecary, Avoirdupois และ Household · 18 หน้า</p></div>${ic('chevron_right','ch')}</a></div></section>`;
+  if(show('calc')) h+=`<section class="group">${gh('calc')}<div class="lst"><a class="item" href="calc/?tab=book" data-app="calc" data-mode="read"><span class="n">1</span><div class="grow"><h3>พื้นฐานที่เกี่ยวข้องกับการคำนวณทางเภสัชกรรม</h3><p>Roman numerals และ Significant figures · 16 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="calc/?tab=book&page=17" data-app="calc" data-mode="read"><span class="n">2</span><div class="grow"><h3>มาตรชั่งและตวงทางเภสัชกรรม (เล่ม 2)</h3><p>Metric, Apothecary, Avoirdupois และ Household · 18 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="calc/?tab=book&page=35" data-app="calc" data-mode="read"><span class="n">3</span><div class="grow"><h3>วิธีแบ่งส่วน Aliquot method (เล่ม 3)</h3><p>Sensitivity requirement, factor และ diluent · 16 หน้า</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   if(show('chem')) h+=`<section class="group">${gh('chem',`<a class="btn sec sm" href="#/pages/chem">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
@@ -246,7 +241,7 @@ function vWS(v,pg){
 /* ---------- ทำข้อสอบ ---------- */
 function vExams(v){
   v.dataset.title='ทำข้อสอบ'; const C=DB.cfg, st=stats(), T=CHEM_TOPICS, nw=DB.chem.wrong.length;
-  let h=`${pills()}<div class="ph"><h1>ทำข้อสอบ</h1><p>Practice Exams · จัดชุดโจทย์ตามระดับและหัวข้อ ทำต่อเนื่องไม่รู้จบ</p></div>`;
+  let h=`${pills()}<div class="ph"><h1>ทำข้อสอบ</h1><p>จัดชุดโจทย์ตามระดับและหัวข้อ ทำต่อเนื่องไม่รู้จบ</p></div>`;
   if(show('chem')) h+=`<section class="group" style="margin-top:8px"><div class="gh"><div class="th" style="background-image:url(${SUBJ.chem.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>เคมีฟิสิกส์</h2><span class="tag">PHB102</span></div><p>บทที่ 1 ปริมาณสารสัมพันธ์ · ปรนัยทั้งหมด ไม่มีข้อเขียน · สุ่มตัวเลขใหม่ทุกครั้ง${st.chem.acc!=null?' · แม่นยำ '+st.chem.acc+'%':''}</p></div></div>
    <div class="cfg"><div class="card"><h2>จัดชุดโจทย์</h2><p style="color:var(--ink-2);font-size:13.5px;margin:4px 0 12px">เลือกระดับและหัวข้อที่อยากฝึก โจทย์สุ่มตัวเลขใหม่ทุกข้อ ทำต่อเนื่องไม่รู้จบ ตอบแล้วเห็นเฉลยทันที อยากหยุดเมื่อไรกดจบและดูผล</p>
      <button class="btn lg" style="width:100%" data-act="bd">${ic('play')}จัดชุดโจทย์</button>
@@ -344,19 +339,17 @@ function rvCard(q,no,saved){ const ok=q.pick===q.ans, bm=DB.bm.q.some(x=>x.stem=
     <p class="stem">${tx(q.stem)}</p><div class="ans">${saved?'':`<div class="u ${ok?'ok':'no'}"><small>คำตอบของคุณ</small>${q.pick==null?'ไม่ได้ตอบ':tx(q.opts[q.pick])}</div>`}<div class="c"><small>คำตอบที่ถูก</small>${tx(q.opts[q.ans])}</div></div>${expHTML(q,false)}</div>`; }
 
 /* ---------- บุ๊กมาร์ก ---------- */
-function vBookmarks(v){
-  v.dataset.title='บุ๊กมาร์ก'; const secs=show('chem')?CHEM_SECTIONS.filter(c=>DB.bm.sec.includes(c.id)):[], qs=show('chem')?DB.bm.q:[];
-  v.innerHTML=`${pills()}<div class="ph"><h1>บุ๊กมาร์ก</h1><p>Saved Bookmarks · หัวข้อและข้อสอบที่บันทึกไว้อ่านซ้ำ</p></div>`+
-   (!secs.length&&!qs.length?`<div class="card empty">${ic('bookmark')}<h3>ยังไม่มีรายการที่บันทึกไว้</h3><p>กดปุ่มบุ๊กมาร์กในหน้าอ่านสรุป หรือในหน้าทบทวนรายข้อหลังทำข้อสอบ รายการจะมาอยู่ที่นี่</p><a class="btn" href="#/library">ไปที่คลังหนังสือ</a></div>`:
+function bmHTML(){ const secs=show('chem')?CHEM_SECTIONS.filter(c=>DB.bm.sec.includes(c.id)):[], qs=show('chem')?DB.bm.q:[];
+  return (!secs.length&&!qs.length?`<div class="card empty">${ic('bookmark')}<h3>ยังไม่มีรายการที่บันทึกไว้</h3><p>กดปุ่มบุ๊กมาร์กในหน้าอ่านสรุป หรือในหน้าทบทวนรายข้อหลังทำข้อสอบ รายการจะมาอยู่ที่นี่</p><a class="btn" href="#/library">ไปที่คลังหนังสือ</a></div>`:
    (secs.length?`<div class="sec-h" style="margin-top:8px"><div><h2>หัวข้อที่บันทึก</h2></div></div><div class="lst">${secs.map(c=>`<a class="item" href="#/read/chem/${c.id}"><span class="n">${ic('bookmark_check')}</span><div class="grow"><h3>${esc(c.t)}</h3><p>PHB102 · อ่านประมาณ ${c.min} นาที</p></div>${ic('chevron_right','ch')}</a>`).join('')}</div>`:'')+
-   (qs.length?`<div class="sec-h"><div><h2>ข้อสอบที่บันทึก</h2><p>${qs.length} ข้อ</p></div></div>${qs.map(q=>rvCard(q,0,true)).join('')}`:''));
-}
+   (qs.length?`<div class="sec-h"><div><h2>ข้อสอบที่บันทึก</h2><p>${qs.length} ข้อ</p></div></div>${qs.map(q=>rvCard(q,0,true)).join('')}`:'')); }
+function vBookmarks(v){ v.dataset.title='บุ๊กมาร์ก'; v.innerHTML=`${pills()}<div class="ph"><h1>บุ๊กมาร์ก</h1><p>หัวข้อและข้อสอบที่บันทึกไว้อ่านซ้ำ</p></div>`+bmHTML(); }
 
 /* ---------- ความก้าวหน้า ---------- */
 function vProgress(v){
   v.dataset.title='ความก้าวหน้า'; const st=stats(), tot=ORDER.reduce((s,k)=>s+st[k].ans,0), okc=ORDER.reduce((s,k)=>s+st[k].ok,0), rd=readiness(st);
   const wk=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); wk.push([['อา','จ','อ','พ','พฤ','ศ','ส'][d.getDay()],DB.days[dkey(d)]||0]); } const mx=Math.max(1,...wk.map(x=>x[1]));
-  v.innerHTML=`${pills()}<div class="ph"><h1>ความก้าวหน้า</h1><p>Progress & Analytics · ข้อมูลเก็บในเครื่องนี้เท่านั้น</p></div>
+  v.innerHTML=`${pills()}<div class="ph"><h1>ความก้าวหน้า</h1><p>ข้อมูลเก็บในเครื่องนี้เท่านั้น</p></div>
   <div class="kpis"><div class="card kpi"><small>${ic('flame')}อ่านต่อเนื่อง</small><b>${streak()}<span>วัน</span></b></div><div class="card kpi"><small>${ic('target')}ความพร้อมสอบ</small><b>${rd}<span>%</span></b></div>
    <div class="card kpi"><small>${ic('clipboard_check')}ทำข้อสอบแล้ว</small><b>${tot.toLocaleString()}<span>ข้อ</span></b></div><div class="card kpi"><small>${ic('circle_check')}ความแม่นยำรวม</small><b>${tot?pct(okc,tot):'–'}<span>${tot?'%':''}</span></b></div></div>
   <div class="sec-h"><div><h2>รายวิชา</h2><p>ความพร้อมคิดจากการอ่านสรุปและความแม่นยำในการทำข้อสอบ</p></div></div>
@@ -366,7 +359,8 @@ function vProgress(v){
   ${show('chem')?`<div class="grid2" style="margin-top:20px"><div class="card"><h2>ข้อที่ทำใน 7 วันล่าสุด</h2><p class="sub" style="font-size:12.5px">นับเฉพาะเคมีฟิสิกส์</p><div class="week">${wk.map(x=>`<div><b>${x[1]||''}</b><i class="${x[1]?'':'z'}" style="height:${Math.round(x[1]/mx*78)}%"></i>${x[0]}</div>`).join('')}</div></div>
    <div class="card"><h2 style="margin-bottom:14px">เคมีฟิสิกส์ รายหัวข้อ</h2><div class="brk">${Object.keys(CHEM_TOPICS).map(t=>{ const b=DB.chem.tp[t]||[0,0], a=pct(b[1],b[0]); return `<div class="ln"><span>${esc(CHEM_TOPICS[t].n)}</span><div class="bar ${a>=70?'ok':''}"><i style="width:${a}%"></i></div><b>${b[0]?a+'%':'–'}</b></div>`; }).join('')}</div></div></div>
   <div class="sec-h"><div><h2>ประวัติการสอบ</h2><p>เคมีฟิสิกส์ · เก็บ 12 ครั้งล่าสุด</p></div></div>
-  <div class="card" style="padding:8px 20px">${DB.chem.sessions.length?`<div class="hist">${DB.chem.sessions.map((R,i)=>`<a href="#/result/${i}"><span>${esc(R.title)}</span><small>${new Date(R.d).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small><small class="num">${clock(R.el)}</small><span class="tag ${pct(R.ok,R.n)>=70?'ok':pct(R.ok,R.n)<50?'no':''}">${R.ok}/${R.n}</span></a>`).join('')}</div>`:`<div class="empty">${ic('clipboard_check')}<h3>ยังไม่มีประวัติการสอบ</h3><p>ทำข้อสอบสักชุด แล้วผลจะมาแสดงที่นี่</p><a class="btn" href="#/exams">ไปทำข้อสอบ</a></div>`}</div>`:''}`;
+  <div class="card" style="padding:8px 20px">${DB.chem.sessions.length?`<div class="hist">${DB.chem.sessions.map((R,i)=>`<a href="#/result/${i}"><span>${esc(R.title)}</span><small>${new Date(R.d).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small><small class="num">${clock(R.el)}</small><span class="tag ${pct(R.ok,R.n)>=70?'ok':pct(R.ok,R.n)<50?'no':''}">${R.ok}/${R.n}</span></a>`).join('')}</div>`:`<div class="empty">${ic('clipboard_check')}<h3>ยังไม่มีประวัติการสอบ</h3><p>ทำข้อสอบสักชุด แล้วผลจะมาแสดงที่นี่</p><a class="btn" href="#/exams">ไปทำข้อสอบ</a></div>`}</div>`:''}
+  <div class="sec-h" id="saved"><div><h2>ที่บันทึกไว้</h2><p>หัวข้อและข้อสอบที่กดบุ๊กมาร์ก</p></div></div>${(DB.bm.sec.length||DB.bm.q.length)?bmHTML():'<p class="sub" style="font-size:13.5px">ยังไม่มี กดรูปบุ๊กมาร์กในหน้าอ่านสรุปหรือหน้าทบทวนข้อสอบ รายการจะมาอยู่ตรงนี้</p>'}`;
 }
 
 /* ---------- ค้นหา ⌘K ---------- */
@@ -379,7 +373,7 @@ function palette(){
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
   idx.push({t:'สมุดชีวเคมี บทที่ 1 คาร์โบไฮเดรต',s:'PHB104 · Monosaccharide Disaccharide Polysaccharide · 21 หน้า',h:'bio/#/book/1',i:'book_open',g:'PHB104',app:'bio'},{t:'สมุดชีวเคมี บทที่ 2 ลิพิดส์',s:'PHB104 · กรดไขมัน ไตรกลีเซอไรด์ ฟอสโฟลิพิด สเตียรอยด์ · 28 หน้า',h:'bio/#/book/2',i:'book_open',g:'PHB104',app:'bio'},{t:'ข้อสอบชีวเคมี Biochem',s:'PHB104 · คาร์โบไฮเดรต ลิพิดส์ โครงสร้างกรดไขมัน Delta Omega n',h:'bio/#/exam',i:'clipboard_check',g:'PHB104',app:'bio'});
   AN_CH.forEach((c,i)=>idx.push({t:'บทที่ '+(i+1)+' '+c[0],s:c[1],h:'anatomy/?tab=learn&ch='+(i+1),i:'graduation_cap',g:'BI112',app:'anatomy'}));
-  idx.push({t:'หนังสือสรุปกายวิภาคศาสตร์',s:'BI112 · 5 เล่ม 135 หน้า',h:'anatomy/?tab=book',i:'book_open',g:'BI112',app:'anatomy'},{t:'เลขโรมันและเลขนัยสำคัญ',s:'PHT111 · อ่านสรุป',h:'calc/?tab=book',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบคำนวณเภสัช บทที่ 1',s:'PHT111 · Roman numerals, Significant figures',h:'calc/?tab=quiz&ch=1',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'มาตรชั่งและตวงทางเภสัชกรรม',s:'PHT111 · บทที่ 2 อ่านสรุป',h:'calc/?tab=book&page=17',i:'book_open',g:'PHT111',app:'calc'},{t:'โจทย์ปัญหา calc 500 ข้อ',s:'PHT111 · บทที่ 2 · ข้อเขียน เทียบบัญญัติไตรยางศ์ ยาน้ำ ช้อนชา grains หยด',h:'calc/?tab=quiz&ch=3',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'ข้อสอบบทที่ 2 มาตรชั่งและตวง',s:'PHT111 · เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน',h:'calc/?tab=quiz&ch=2',i:'clipboard_check',g:'PHT111',app:'calc'});
+  idx.push({t:'หนังสือสรุปกายวิภาคศาสตร์',s:'BI112 · 5 เล่ม 135 หน้า',h:'anatomy/?tab=book',i:'book_open',g:'BI112',app:'anatomy'},{t:'เลขโรมันและเลขนัยสำคัญ',s:'PHT111 · อ่านสรุป',h:'calc/?tab=book',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบคำนวณเภสัช บทที่ 1',s:'PHT111 · Roman numerals, Significant figures',h:'calc/?tab=quiz&ch=1',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'มาตรชั่งและตวงทางเภสัชกรรม',s:'PHT111 · บทที่ 2 อ่านสรุป',h:'calc/?tab=book&page=17',i:'book_open',g:'PHT111',app:'calc'},{t:'โจทย์ปัญหา calc 500 ข้อ',s:'PHT111 · บทที่ 2 · ข้อเขียน เทียบบัญญัติไตรยางศ์ ยาน้ำ ช้อนชา grains หยด',h:'calc/?tab=quiz&ch=9',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'วิธีแบ่งส่วน Aliquot method',s:'PHT111 · บทที่ 3 อ่านสรุป (เล่ม 3)',h:'calc/?tab=book&page=35',i:'book_open',g:'PHT111',app:'calc'},{t:'ข้อสอบบทที่ 3 Aliquot method',s:'PHT111 · SR factor diluent การชั่งและการตวง',h:'calc/?tab=quiz&ch=3',i:'clipboard_check',g:'PHT111',app:'calc'},{t:'ข้อสอบบทที่ 2 มาตรชั่งและตวง',s:'PHT111 · เมตริก อะโปธิคารี อะวัวดูปัวส์ มาตรประจำบ้าน',h:'calc/?tab=quiz&ch=2',i:'clipboard_check',g:'PHT111',app:'calc'});
   const d=document.createElement('div'); d.className='pal'; d.innerHTML=`<div class="bx" role="dialog" aria-modal="true" aria-label="ค้นหา"><div class="in">${ic('search')}<input type="search" placeholder="ค้นหาบทเรียน หัวข้อ หรือชุดข้อสอบ" aria-label="คำค้น" autocomplete="off"><kbd>Esc</kbd></div><div class="rs"></div></div>`;
   document.body.appendChild(d); const inp=$('input',d), rs=$('.rs',d); let cur=0, res=[];
   const draw=()=>{ const q=inp.value.trim().toLowerCase(); res=(q?idx.filter(x=>(x.t+' '+x.s+' '+(x.g||'')).toLowerCase().includes(q)).concat(idx.filter(x=>x.x&&x.x.toLowerCase().includes(q)&&!(x.t+' '+x.s).toLowerCase().includes(q))):idx).slice(0,14); cur=Math.min(cur,Math.max(0,res.length-1));
