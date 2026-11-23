@@ -19,6 +19,15 @@ a.btn,button.btn{display:inline-flex;align-items:center;justify-content:center;g
 .meta{font-size:13px;color:var(--tx2);margin-bottom:10px}
 pre{white-space:pre-wrap;word-break:break-word;margin:0;max-height:55dvh;overflow:auto;background:#0e0e10;border:1px solid var(--line);border-radius:10px;padding:14px;font:14px/1.7 -apple-system,"Sukhumvit Set",system-ui,sans-serif;color:#d6d6da}
 #ok{color:var(--ac);font-size:14px;min-height:20px;margin-top:8px}
+.guide{margin-top:22px}.guide h2{font-size:20px;margin:0 0 4px}.guide p.sub{margin-bottom:12px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}.tabs button{flex:1;min-width:96px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:#1d1d21;color:var(--tx2);font:inherit;font-weight:700;cursor:pointer}
+.tabs button.on{background:var(--ac);color:#1a1006;border-color:var(--ac)}
+.pane{display:none}.pane.on{display:block}
+.pane ol{margin:0 0 10px;padding-left:22px}.pane li{margin:6px 0}.pane code{background:#0e0e10;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:14px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;margin:0 6px 8px 0}.tag.y{background:rgba(80,200,120,.15);color:#7be0a0}.tag.n{background:rgba(255,107,107,.15);color:#ff9a9a}
+.note{font-size:14px;color:var(--tx2);background:#0e0e10;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px}
+.src{font-size:13px;color:var(--tx2);margin-top:10px}.src a{color:var(--ac)}
+a{color:var(--ac)}
 </style>
 </head>
 <body>
@@ -34,12 +43,63 @@ pre{white-space:pre-wrap;word-break:break-word;margin:0;max-height:55dvh;overflo
 <pre id="txt"></pre>
 <div id="ok"></div>
 </div>
+
+<section class="card guide">
+<h2>วิธีเชื่อม GitHub กับ AI</h2>
+<p class="sub">ใช้ prompt นี้ให้ AI สร้างเว็บแล้ว push / เปิด PR / merge ขึ้น GitHub ให้เอง ต้องใช้ตัวที่เขียนโค้ดลง repo ได้</p>
+<div class="tabs"><button class="on" data-t="claude">Claude</button><button data-t="chatgpt">ChatGPT</button><button data-t="gemini">Gemini</button></div>
+
+<div class="pane on" id="t-claude">
+<span class="tag y">push · เปิด PR · merge ได้</span>
+<p><b>Claude Code on the web</b> (claude.ai/code)</p>
+<ol>
+<li>สร้าง repository บน GitHub ไว้ก่อน (session บนคลาวด์ทำงานกับ repo ที่มีอยู่แล้วเท่านั้น)</li>
+<li>เข้า <a href="https://claude.ai/code" target="_blank" rel="noopener">claude.ai/code</a> แล้วล็อกอิน ระบบจะให้กด <b>Connect GitHub</b> → อนุญาตบนหน้า GitHub → กลับมาที่ claude.ai/code</li>
+<li>ติดตั้ง <b>Claude GitHub App</b> ให้บัญชีหรือ organization ที่มี repo แล้วเลือก repo ที่จะให้ใช้ (ถ้าเป็น organization อาจต้องให้ owner อนุมัติ)</li>
+<li>เลือก repo แล้วเริ่ม session ใหม่ วาง prompt จากไฟล์นี้ได้เลย</li>
+</ol>
+<div class="note">ถ้าเชื่อมแล้วไม่เห็น repo ให้เช็กว่าแอปติดตั้งแล้วที่ <a href="https://github.com/settings/installations" target="_blank" rel="noopener">github.com/settings/installations</a> · ถ้าใช้ Claude Code ใน Terminal และมี GitHub CLI อยู่แล้ว เชื่อมได้ด้วยคำสั่ง <code>/web-setup</code></div>
+</div>
+
+<div class="pane" id="t-chatgpt">
+<span class="tag y">Codex: push · เปิด PR ได้</span><span class="tag n">ChatGPT ปกติ: อ่านอย่างเดียว</span>
+<p><b>Codex</b> (ใน ChatGPT)</p>
+<ol>
+<li>เปิด Codex ใน ChatGPT แล้วกดเชื่อม GitHub ระบบจะพาไป GitHub ให้อนุมัติแอป <b>ChatGPT Codex Connector</b></li>
+<li>เลือก repo ที่อนุญาตให้ใช้ (ต้องติดตั้งแยกให้แต่ละเจ้าของ repo, organization อาจต้องให้แอดมินอนุมัติ)</li>
+<li>สร้างงานใหม่ เลือก repo แล้ววาง prompt</li>
+<li>Codex ทำงานใน sandbox เสร็จแล้วตรวจ diff แล้วกด <b>Create PR</b> (บางเวอร์ชันเป็น Push แล้ว Create New PR)</li>
+<li>การ merge ให้กดใน GitHub หรือสั่งต่อได้ตามสิทธิ์ที่มี</li>
+</ol>
+<div class="note">GitHub app ใน ChatGPT แชตปกติ (Connectors) ใช้อ่าน/ค้นโค้ดเท่านั้น แก้โค้ดหรือ push ต้องใช้ Codex</div>
+</div>
+
+<div class="pane" id="t-gemini">
+<span class="tag y">Jules: push · เปิด PR ได้</span><span class="tag n">แอป Gemini: นำเข้าโค้ดอ่านอย่างเดียว</span>
+<p><b>Jules</b> (โค้ดดิ้งเอเจนต์ของ Google)</p>
+<ol>
+<li>เข้า <a href="https://jules.google.com" target="_blank" rel="noopener">jules.google.com</a> ล็อกอินด้วยบัญชี Google</li>
+<li>กด <b>Connect to GitHub account</b> ทำตามขั้นตอนล็อกอิน แล้วเลือก repo ทั้งหมดหรือบาง repo</li>
+<li>เลือก repo วาง prompt แล้วกด <b>Give me a plan</b> → อนุมัติแผน</li>
+<li>เสร็จแล้วกด <b>Publish PR</b> Jules จะ push branch และเปิด Pull Request ให้ แล้วกด merge ใน GitHub</li>
+</ol>
+<p><b>แอป Gemini</b> (gemini.google.com)</p>
+<ol>
+<li>บนคอมพิวเตอร์ กดปุ่มเพิ่มไฟล์ในช่องพิมพ์ → <b>Import code</b> → ใส่ URL ของ repo หรือ branch</li>
+<li>repo ส่วนตัวต้องเชื่อมบัญชี GitHub กับบัญชี Google ก่อน (ระบบจะให้เชื่อมเมื่อยังไม่ได้เชื่อม)</li>
+</ol>
+<div class="note">แอป Gemini นำเข้าโค้ดเป็นภาพนิ่ง ไม่ซิงก์และเขียนกลับ repo ไม่ได้ ได้ 1 repo ต่อแชต (ไม่เกิน 5,000 ไฟล์ / 100 MB) และใช้ได้เฉพาะบนคอมพิวเตอร์ ถ้าต้องการให้ push / PR ให้ใช้ Jules</div>
+</div>
+
+<div class="src">ข้อมูลจาก: <a href="https://code.claude.com/docs/en/web-quickstart" target="_blank" rel="noopener">Claude Code docs</a> · <a href="https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt-deep-research%5D" target="_blank" rel="noopener">OpenAI Help</a> · <a href="https://jules.google/docs" target="_blank" rel="noopener">Jules docs</a> · <a href="https://support.google.com/gemini/answer/16176929?hl=en" target="_blank" rel="noopener">Gemini Help</a> · ชื่อปุ่มอาจเปลี่ยนตามเวอร์ชัน</div>
+</section>
 </main>
 <script>
 var URL_MD='HUMnoi_bone_pin_prompt.md',text='';
 fetch(URL_MD,{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){text=t;document.getElementById('txt').textContent=t;document.getElementById('meta').textContent=t.length.toLocaleString()+' ตัวอักษร · UTF-8';}).catch(function(){document.getElementById('meta').textContent='โหลดตัวอย่างไม่สำเร็จ — กดดาวน์โหลดได้เลย';});
 document.getElementById('dl').addEventListener('click',function(e){if(!text)return;e.preventDefault();var b=new Blob([text],{type:'text/markdown;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='HUMnoi_bone_pin_prompt.md';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1000);document.getElementById('ok').textContent='เริ่มดาวน์โหลดแล้ว (iPhone/iPad: ดูในแอป ไฟล์ › ดาวน์โหลด)';});
 document.getElementById('cp').addEventListener('click',function(){if(!text)return;navigator.clipboard.writeText(text).then(function(){document.getElementById('ok').textContent='คัดลอกแล้ว';},function(){document.getElementById('ok').textContent='คัดลอกไม่ได้ ให้กดดาวน์โหลดแทน';});});
+document.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){document.querySelectorAll('.tabs button').forEach(function(x){x.classList.toggle('on',x===b)});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='t-'+b.dataset.t)});};});
 </script>
 </body>
 </html>
