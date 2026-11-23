@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795446828';
+import { DATA, SECS, LESSONS } from './data.js?v=1795447274';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,7 +81,7 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795446828').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795446828')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795447274').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795447274')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -105,11 +105,11 @@ let visCache = [], visBox = new THREE.Box3();
 function visibleList() { return visCache; }
 // ชิ้นที่ไม่ได้เลือก: ไม่ซ่อน แต่แสดงจางใส (ghost) ให้เห็นตำแหน่งในร่างกาย
 const ghostMat = new THREE.MeshStandardMaterial({ color: 0xcfd4dc, roughness: .6, transparent: true, opacity: .1, depthWrite: false });
-let ghostList = [];
+let ghostList = [], ghostOn = true; try { ghostOn = localStorage.getItem('hn-ghost') !== '0'; } catch (e) { }
 function setVisible(pred) {
   visCache = []; ghostList = [];
   meshes.forEach(m => { const on = !!pred(m); m.visible = true; m.userData.ghost = !on;
-    if (on) { if (m.material === ghostMat) m.material = m.userData_mat; visCache.push(m); } else { m.material = ghostMat; ghostList.push(m); m.renderOrder = -1; } });
+    if (on) { if (m.material === ghostMat) m.material = m.userData_mat; visCache.push(m); } else { m.material = ghostMat; m.visible = ghostOn; if (ghostOn) ghostList.push(m); m.renderOrder = -1; } });
   if (!visCache.length) { meshes.forEach(m => { m.material = m.userData_mat; m.userData.ghost = false; }); visCache = meshes.slice(); ghostList = []; }
   visBox = boxOf(visCache);
 }
@@ -577,6 +577,7 @@ function bookTarget() {
 function syncDock() {
   const set = (id, on, sub) => { const b = $(id); b.classList.toggle('on', !!on); b.querySelector('small').textContent = sub; };
   set('#tLabels', st.labels, st.labels ? 'เปิด' : 'ปิด');
+  set('#tGhost', ghostOn, ghostOn ? 'แสดงจาง ๆ' : 'ซ่อน');
   set('#tStyle', false, st.lstyle === 'pin' ? 'หมุด 3D' : 'เส้นชี้'); $('#tStyle').classList.toggle('na', !st.labels);
   $('#tStyle').querySelector('.ic-pin').style.display = st.lstyle === 'pin' ? '' : 'none'; $('#tStyle').querySelector('.ic-line').style.display = st.lstyle === 'line' ? '' : 'none';
   $$('[data-cmode]').forEach(b => b.classList.toggle('on', b.dataset.cmode === st.color));
@@ -593,6 +594,11 @@ $('#tStyle').onclick = () => {
 };
 $('#tColor').onclick = () => setColor(st.color === 'off' ? colorMode : 'off');
 $('#tInterior').onclick = toggleInterior;
+$('#tGhost').onclick = () => {
+  ghostOn = !ghostOn; try { localStorage.setItem('hn-ghost', ghostOn ? '1' : '0'); } catch (e) { }
+  meshes.forEach(m => { if (m.userData.ghost) m.visible = ghostOn; }); ghostList = ghostOn ? meshes.filter(m => m.userData.ghost) : [];
+  dirty = true; syncDock(); toast(ghostOn ? 'แสดงกระดูกส่วนอื่นแบบจาง ๆ' : 'ซ่อนกระดูกส่วนอื่น', ghostOn ? 'เห็นตำแหน่งในร่างกาย · แตะชิ้นจางเพื่อไปดู' : 'แสดงเฉพาะชิ้นที่เลือก');
+};
 $('#tBook').onclick = () => { const bt = bookTarget(); if (!bt.pg) return; openBook(bt.pg, bt.name); };
 const dock = $('#dock'), LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { } };
 function placeDock(y) { // y = ตำแหน่งบนสุดของแถบ (px จากบน stage)
