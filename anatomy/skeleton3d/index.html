@@ -76,6 +76,10 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .lbl{position:absolute;left:0;top:0;pointer-events:auto;overflow:hidden;font:600 12.5px/1.2 var(--f);color:#111;background:rgba(244,244,246,.95);border:0;padding:5px 10px;border-radius:7px;white-space:nowrap;will-change:transform;animation:lblin .35s both;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .lbl.dim{background:#3a3a40;color:#c9c9cf;opacity:.8}
 .lbl.foc{background:var(--ac)!important;color:#1a1006!important;opacity:1}
+.lbl.ln{background:#111114;color:#f2f2f2;border:1px solid #3a3a40;font-weight:500;font-size:13px;padding:6px 10px;box-shadow:none}
+.lbl.ln.dim{background:#111114;color:#f2f2f2;opacity:.45}
+.lbl.ln.foc{background:#1a120a!important;color:var(--ac)!important;border-color:var(--ac)}
+#tStyle.na{opacity:.45}
 @keyframes lblin{from{opacity:0}to{opacity:1}}
 
 #crumbs{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;z-index:5;pointer-events:none}
@@ -247,7 +251,8 @@ body.navhide #app{grid-template-columns:0 1fr var(--pn)}body.navhide #nav{visibi
     <div id="dock" aria-label="เครื่องมือ">
       <button class="dk-show press" id="dkShow" aria-label="แสดงเครื่องมือ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 6l-6 6 6 6"/></svg><span>เครื่องมือ</span></button>
       <div class="dk-top"><div class="dk-grip" id="dkGrip" title="ลากเพื่อย้ายขึ้นลง"><i></i><i></i><span>เครื่องมือ</span></div><button class="dk-x" id="dkHide" aria-label="ซ่อนเครื่องมือ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg></button></div>
-      <button class="dk" id="tLabels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="5.5" cy="17.5" r="2.2"/><path d="M7.3 15.8 13 10h7"/><path d="M13 6h7"/></svg><span>หมุดชื่อ</span><small></small></button>
+      <button class="dk" id="tLabels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="5.5" cy="17.5" r="2.2"/><path d="M7.3 15.8 13 10h7"/><path d="M13 6h7"/></svg><span>ป้ายชื่อ</span><small></small></button>
+      <button class="dk" id="tStyle"><svg class="ic-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="15" cy="7" r="3.2" fill="currentColor" fill-opacity=".25"/><path d="M13 9.5 5 19"/><path d="M4 21h4" stroke-opacity=".5"/></svg><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="6" cy="16" r="2"/><path d="M7.6 14.6 12 9h3"/><rect x="15" y="6" width="7" height="6" rx="1.5"/></svg><span>แบบชี้</span><small></small></button>
       <button class="dk" id="tColor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3.5 9h17M3.5 15h17" stroke-opacity=".5"/></svg><span>สี</span><small></small></button>
       <button class="dk" id="tInterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 3c-2 0-3 2-2 4l1 2v6l-1 2c-1 2 0 4 2 4M16 3c2 0 3 2 2 4l-1 2v6l1 2c1 2 0 4-2 4"/><path d="M12 2v20" stroke-dasharray="2 2.5"/></svg><span>ภายใน</span><small></small></button>
       <button class="dk" id="tBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg><span>สมุด</span><small></small></button>
@@ -260,6 +265,6 @@ body.navhide #app{grid-template-columns:0 1fr var(--pn)}body.navhide #nav{visibi
 </div>
 <div id="scrim"></div>
 <div id="book" hidden><div class="bar"><div class="bt"><b>สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
-<script type="module" src="app.js?v=1795436189"></script>
+<script type="module" src="app.js?v=1795436885"></script>
 </body>
 </html>
