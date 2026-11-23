@@ -6,7 +6,16 @@ def load(fn):
     p=l.split('\t')
     if len(p)>=3:d.setdefault(p[1].strip(),(p[0],[]))[1].append(p[2].strip())
   return d
-EL={'partof':load('partof_element_parts.txt'),'isa':load('isa_element_parts.txt')}
+V3=os.path.exists(os.path.join(R,'parts_list_e.txt')) and not os.path.exists(os.path.join(R,'isa_element_parts.txt'))
+if V3:  # BodyParts3D 3.0 (obj_95 ละเอียดกว่า): 1 ไฟล์ OBJ ต่อ FMA ID
+  OBJ={os.path.splitext(f)[0]:os.path.join(dp,f) for dp,_,fs in os.walk(R) for f in fs if f.endswith('.obj')}
+  N3={}
+  for l in open(os.path.join(R,'parts_list_e.txt'),encoding='utf-8',errors='ignore').read().splitlines()[1:]:
+    p=l.split('\t')
+    if len(p)>=2 and p[0].strip() in OBJ:N3.setdefault(p[1].strip(),p[0].strip())
+  EL={'partof':{k:(v,[v]) for k,v in N3.items()},'isa':{}}
+else:
+  EL={'partof':load('partof_element_parts.txt'),'isa':load('isa_element_parts.txt')}
 ORD=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth']
 S={'L':'left','R':'right'}
 T=[]  # (node, [candidate names])
@@ -34,6 +43,10 @@ for v,n in [('C1','atlas'),('C2','axis')]+[(f'C{i}',f'{ORD[i-1]} cervical verteb
   if v!='C1':t('disc_'+v,'intervertebral disk of '+n if v!='C2' else 'intervertebral disk of axis')
 cache={};
 def obj(fj):
+  if V3:
+    p=OBJ.get(fj)
+    if p and p not in cache:cache[p]=trimesh.load(p,force='mesh',process=False)
+    return cache.get(p)
   for sub in ['partof/partof_BP3D_4.0_obj_99','isa/isa_BP3D_4.0_obj_99']:
     p=os.path.join(R,sub,fj+'.obj')
     if os.path.exists(p):

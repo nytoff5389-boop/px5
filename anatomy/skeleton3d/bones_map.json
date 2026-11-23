@@ -49,7 +49,7 @@
  },
  "sternum": {
   "fma": [
-   "FMA7485"
+   "FMA7486"
   ],
   "en": "sternum"
  },
@@ -1348,6 +1348,12 @@
    "FMA10081"
   ],
   "en": "twelfth thoracic vertebra"
+ },
+ "disc_T12": {
+  "fma": [
+   "FMA13509"
+  ],
+  "en": "intervertebral disk of twelfth thoracic vertebra"
  },
  "vert_L1": {
   "fma": [

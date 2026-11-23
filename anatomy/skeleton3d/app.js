@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795435198';
+import { DATA, SECS, LESSONS } from './data.js?v=1795436189';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -49,7 +49,7 @@ const TOP = { skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine',
 /* ---------- three setup ---------- */
 const stage = $('#stage'), cvs = $('#cvs');
 const R = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
-const PR_IDLE = Math.min(devicePixelRatio, 2), PR_MOVE = Math.min(devicePixelRatio, .85);
+const PR_IDLE = Math.min(devicePixelRatio, 2); let PR_MOVE = Math.min(devicePixelRatio, 2); // ปรับตามความเร็วเครื่องจริง
 let prNow = PR_IDLE; R.setPixelRatio(prNow); R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace; R.localClippingEnabled = true;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
 const cam = new THREE.PerspectiveCamera(30, 1, .005, 50);
@@ -62,7 +62,14 @@ ctl.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 let dirty = true, idleT = 0, moving = false;
 const need = () => { dirty = true; };
 function setPR(v) { if (v === prNow) return; prNow = v; const r = stageRect(); R.setPixelRatio(v); R.setSize(r.width, r.height, false); dirty = true; }
-function motion() { // ลดความละเอียดระหว่างหมุน แล้วคืนค่าเมื่อหยุด
+let lastT = 0, slow = 0, fast = 0;
+function adapt(now) { // ถ้าหมุนแล้วเฟรมช้ากว่า ~45fps ค่อย ๆ ลดความละเอียด ถ้าเร็วพอค่อย ๆ เพิ่มกลับ
+  const dt = now - lastT; lastT = now; if (!moving || dt > 100) return;
+  if (dt > 22) { slow++; fast = 0; } else if (dt < 15) { fast++; slow = 0; }
+  if (slow > 6 && PR_MOVE > 1) { PR_MOVE = Math.max(1, +(PR_MOVE - .25).toFixed(2)); setPR(PR_MOVE); slow = 0; }
+  if (fast > 40 && PR_MOVE < PR_IDLE) { PR_MOVE = Math.min(PR_IDLE, +(PR_MOVE + .25).toFixed(2)); setPR(PR_MOVE); fast = 0; }
+}
+function motion() { // ระหว่างหมุนใช้ความละเอียดที่เครื่องไหว แล้วคืนค่าเต็มเมื่อหยุด
   moving = true; setPR(PR_MOVE); clearTimeout(idleT);
   idleT = setTimeout(() => { moving = false; setPR(PR_IDLE); occDirty = true; dirty = true; }, 220);
 }
@@ -73,12 +80,12 @@ const st = { scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labe
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795435198').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795435198')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795436189').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795436189')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
     if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
-    o.material = new THREE.MeshLambertMaterial({ color: IVORY }); // Lambert เบากว่า Standard บน GPU มือถือ
+    o.material = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .5, metalness: 0 });
     o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
     o.userData = { n, id: p.id, side: p.side }; meshes.push(o); byName[n] = o;
     // anchor = จุดบนผิวที่ใกล้ centroid
@@ -327,7 +334,10 @@ function textSprite(t, foc) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
   sp.center.set(-.12, .5); sp.userData.aspect = w / h; return sp;
 }
-function sizeSprite(it) { const h = pinLen() * .5; it.spr.scale.set(h * it.spr.userData.aspect, h, 1); it.spr.position.copy(it.headP); }
+function sizeSprite(it) { // ป้าย 3D: สูงประมาณ 20px บนจอเสมอ (ไม่ใหญ่ล้นเวลาซูม) แต่ไม่ใหญ่เกินขนาดหมุด
+  const d = cam.position.distanceTo(it.headP), px = 20 / (stageRect().height || 800), h = Math.min(pinLen() * .7, 2 * d * Math.tan(cam.fov * Math.PI / 360) * px);
+  it.spr.scale.set(h * it.spr.userData.aspect, h, 1); it.spr.position.copy(it.headP);
+}
 function buildLabelDom() {
   lblBox.textContent = ''; svg.textContent = ''; pinGroup.traverse(o => o.material?.map?.dispose()); pinGroup.clear();
   labelItems.forEach((it, i) => {
@@ -560,6 +570,6 @@ R.setAnimationLoop(() => {
   ctl.update();
   if (!dirty) return; dirty = false;
   if (st.interior && st.iso) { const m = byName[st.iso[0]]; const c = m.userData.inAxis ? m.userData.inAxis.at(.5).c : visBox.getCenter(V3()); const n = ctl.target.clone().sub(cam.position).normalize(); clip.setFromNormalAndCoplanarPoint(n, c); }
-  R.render(scene, cam); drawLabels();
+  drawLabels(); labelItems.forEach(it => it.spr && sizeSprite(it)); R.render(scene, cam); adapt(performance.now());
 });
 window.__humnoi = { R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };

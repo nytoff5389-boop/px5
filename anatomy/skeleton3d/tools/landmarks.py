@@ -215,8 +215,19 @@ for s in 'LR':
         hv = F.V[(F.v > .9) & (F.m > .55)]; c, r = sphere_fit(hv)
         H = np.asarray(G[f'hip_{s}'].vertices); i = np.argmin(np.linalg.norm(H - c, axis=1))
         LM[f'hip_{s}']['Acetabulum'] = [round(float(x), 5) for x in (H[i] * .5 + c * .5)]
-        Fh = Frame(H, s); k = (Fh.v < .3) & (Fh.v > .08) & (Fh.a > .5) & (Fh.a < .85) & (Fh.m > .3) & (Fh.m < .7)
-        LM[f'hip_{s}']['Obturator foramen'] = [round(float(x), 5) for x in H[k].mean(0)] if k.any() else None
+        # obturator foramen = รูปิดล้อมเดียวในภาพฉายด้านข้าง (z,y) ของครึ่งล่าง hip bone (สุ่มจุดบนผิวแบบหนาแน่น)
+        from scipy import ndimage
+        Ps, _ = trimesh.sample.sample_surface(G[f'hip_{s}'], 300000, seed=1); P = Ps[Ps[:, 1] < c[1]]
+        n = 120; lo2 = P[:, [2, 1]].min(0); hi2 = P[:, [2, 1]].max(0); cell = (hi2 - lo2) / (n - 1)
+        ij = ((P[:, [2, 1]] - lo2) / cell).astype(int); occ = np.zeros((n, n), bool); occ[ij[:, 0], ij[:, 1]] = True
+        occ = ndimage.binary_closing(occ, iterations=1); hole = ndimage.binary_fill_holes(occ) & ~occ
+        lab, k = ndimage.label(hole)
+        if k:
+            big = 1 + int(np.argmax([(lab == q).sum() for q in range(1, k + 1)])); ii, jj = np.where(lab == big)
+            zc, yc = lo2 + np.array([ii.mean(), jj.mean()]) * cell
+            d2 = np.hypot(H[:, 2] - zc, H[:, 1] - yc); lat = (H[:, 0] < np.median(H[:, 0])) if s == 'R' else (H[:, 0] > np.median(H[:, 0]))
+            cand = np.where(lat)[0]; pick = cand[np.argmin(d2[cand])]  # ปักที่ขอบรูด้านนอก
+            LM[f'hip_{s}']['Obturator foramen'] = [round(float(x), 5) for x in H[pick]]
 def near(a, b):  # จุดบน a ที่ใกล้ b ที่สุด
     A = np.asarray(G[a].vertices); d, i = cKDTree(np.asarray(G[b].vertices)).query(A); return A, d
 for s in 'LR':
@@ -319,7 +330,6 @@ for n, g in G.items():
 for n, R in REGIDX.items():
     G[n].vertex_attributes['_region'] = R.astype(np.float32)
 # trimesh exports custom vertex_attributes as _NAME
-for g in G.values(): g.vertex_normals  # คำนวณ normal ไว้ใน GLB (ไม่ต้องคำนวณบน iPad)
-sc.export(out + '/skeleton_lm_raw.glb', include_normals=True)
+sc.export(out + '/skeleton_lm_raw.glb', include_normals=False)  # ไม่เก็บ normal (ถ้าเก็บจะถูกบีบเป็น 8-bit ทำให้เงาไม่เนียน) — คำนวณบนเครื่องแทน
 json.dump({'landmarks': LM, 'regions': REG}, open(out + '/landmarks.json', 'w'), ensure_ascii=False)
 print('landmarked', len(LM), 'regions', len(REG))
