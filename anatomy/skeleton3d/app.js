@@ -49,7 +49,7 @@ const TOP = { skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine',
 /* ---------- three setup ---------- */
 const stage = $('#stage'), cvs = $('#cvs');
 const R = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
-const PR_IDLE = Math.min(devicePixelRatio, 1.5), PR_MOVE = Math.min(devicePixelRatio, .85);
+const PR_IDLE = Math.min(devicePixelRatio, 2), PR_MOVE = Math.min(devicePixelRatio, .85);
 let prNow = PR_IDLE; R.setPixelRatio(prNow); R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace; R.localClippingEnabled = true;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
 const cam = new THREE.PerspectiveCamera(30, 1, .005, 50);
@@ -203,10 +203,11 @@ cvs.addEventListener('pointermove', e => { if (down && Math.hypot(e.clientX - do
 const up = e => { nP = Math.max(0, nP - 1); if (!down || e.type !== 'pointerup') return down = null; const ok = performance.now() - down.t < 300; down = null; if (ok) tap(e.clientX, e.clientY); };
 cvs.addEventListener('pointerup', up); cvs.addEventListener('pointercancel', up);
 function pick(x, y) {
-  const r = cvs.getBoundingClientRect(); ptr.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, cam);
   return ray.intersectObjects(visibleList(), false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0)?.object;
 }
 function tap(x, y) {
+  { const r = cvs.getBoundingClientRect(); ptr.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, cam); }
+  if (labelItems.length) { const h = ray.intersectObjects(labelItems.map(i => i.spr), false)[0]; if (h) return labelClick(h.object.userData.item); }
   const m = pick(x, y); if (!m || !m.userData.id) return;
   const { id, n, side } = m.userData;
   if (st.iso && st.iso.length === 1) return;
@@ -309,7 +310,7 @@ function normalAt(mesh, p) { // normal ของจุดบนผิวที�
 }
 function pinLen() { const s = visBox.getSize(V3()); return Math.min(Math.max(s.x, s.y, s.z) * .075, .045); }
 function placePin(it, i) {
-  const L = pinLen() * (i % 2 ? 1.35 : 1), m = byName[it.node];
+  const L = pinLen() * [1, 1.5, 2][i % 3], m = byName[it.node];
   let n = it.dirv ? it.dirv.clone() : m ? normalAt(m, it.p) : null;
   if (!n) n = it.p.clone().sub(visBox.getCenter(V3())).normalize();
   if (!it.dirv) n.add(V3(0, .25, 0)).normalize(); // เอียงขึ้นเล็กน้อยให้อ่านง่าย
@@ -317,15 +318,23 @@ function placePin(it, i) {
   it.needle.position.copy(it.p); it.needle.quaternion.copy(q); it.needle.scale.set(r, L, r);
   it.headP = it.p.clone().addScaledVector(n, L); it.head.position.copy(it.headP); it.head.scale.setScalar(hr); it.hr = hr;
 }
+function textSprite(t, foc) {
+  const fs = 56, pad = 22, c = document.createElement('canvas'), x = c.getContext('2d'); x.font = `600 ${fs}px Inter, "IBM Plex Sans Thai", sans-serif`;
+  const w = Math.ceil(x.measureText(t).width) + pad * 2, h = fs + pad * 1.3; c.width = w; c.height = h;
+  x.font = `600 ${fs}px Inter, "IBM Plex Sans Thai", sans-serif`; x.fillStyle = foc ? '#ff9f43' : 'rgba(246,246,248,.96)';
+  x.beginPath(); x.roundRect(0, 0, w, h, h * .28); x.fill(); x.fillStyle = foc ? '#1a1006' : '#111'; x.textBaseline = 'middle'; x.fillText(t, pad, h / 2 + 2);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.generateMipmaps = true;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
+  sp.center.set(-.12, .5); sp.userData.aspect = w / h; return sp;
+}
+function sizeSprite(it) { const h = pinLen() * .5; it.spr.scale.set(h * it.spr.userData.aspect, h, 1); it.spr.position.copy(it.headP); }
 function buildLabelDom() {
-  lblBox.textContent = ''; svg.textContent = ''; pinGroup.clear();
+  lblBox.textContent = ''; svg.textContent = ''; pinGroup.traverse(o => o.material?.map?.dispose()); pinGroup.clear();
   labelItems.forEach((it, i) => {
-    const e = document.createElement('button'); e.className = 'lbl'; e.textContent = it.t; e.onclick = () => labelClick(it); e.style.animationDelay = Math.min(i * 18, 300) + 'ms'; lblBox.appendChild(e); it.el = e;
     it.needle = new THREE.Mesh(NEEDLE, needleMat); it.head = new THREE.Mesh(HEADG, headMat); it.needle.raycast = it.head.raycast = () => { };
     pinGroup.add(it.needle, it.head); placePin(it, i);
+    it.spr = textSprite(it.t, false); it.spr.userData.item = it; pinGroup.add(it.spr); sizeSprite(it);
   });
-  labelItems.forEach(it => { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; }); // วัดครั้งเดียว
-  occDirty = true;
 }
 function updateOcclusion() {
   const vis = visibleList(); occDirty = false;
@@ -333,35 +342,14 @@ function updateOcclusion() {
   labelItems.forEach(it => { const tp = it.headP || it.p, dir = tp.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
 }
 function drawLabels() {
-  if (!st.labels || !root) { if (labelItems.length) { lblBox.textContent = ''; pinGroup.clear(); labelItems = []; } return; }
-  const r = stageRect();
+  if (!st.labels || !root) { if (labelItems.length) { pinGroup.clear(); labelItems = []; } return; }
   if (labelsDirty) { labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
-  else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => { const it = labelItems[i]; if (it) { it.p = f.p; it.dirv = f.dirv; placePin(it, i); } }); }
-  if (!labelItems.length) return;
-  const f = freeRect();
-  if (occDirty && !moving) updateOcclusion();
-  const pxPer = it => { const a = project(it.headP, r), b = project(it.headP.clone().add(cam.up.clone().multiplyScalar(it.hr)), r); return Math.abs(a.y - b.y); };
-  labelItems.forEach(it => { it.s = project(it.headP, r); it.foot = project(it.p, r); it.hp = pxPer(it); });
-  // ชื่ออยู่ข้างหัวหมุด (ฝั่งที่เข็มชี้ออก) หลบกันไม่ให้ทับ
-  const placed = [], order = labelItems.slice().sort((a, b) => (a.hidden - b.hidden) || (a.s.z - b.s.z));
-  const hit = q => placed.some(o => q.x < o.x + o.w + 3 && q.x + q.w + 3 > o.x && q.y < o.y + o.h + 2 && q.y + q.h + 2 > o.y);
-  const inb = q => q.x >= 4 && q.x + q.w <= f.r - 4 && q.y >= f.t && q.y + q.h <= f.b;
-  for (const it of order) {
-    it.off = it.s.z > 1; if (it.off) continue;
-    const pref = it.s.x >= it.foot.x ? 1 : -1, gap = it.hp + 5; let best = null;
-    for (const dy of [0, -1, 1, -2, 2, -3, 3]) { for (const sd of [pref, -pref]) {
-      const q = { x: sd > 0 ? it.s.x + gap : it.s.x - gap - it.w, y: it.s.y - it.h / 2 + dy * (it.h + 3), w: it.w, h: it.h };
-      if (inb(q) && !hit(q)) { best = q; break; } } if (best) break; }
-    if (!best) best = { x: Math.max(4, Math.min(f.r - it.w - 4, pref > 0 ? it.s.x + gap : it.s.x - gap - it.w)), y: it.s.y - it.h / 2, w: it.w, h: it.h };
-    placed.push(best); it.q = best;
-  }
+  else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => { const it = labelItems[i]; if (it) { it.p = f.p; it.dirv = f.dirv; placePin(it, i); sizeSprite(it); } }); }
+  if (occDirty && !moving) { updateOcclusion(); labelItems.forEach(it => { it.spr.material.opacity = it.hidden ? .3 : 1; it.spr.renderOrder = it.hidden ? 1 : 3; }); }
   labelItems.forEach(it => {
-    if (it.off) { it.el.style.visibility = 'hidden'; return; }
-    it.el.style.visibility = '';
-    const foc = st.focus && st.focus === it.part;
-    it.el.style.transform = `translate3d(${it.q.x | 0}px,${it.q.y | 0}px,0)`;
-    if (it._hid !== !!it.hidden) { it.el.classList.toggle('dim', !!it.hidden); it._hid = !!it.hidden; }
-    if (it._foc !== !!foc) { it.el.classList.toggle('foc', !!foc); it._foc = !!foc; it.head.material = foc ? headFoc : headMat; it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1)); }
+    const foc = !!(st.focus && st.focus === it.part);
+    if (it._foc !== foc) { it._foc = foc; it.head.material = foc ? headFoc : headMat; it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1));
+      const old = it.spr; it.spr = textSprite(it.t, foc); it.spr.userData.item = it; pinGroup.remove(old); old.material.map.dispose(); pinGroup.add(it.spr); sizeSprite(it); it.spr.renderOrder = foc ? 2 : 1; }
   });
 }
 function labelClick(it) {
@@ -369,7 +357,7 @@ function labelClick(it) {
   if (it.node) { if (['all', 'axial', 'appendicular'].includes(st.scope) && !st.iso) { const top = TOP[D[it.id].sec]; return openScope(top, { side: byName[it.node].userData.side || st.side }); } openEntry(it.id, st.iso ? it.node : null, { keepScope: 1 }); }
 }
 function setFocus(name) {
-  st.focus = name; applyColor(); dirty = true;
+  st.focus = name; applyColor(); drawLabels(); dirty = true;
   $$('#panel [data-part]').forEach(e => e.classList.toggle('foc', e.dataset.part === name));
   const el = $(`#panel [data-part="${CSS.escape(name || '')}"]`); el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
@@ -502,6 +490,22 @@ function navToggle() {
   const h = document.body.classList.toggle('navhide'); LS('hn-navhide', h ? '1' : '0'); toast(h ? 'ซ่อนแถบสารบัญ' : 'แสดงแถบสารบัญ', h ? 'กดปุ่ม ☰ มุมซ้ายบนเพื่อเปิดอีกครั้ง' : '');
 }
 if (LS('hn-navhide') === '1') document.body.classList.add('navhide');
+// แถบมุมมอง: ซ่อน/แสดง
+const vb = $('#viewbar');
+function setVB(h, quiet) { vb.classList.toggle('hid', h); LS('hn-vbhide', h ? '1' : '0'); setTimeout(() => { invalidate(); viewOff(); frame(visibleList()); }, 20); if (!quiet) toast(h ? 'ซ่อนแถบมุมมอง' : 'แสดงแถบมุมมอง', h ? 'กด "มุมมอง" ด้านล่างเพื่อเปิดอีกครั้ง' : ''); }
+if (LS('hn-vbhide') === '1') vb.classList.add('hid');
+$('#vbHide').onclick = e => { e.stopPropagation(); setVB(true); };
+$('#vbShow').onclick = e => { e.stopPropagation(); setVB(false); };
+// โหมดเต็มจอ: ซ่อนสารบัญ + เครื่องมือ + มุมมอง ในครั้งเดียว
+function syncFocusBtn() { const all = vb.classList.contains('hid') && dock.classList.contains('hid') && (document.body.classList.contains('navhide') || innerWidth < 1100); $('#focusBtn').classList.toggle('on', all); }
+$('#focusBtn').onclick = () => {
+  const on = !$('#focusBtn').classList.contains('on');
+  document.body.classList.toggle('navhide', on && innerWidth >= 1100); document.body.classList.remove('navopen'); LS('hn-navhide', on ? '1' : '0');
+  dock.classList.toggle('hid', on); LS('hn-dockhide', on ? '1' : '0'); setVB(on, true);
+  setTimeout(() => { placeDock(dock.offsetTop); syncFocusBtn(); }, 30);
+  toast(on ? 'โหมดเต็มจอ' : 'แสดงแถบทั้งหมด', on ? 'ซ่อนสารบัญ เครื่องมือ และมุมมอง · กดปุ่มเดิมเพื่อแสดงกลับ' : '');
+};
+setInterval(syncFocusBtn, 800);
 let toastT = 0;
 function toast(t, sub = '') { const e = $('#toast'); e.innerHTML = `<b>${esc(t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('show'), 2200); }
 // ripple ตอนกดปุ่ม
