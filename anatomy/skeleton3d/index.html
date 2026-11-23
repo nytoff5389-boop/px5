@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#000000">
 <title>HUMnoi</title>
 <script>/* อัปเดตอัตโนมัติ: ถ้ามีเวอร์ชันใหม่บนเว็บ ให้โหลดหน้าใหม่ทันที (กัน Safari จำหน้าเก่า) */
-window.HN_BUILD='1795437105';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
+window.HN_BUILD='1795438086';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -206,6 +206,21 @@ body.navhide #app{grid-template-columns:0 1fr var(--pn)}body.navhide #nav{visibi
 #bimg{max-width:none;width:100%;border-radius:6px;background:#fff}
 @media (min-width:900px){#bimg{width:min(100%,820px)}}
 
+
+/* ---------- lock screen ---------- */
+#lock{position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:center;justify-content:center;padding:24px;touch-action:none}
+#lock[hidden]{display:none}
+#lock.out{animation:lkout .35s forwards}@keyframes lkout{to{opacity:0;transform:scale(1.03)}}
+.lk-card{width:min(380px,100%);background:var(--s1);border:1px solid var(--line2);border-radius:18px;padding:28px 24px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lk-ic{width:52px;height:52px;margin:0 auto 12px;border-radius:14px;background:var(--ac2);color:var(--ac);display:flex;align-items:center;justify-content:center}.lk-ic svg{width:26px;height:26px}
+.lk-card h1{margin:0;font:700 26px/1 Inter,sans-serif;letter-spacing:-.02em}.lk-card h1 span{color:var(--ac)}
+.lk-card p{margin:8px 0 18px;color:var(--tx2);font-size:14px}
+#lkIn{width:100%;height:52px;border-radius:12px;border:1px solid var(--line2);background:var(--s2);color:var(--tx);font:600 22px/1 Inter,monospace;letter-spacing:.12em;text-align:center;outline:none;-webkit-user-select:text;user-select:text}
+#lkIn:focus{border-color:var(--ac)}
+#lkBtn{margin-top:12px;width:100%;height:50px;border-radius:12px;background:var(--ac);color:#1a1006;font-size:16px;font-weight:700;position:relative;overflow:hidden;transition:transform .12s}
+#lkBtn:active{transform:scale(.97)}#lkBtn:disabled{opacity:.6}
+#lkMsg{min-height:20px;margin-top:10px;font-size:13px;color:#ff7a6b}
+.lk-card.shake{animation:shake .4s}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 /* ---------- responsive ---------- */
 #scrim{display:none}
 @media (max-width:1099px){
@@ -239,6 +254,50 @@ body.navhide #app{grid-template-columns:0 1fr var(--pn)}body.navhide #nav{visibi
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
+<div id="lock" hidden>
+  <form class="lk-card" id="lkForm" autocomplete="off">
+    <div class="lk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <h1>HUM<span>noi</span></h1>
+    <p>กรอกรหัสเพื่อเข้าใช้งาน<br>เข้าได้ครั้งแรกแล้ว เครื่องนี้จะไม่ถามรหัสอีก</p>
+    <input id="lkIn" inputmode="numeric" pattern="[0-9]*" maxlength="16" placeholder="รหัส 10 หลัก" aria-label="รหัสปลดล็อค">
+    <button id="lkBtn" type="submit">ปลดล็อค</button>
+    <div id="lkMsg" role="alert"></div>
+  </form>
+</div>
+<script>
+/* ล็อคหน้าเว็บ: เก็บเฉพาะค่าแฮช (PBKDF2-SHA256) ของรหัส ไม่เก็บรหัสจริง
+   ปลดล็อคแล้วจำไว้ในเครื่อง จนกว่าจะรีเซ็ตทั้งหมด (เพิ่มเลข epoch ใน lock.json) */
+(function () {
+  var CFG = { salt: '7744ec0fe1fda13bb3c6cc52f8d7e6e8', it: 200000, h: ["04fff50fd7a2123b0fb5bb292330138682580274681e706a56dd2825e6fb6bcc", "0a2bc863217cbc593952869e806cc31a4cc01f632d04f7d22c650d6e4c771490", "1bb6b1cdc337f25493195b08b7d4e7a242ebba6f1c969bd1b004f88c3535e49d", "29a6af801817d35852431d9d7ca9be466ed8d31a067e991f07ba4bd7760b337a", "51431e2df346a04e4738686c3417344412e5405b4c08d66fe4ce826107d59602", "67d7928c34db5650ade10d4706be93fcc01db6d61d2b4e52ba77f855c6f40229", "75b295bb223c070ffb1396f58cc1c543abf50f98b8fbee17d2aceaa724d5fe48", "86a309f459b952e565400e05e351f98224425be4bb7f17e63f4a5d3cb60a80e1", "8cf00c9189405cdc754b96030e57ed12cd7db3c09404b8ea434020fe834a152e", "a83a21fd0f5ff6a5b820eb80b2cca43afc3b62f0f1f22f334e1d9af0ee0afff3", "a83fe91f0c87a14b6f84564a6cedfb110dd4e478aeae330fd0f8fe35486b8df1", "aa80620f13c440ad45e68433328f0347ba3de5d57d151006756c755c7fba3f04", "b7c573f5d9774823faa1f05eae830640e2181b629be990c3d34f07b47282b9c8", "e22ecf7c763b5d1c3e093d3d77f9e9454691799d125620d6920af5b737b41d35"] }, EPOCH0 = 1, KEY = 'hn-unlock';
+  var el = document.getElementById('lock'), get = function () { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
+  function check(epoch) { if (get() === String(epoch)) { el.hidden = true; } else { el.hidden = false; setTimeout(function () { var i = document.getElementById('lkIn'); i && i.focus(); }, 50); } window.HN_EPOCH = epoch; }
+  check(EPOCH0);
+  fetch('lock.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.epoch) check(j.epoch); }).catch(function () { });
+  function hex(b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }
+  async function derive(code) {
+    var k = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
+    var salt = new Uint8Array(CFG.salt.match(/../g).map(function (x) { return parseInt(x, 16); }));
+    return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: CFG.it }, k, 256));
+  }
+  var fails = 0;
+  document.getElementById('lkForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var inp = document.getElementById('lkIn'), btn = document.getElementById('lkBtn'), msg = document.getElementById('lkMsg'), card = this;
+    var code = inp.value.replace(/\D/g, ''); if (!code) { msg.textContent = 'กรุณากรอกรหัส'; return; }
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ…'; msg.textContent = '';
+    var ok = false; try { ok = CFG.h.indexOf(await derive(code)) >= 0; } catch (err) { msg.textContent = 'เบราว์เซอร์นี้ตรวจรหัสไม่ได้'; }
+    if (ok) {
+      try { localStorage.setItem(KEY, String(window.HN_EPOCH || EPOCH0)); } catch (err) { }
+      el.classList.add('out'); setTimeout(function () { el.hidden = true; el.classList.remove('out'); }, 350);
+    } else {
+      fails++; card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+      if (!msg.textContent) msg.textContent = 'รหัสไม่ถูกต้อง';
+      await new Promise(function (r) { setTimeout(r, Math.min(fails * 400, 3000)); });
+    }
+    btn.disabled = false; btn.textContent = 'ปลดล็อค'; if (!ok) { inp.select(); }
+  });
+})();
+</script>
 <div id="app">
   <header id="hd">
     <button id="menu" aria-label="แสดง/ซ่อนสารบัญ" title="แสดง/ซ่อนสารบัญ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -268,6 +327,6 @@ body.navhide #app{grid-template-columns:0 1fr var(--pn)}body.navhide #nav{visibi
 </div>
 <div id="scrim"></div>
 <div id="book" hidden><div class="bar"><div class="bt"><b>สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
-<script type="module" src="app.js?v=1795437105"></script>
+<script type="module" src="app.js?v=1795438086"></script>
 </body>
 </html>
