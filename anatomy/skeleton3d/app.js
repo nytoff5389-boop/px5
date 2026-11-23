@@ -49,7 +49,8 @@ const TOP = { skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine',
 /* ---------- three setup ---------- */
 const stage = $('#stage'), cvs = $('#cvs');
 const R = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
-R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace; R.localClippingEnabled = true;
+const PR_IDLE = Math.min(devicePixelRatio, 1.5), PR_MOVE = Math.min(devicePixelRatio, 1);
+let prNow = PR_IDLE; R.setPixelRatio(prNow); R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace; R.localClippingEnabled = true;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
 const cam = new THREE.PerspectiveCamera(30, 1, .005, 50);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x1a1a1a, .75));
@@ -58,6 +59,14 @@ const fill = new THREE.DirectionalLight(0xffffff, .5); fill.position.set(-3, 0, 
 const rim = new THREE.DirectionalLight(0x9fcbff, .7); rim.position.set(0, 2, -4); cam.add(rim); scene.add(cam);
 const ctl = new OrbitControls(cam, cvs); ctl.enableDamping = true; ctl.dampingFactor = .08; ctl.rotateSpeed = .9;
 ctl.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+let dirty = true, idleT = 0, moving = false;
+const need = () => { dirty = true; };
+function setPR(v) { if (v === prNow) return; prNow = v; const r = stageRect(); R.setPixelRatio(v); R.setSize(r.width, r.height, false); dirty = true; }
+function motion() { // ลดความละเอียดระหว่างหมุน แล้วคืนค่าเมื่อหยุด
+  moving = true; setPR(PR_MOVE); clearTimeout(idleT);
+  idleT = setTimeout(() => { moving = false; setPR(PR_IDLE); occDirty = true; dirty = true; }, 220);
+}
+ctl.addEventListener('change', () => { need(); motion(); });
 
 let LMJ = { landmarks: {}, regions: [] }, meshes = [], byName = {}, root = null;
 const st = { scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labels: true, color: 'parts', interior: false, focus: null, hist: [] };
@@ -69,7 +78,8 @@ Promise.all([fetch('landmarks.json').then(r => r.json()).catch(() => LMJ), loade
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
     if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
-    o.material = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .55, metalness: 0, side: THREE.DoubleSide });
+    o.material = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .55, metalness: 0 });
+    o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
     o.userData = { n, id: p.id, side: p.side }; meshes.push(o); byName[n] = o;
     // anchor = จุดบนผิวที่ใกล้ centroid
     const pa = o.geometry.attributes.position, c = V3(), t = V3(); const step = Math.max(1, pa.count / 3000 | 0); let k = 0;
@@ -78,42 +88,50 @@ Promise.all([fetch('landmarks.json').then(r => r.json()).catch(() => LMJ), loade
     o.userData.anchor = o.localToWorld(t.fromBufferAttribute(pa, bi).clone()); o.userData.center = o.localToWorld(c.clone());
     const rg = o.geometry.attributes._region; if (rg) { const s = new Set(); for (let i = 0; i < rg.count; i += step) s.add(rg.getX(i)); o.userData.regions = [...s]; }
   });
-  $('#loading').remove(); buildNav(); applyColor(); route(location.hash, true);
+  $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
 }).catch(e => { $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
 
 /* ---------- visibility / colours ---------- */
-function visibleList() { return meshes.filter(m => m.visible); }
-function setVisible(pred) { meshes.forEach(m => m.visible = !!pred(m)); }
+let visCache = [], visBox = new THREE.Box3();
+function visibleList() { return visCache; }
+function setVisible(pred) { meshes.forEach(m => m.visible = !!pred(m)); visCache = meshes.filter(m => m.visible); visBox = boxOf(visCache); }
 function regionOf(name) { return LMJ.regions.findIndex(r => r[0].toLowerCase() === String(name).toLowerCase()); }
 function applyColor() {
   const hiReg = st.focus ? regionOf(st.focus) : -1, entryReg = st.entry && D[st.entry]?.region ? regionOf(D[st.entry].region) : -1;
-  for (const m of meshes) {
+  const pal = LMJ.regions.map(r => new THREE.Color(r[1])), dim = new THREE.Color(0x6d6a63), c = new THREE.Color();
+  for (const m of visCache) {
     const M = m.material, d = D[m.userData.id];
-    if (st.color === 'off' && hiReg < 0 && entryReg < 0) { M.vertexColors = false; M.color.copy(IVORY); M.needsUpdate = true; continue; }
-    if (st.color === 'axap' && hiReg < 0 && entryReg < 0) { M.vertexColors = false; M.color.copy(!d ? IVORY : d.g === 'ax' ? AXC : APC); M.needsUpdate = true; continue; }
+    const ck = st.color + '|' + hiReg + '|' + entryReg + '|' + (st.iso && st.iso.length === 1); if (m.userData.ck === ck) continue; m.userData.ck = ck;
+    if (st.color === 'off' && hiReg < 0 && entryReg < 0) { if (M.vertexColors) { M.vertexColors = false; M.needsUpdate = true; } M.color.copy(IVORY); continue; }
+    if (st.color === 'axap' && hiReg < 0 && entryReg < 0) { if (M.vertexColors) { M.vertexColors = false; M.needsUpdate = true; } M.color.copy(!d ? IVORY : d.g === 'ax' ? AXC : APC); continue; }
     const g = m.geometry, rg = g.attributes._region; if (!rg) { M.vertexColors = false; M.color.copy(IVORY); continue; }
     const solid = st.color === 'parts' && m.userData.id === 'temporal' && !(st.iso && st.iso.length === 1) ? new THREE.Color('#e04a3f') : null;
     let col = g.attributes.color; if (!col) { col = new THREE.BufferAttribute(new Float32Array(rg.count * 3), 3); g.setAttribute('color', col); }
-    const pal = LMJ.regions.map(r => new THREE.Color(r[1])), dim = new THREE.Color(0x6d6a63), c = new THREE.Color();
     for (let i = 0; i < rg.count; i++) {
       const r = rg.getX(i) | 0;
       if (hiReg >= 0 || entryReg >= 0) c.copy((r === hiReg || r === entryReg) ? HI : (st.color === 'parts' && r ? pal[r] : IVORY)).lerp(dim, (r === hiReg || r === entryReg) ? 0 : .35);
       else c.copy(solid || (r ? pal[r] : IVORY));
       col.setXYZ(i, c.r, c.g, c.b);
     }
-    col.needsUpdate = true; M.vertexColors = true; M.color.set(0xffffff); M.needsUpdate = true;
+    col.needsUpdate = true; if (!M.vertexColors) { M.vertexColors = true; M.needsUpdate = true; } M.color.set(0xffffff);
   }
+  dirty = true;
 }
 
 /* ---------- camera ---------- */
+let rectC = null, freeC = null;
+function stageRect() { return rectC || (rectC = stage.getBoundingClientRect()); }
 function freeRect() {
-  const r = stage.getBoundingClientRect(); let b = r.height;
+  if (freeC) return freeC;
+  const r = stageRect(); let b = r.height;
   if (innerWidth < 760) { const s = $('#panel').getBoundingClientRect(); b = Math.min(b, s.top - r.top - 8); }
   const tb = $('#viewbar').getBoundingClientRect(); b = Math.min(b, tb.top - r.top - 6);
   const t = $('#crumbs').getBoundingClientRect().bottom - r.top + 6;
-  return { w: r.width, h: r.height, t, b: Math.max(t + 80, b) };
+  const dk = $('#dock').getBoundingClientRect(), rr = Math.min(r.width, dk.left - r.left - 6);
+  return (freeC = { w: r.width, h: r.height, t, b: Math.max(t + 80, b), r: rr });
 }
-function viewOff() { const f = freeRect(); cam.setViewOffset(f.w, f.h, 0, f.h / 2 - (f.t + f.b) / 2, f.w, f.h); cam.updateProjectionMatrix(); }
+function invalidate() { rectC = freeC = null; dirty = true; labelsDirty = true; }
+function viewOff() { freeC = null; const f = freeRect(); cam.setViewOffset(f.w, f.h, (f.w - f.r) / 2, f.h / 2 - (f.t + f.b) / 2, f.w, f.h); cam.updateProjectionMatrix(); }
 function boxOf(list) { const b = new THREE.Box3(); list.forEach(m => b.expandByObject(m)); return b; }
 let tw = null;
 function frame(list, dir, instant) {
@@ -122,13 +140,14 @@ function frame(list, dir, instant) {
   const d = (dir || cam.position.clone().sub(ctl.target)).clone().normalize();
   const upv = Math.abs(d.y) > .99 ? V3(0, 0, -1) : V3(0, 1, 0), rt = V3().crossVectors(upv, d).normalize(), uu = V3().crossVectors(d, rt);
   let ex = 0, ey = 0, ez = 0; for (let i = 0; i < 8; i++) { const q = V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(c); ex = Math.max(ex, Math.abs(q.dot(rt))); ey = Math.max(ey, Math.abs(q.dot(uu))); ez = Math.max(ez, Math.abs(q.dot(d))); }
-  const th = Math.tan(fov / 2), dist = Math.max(ey / (th * fh), ex / (th * cam.aspect * fw)) + ez;
+  const th = Math.tan(fov / 2), dist = Math.max(ey / (th * fh), ex / (th * cam.aspect * fw * f.r / f.w)) + ez;
   const p = c.clone().add(d.multiplyScalar(dist));
   ctl.minDistance = sph.radius * .3; ctl.maxDistance = dist * 4;
   if (instant) { ctl.target.copy(c); cam.position.copy(p); ctl.update(); } else tw = { t0: performance.now(), ft: ctl.target.clone(), fp: cam.position.clone(), t: c, p };
+  dirty = true;
 }
 function resize() {
-  const r = stage.getBoundingClientRect(); R.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; viewOff();
+  invalidate(); const r = stageRect(); R.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; viewOff();
 }
 new ResizeObserver(() => { resize(); }).observe(stage);
 addEventListener('orientationchange', () => setTimeout(() => { resize(); frame(visibleList(), null, true); }, 300));
@@ -162,7 +181,7 @@ function openLesson(id) {
 function render(fromBack) {
   const iso = st.iso && new Set(st.iso);
   setVisible(m => iso ? iso.has(m.userData.n) : inSec(st.scope, m.userData.id) && (!SEC[st.scope]?.side || !m.userData.side || m.userData.side === st.side));
-  setInterior(st.interior); applyColor(); renderPanel(); renderCrumbs(); syncNav(); viewOff();
+  setInterior(st.interior); applyColor(); renderPanel(); renderCrumbs(); syncNav(); syncDock(); viewOff();
   frame(visibleList(), DIRS.front, false); labelsDirty = true;
   const h = st.lesson ? '#lesson/' + st.lesson : st.entry ? '#bone/' + st.entry + (st.iso?.length === 1 ? '/' + st.iso[0] : '') : '#sec/' + st.scope + '/' + st.side;
   if (location.hash !== h) history.replaceState(null, '', h);
@@ -200,10 +219,10 @@ const clip = new THREE.Plane(V3(0, 0, -1), 0); let inner = [];
 function setInterior(on) {
   inner.forEach(o => { scene.remove(o); o.geometry.dispose(); }); inner = [];
   const can = st.iso && st.iso.length === 1 && LONG.includes(byName[st.iso[0]]?.userData.id);
-  $('#tInterior').disabled = !can; $('#tInterior').classList.toggle('on', on && can);
-  meshes.forEach(m => { if (m.material.clippingPlanes) { m.material.clippingPlanes = null; m.material.needsUpdate = true; } });
+  st.canInterior = can;
+  meshes.forEach(m => { if (m.material.clippingPlanes) { m.material.clippingPlanes = null; m.material.side = THREE.FrontSide; m.material.needsUpdate = true; } }); dirty = true;
   if (!on || !can) { st.interior = false; return; }
-  const m = byName[st.iso[0]]; m.material.clippingPlanes = [clip]; m.material.needsUpdate = true;
+  const m = byName[st.iso[0]]; m.material.clippingPlanes = [clip]; m.material.side = THREE.DoubleSide; m.material.needsUpdate = true;
   // ทำงานใน world space (โหนดใน GLB มี scale จาก quantization)
   const src = m.geometry.attributes.position, idx = m.geometry.index, P = new Float32Array(src.count * 3), t = V3();
   let lo = 1e9, hi = -1e9;
@@ -228,10 +247,14 @@ function setInterior(on) {
   const at = v => { const k = bi(lo + v * H); return { c: V3(sx[k], lo + v * H, sz[k]), r: rr[k] }; };
   m.userData.inAxis = { at, lo, hi };
 }
-$('#tInterior').onclick = () => { st.interior = !st.interior; setInterior(st.interior); labelsDirty = true; renderPanel(); };
+function toggleInterior() {
+  if (!st.canInterior) return toast('ภาพตัดภายใน', 'ใช้ได้กับกระดูกยาว: humerus, radius, ulna, femur, tibia, fibula — เลือกกระดูกก่อน');
+  st.interior = !st.interior; setInterior(st.interior); labelsDirty = true; renderPanel(); syncDock();
+  toast(st.interior ? 'เปิดภาพตัดภายใน' : 'ปิดภาพตัดภายใน', st.interior ? 'ดู periosteum, compact bone, medullary cavity, spongy bone (สมุดหน้า 6)' : 'กลับไปดูผิวนอก');
+}
 
 /* ---------- leader-line labels ---------- */
-const svg = $('#lines'), lblBox = $('#labels'); let labelsDirty = true, labelItems = [], frameN = 0;
+const svg = $('#lines'), lblBox = $('#labels'); let labelsDirty = true, labelItems = [];
 function landmarkItems() {
   const items = [];
   if (st.iso && st.iso.length === 1) {
@@ -268,51 +291,66 @@ function interiorItems(m) {
     .map(([t, v, k]) => ({ t, p: P(v, k), part: t }));
 }
 function project(p, r) { const v = p.clone().project(cam); return { x: (v.x + 1) / 2 * r.width, y: (1 - v.y) / 2 * r.height, z: v.z }; }
-const occ = new THREE.Raycaster();
-function drawLabels() {
-  const r = stage.getBoundingClientRect();
-  if (!st.labels || !root) { svg.innerHTML = ''; lblBox.innerHTML = ''; labelItems = []; return; }
-  if (labelsDirty || st.interior) { labelItems = landmarkItems(); labelsDirty = false; lblBox.innerHTML = ''; labelItems.forEach(it => { const e = document.createElement('button'); e.className = 'lbl'; e.textContent = it.t; e.onclick = () => labelClick(it); lblBox.appendChild(e); it.el = e; }); }
-  if (!labelItems.length) { svg.innerHTML = ''; return; }
-  const vis = visibleList(), f = freeRect();
-  const bb = boxOf(vis), pts = []; for (let i = 0; i < 8; i++) pts.push(project(V3(i & 1 ? bb.max.x : bb.min.x, i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z), r));
-  const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x)), midX = (minX + maxX) / 2;
-  const doOcc = frameN % 4 === 0;
-  labelItems.forEach(it => {
-    const s = project(it.p, r); it.s = s; it.w = it.el.offsetWidth; it.h = it.el.offsetHeight;
-    if (doOcc) { const dir = it.p.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = h && h.distance < dl - Math.max(.004, dl * .012); }
+const occ = new THREE.Raycaster(); let occDirty = true;
+const SVGNS = 'http://www.w3.org/2000/svg';
+function buildLabelDom() {
+  lblBox.textContent = ''; svg.textContent = '';
+  labelItems.forEach((it, i) => {
+    const e = document.createElement('button'); e.className = 'lbl'; e.textContent = it.t; e.onclick = () => labelClick(it); e.style.animationDelay = Math.min(i * 18, 300) + 'ms'; lblBox.appendChild(e); it.el = e;
+    it.line = document.createElementNS(SVGNS, 'polyline'); it.dot = document.createElementNS(SVGNS, 'circle'); it.dot.setAttribute('r', '3.4'); svg.append(it.line, it.dot);
   });
+  labelItems.forEach(it => { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; }); // วัดครั้งเดียว
+  occDirty = true;
+}
+function updateOcclusion() {
+  const vis = visibleList(); occDirty = false;
+  if (vis.length > 80) { labelItems.forEach(it => it.hidden = false); return; } // ทั้งตัว: ข้ามเพื่อความลื่น
+  labelItems.forEach(it => { const dir = it.p.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
+}
+function drawLabels() {
+  if (!st.labels || !root) { if (labelItems.length) { svg.textContent = ''; lblBox.textContent = ''; labelItems = []; } return; }
+  const r = stageRect();
+  if (labelsDirty) { labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
+  else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => labelItems[i] && (labelItems[i].p = f.p)); }
+  if (!labelItems.length) return;
+  const f = freeRect(), bb = visBox, pts = [];
+  for (let i = 0; i < 8; i++) pts.push(project(V3(i & 1 ? bb.max.x : bb.min.x, i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z), r));
+  const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x)), midX = (minX + maxX) / 2;
+  if (occDirty && !moving) updateOcclusion();
+  labelItems.forEach(it => { it.s = project(it.p, r); });
   const L = labelItems.filter(i => i.s.x < midX).sort((a, b) => a.s.y - b.s.y), Rr = labelItems.filter(i => i.s.x >= midX).sort((a, b) => a.s.y - b.s.y);
-  const gap = 4, top = f.t + 4, bot = f.b - 4;
+  const gap = 5, top = f.t + 4, bot = f.b - 4;
   const place = (col, left) => {
     let y = top; col.forEach(it => { it.ly = Math.max(y, it.s.y - it.h / 2); y = it.ly + it.h + gap; });
-    let over = y - gap - bot; for (let i = col.length - 1; i >= 0 && over > 0; i--) { const it = col[i]; const lim = i ? col[i - 1].ly + col[i - 1].h + gap : top; const mv = Math.min(over, it.ly - lim); it.ly -= over; over = Math.max(0, over - mv); if (i < col.length - 1) {} }
-    for (let i = col.length - 1; i > 0; i--) if (col[i].ly < col[i - 1].ly + col[i - 1].h + gap) col[i - 1].ly = col[i].ly - col[i - 1].h - gap;
-    col.forEach(it => { let x = left ? minX - 28 - it.w : maxX + 28; x = Math.max(8, Math.min(r.width - it.w - 8, x)); it.lx = x; });
+    const over = y - gap - bot; if (over > 0) col.forEach(it => it.ly -= over);
+    for (let i = 0; i < col.length; i++) { const lim = i ? col[i - 1].ly + col[i - 1].h + gap : top; if (col[i].ly < lim) col[i].ly = lim; }
+    col.forEach(it => { let x = left ? minX - 28 - it.w : maxX + 28; x = Math.max(8, Math.min(f.r - it.w - 8, x)); it.lx = x; });
   };
   place(L, true); place(Rr, false);
-  let html = '';
   labelItems.forEach(it => {
     const left = it.lx + it.w / 2 < it.s.x, ex = left ? it.lx + it.w : it.lx, ey = it.ly + it.h / 2, foc = st.focus && st.focus === it.part;
-    it.el.style.transform = `translate(${it.lx}px,${it.ly}px)`; it.el.classList.toggle('dim', !!it.hidden); it.el.classList.toggle('foc', !!foc);
-    const op = it.hidden ? .35 : 1, colr = foc ? '#ff9f43' : '#e8e8e8';
-    html += `<polyline points="${ex},${ey} ${ex + (left ? 10 : -10)},${ey} ${it.s.x},${it.s.y}" fill="none" stroke="${colr}" stroke-opacity="${op * .85}" stroke-width="${foc ? 1.6 : 1}"/>`;
-    html += it.hidden ? `<circle cx="${it.s.x}" cy="${it.s.y}" r="3" fill="none" stroke="${colr}" stroke-opacity=".6"/>` : `<circle cx="${it.s.x}" cy="${it.s.y}" r="3.2" fill="${colr}" stroke="#000" stroke-width="1"/>`;
+    it.el.style.transform = `translate3d(${it.lx | 0}px,${it.ly | 0}px,0)`;
+    if (it._hid !== !!it.hidden) { it.el.classList.toggle('dim', !!it.hidden); it._hid = !!it.hidden; }
+    if (it._foc !== !!foc) { it.el.classList.toggle('foc', !!foc); it._foc = !!foc; }
+    const colr = foc ? '#ff9f43' : '#e8e8e8', op = it.hidden ? .35 : .85;
+    it.line.setAttribute('points', `${ex|0},${ey|0} ${(ex + (left ? 10 : -10))|0},${ey|0} ${it.s.x|0},${it.s.y|0}`);
+    it.line.setAttribute('stroke', colr); it.line.setAttribute('stroke-opacity', op); it.line.setAttribute('stroke-width', foc ? 1.8 : 1.1); it.line.setAttribute('fill', 'none');
+    it.dot.setAttribute('cx', it.s.x | 0); it.dot.setAttribute('cy', it.s.y | 0); it.dot.setAttribute('fill', it.hidden ? 'none' : colr); it.dot.setAttribute('stroke', it.hidden ? colr : '#000'); it.dot.setAttribute('stroke-opacity', it.hidden ? .6 : 1);
   });
-  svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`); svg.innerHTML = html;
 }
 function labelClick(it) {
   if (it.part) { setFocus(st.focus === it.part ? null : it.part); return; }
   if (it.node) { if (['all', 'axial', 'appendicular'].includes(st.scope) && !st.iso) { const top = TOP[D[it.id].sec]; return openScope(top, { side: byName[it.node].userData.side || st.side }); } openEntry(it.id, st.iso ? it.node : null, { keepScope: 1 }); }
 }
 function setFocus(name) {
-  st.focus = name; applyColor();
+  st.focus = name; applyColor(); dirty = true;
   $$('#panel [data-part]').forEach(e => e.classList.toggle('foc', e.dataset.part === name));
   const el = $(`#panel [data-part="${CSS.escape(name || '')}"]`); el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 /* ---------- panel ---------- */
-const pgBtns = pg => (pg || []).length ? `<div class="pages"><span>สมุด</span>${pg.map(p => `<button class="pg" data-pg="${p}">หน้า ${p}</button>`).join('')}</div>` : '';
+const BOOK_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg>';
+const pgBtns = (pg, name) => (pg || []).length ? `<div class="bookcard"><div class="bc-ic">${BOOK_IC}</div><div class="bc-tx"><b>เปิดสมุดสรุป</b><p>กดแล้วจะเปิดไปยังหน้าที่อธิบายเกี่ยวกับ <strong>${esc(name)}</strong> ในสมุด</p><div class="bc-pg">${pg.map(p => `<button class="pg press" data-pg="${p}">หน้า ${p}</button>`).join('')}</div></div></div>` : '';
 const sec = (t, body) => body ? `<section><h4>${t}</h4>${body}</section>` : '';
 const ul = a => a?.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
 function legendHTML() {
@@ -327,15 +365,15 @@ function renderPanel() {
   let h = '';
   if (st.lesson) {
     const l = LESSONS.find(x => x.id === st.lesson);
-    h = `<header><div class="kicker">บทเรียน</div><h2>${l.t}</h2></header>${pgBtns(l.pg)}<div class="prose">${l.html}</div>`;
+    h = `<header><div class="kicker">บทเรียน</div><h2>${l.t}</h2></header>${pgBtns(l.pg, l.t)}<div class="prose">${l.html}</div>`;
     if (l.iso) h += `<div class="note">กำลังแสดง ${esc(D[l.iso].en)} (${SIDE_TH[st.side]}) ${st.interior ? '· ภาพตัดภายใน' : ''}</div>`;
   } else if (st.entry) {
     const d = D[st.entry], single = st.iso?.length === 1 ? st.iso[0] : null;
     const title = single && !/^(humerus|femur)/.test('') ? nodeTitle(single) : d.en;
     h = `<header><div class="kicker">${esc(SEC[d.sec]?.t || '')}</div><h2>${esc(title)}</h2><p class="th">${esc(d.th)}${single && title !== d.en ? ' · ' + esc(d.en) : ''}</p>
-      <div class="facts"><span><b>${esc(d.n)}</b> ชิ้น</span><span class="${d.g}">${d.g === 'ax' ? 'Axial · กระดูกแกน' : 'Appendicular · ระยางค์'}</span></div></header>${pgBtns(d.pg)}`;
+      <div class="facts"><span><b>${esc(d.n)}</b> ชิ้น</span><span class="${d.g}">${d.g === 'ax' ? 'Axial · กระดูกแกน' : 'Appendicular · ระยางค์'}</span></div></header>${pgBtns(d.pg, d.en)}`;
     if (!st.iso) h += `<div class="note">โมเดล BodyParts3D ไม่มีชิ้นนี้ — แสดงเฉพาะข้อมูล</div>`;
-    if (d.long && st.iso?.length === 1) h += `<button class="wide ${st.interior ? 'on' : ''}" id="pInterior">${st.interior ? 'ดูภายนอก' : 'ดูภายใน (ภาพตัด)'}</button>`;
+    if (d.long && st.iso?.length === 1) h += `<button class="wide press ${st.interior ? 'on' : ''}" id="pInterior">${st.interior ? 'กลับไปดูภายนอก' : 'ดูภายใน (ภาพตัดกระดูก)'}</button>`;
     if (st.iso && st.iso.length > 1) h += `<div class="note">แตะชิ้นใดชิ้นหนึ่งบนโมเดลเพื่อแยกออกมาดูเดี่ยว ๆ</div>`;
     h += sec('ตำแหน่ง', `<p>${esc(d.loc)}</p>${d.desc ? `<p>${esc(d.desc)}</p>` : ''}`);
     if (st.interior) h += sec('โครงสร้างภายใน (สมุดหน้า 6)', `<ol class="parts">${interiorItems(byName[st.iso[0]]).map(i => `<li><button data-part="${esc(i.t)}"><b>${esc(i.t)}</b></button></li>`).join('')}</ol>`);
@@ -345,7 +383,7 @@ function renderPanel() {
     h += legendHTML();
   } else {
     const s = SEC[st.scope]; const ids = DATA.filter(d => inSec(st.scope, d.id) && !['all', 'axial', 'appendicular'].includes(st.scope));
-    h = `<header><div class="kicker">${s.parent ? esc(SEC[s.parent].t) : 'หมวด'}</div><h2>${esc(s.t)}</h2><p class="th">${esc(s.s)}</p></header>${pgBtns(s.pg)}`;
+    h = `<header><div class="kicker">${s.parent ? esc(SEC[s.parent].t) : 'หมวด'}</div><h2>${esc(s.t)}</h2><p class="th">${esc(s.s)}</p></header>${pgBtns(s.pg, s.t)}`;
     if (s.side) h += `<div class="seg side">${['R', 'L'].map(k => `<button data-side="${k}" class="${st.side === k ? 'on' : ''}">ข้าง${SIDE_TH[k]}</button>`).join('')}</div>`;
     h += sec('สรุปจากสมุด', ul(s.info));
     if (ids.length) h += sec('กระดูกในหมวดนี้', `<div class="chips">${ids.map(d => `<button data-go="${d.id}">${esc(d.en)}</button>`).join('')}</div>`);
@@ -353,14 +391,14 @@ function renderPanel() {
     h += legendHTML();
   }
   h += `<footer>โมเดล: BodyParts3D, © The Database Center for Life Science, CC BY 4.0 · เนื้อหา: สมุดสรุป Anatomy เล่ม 2 บทที่ 3</footer>`;
-  $('#pbody').innerHTML = h; $('#pbody').scrollTop = 0;
-  $('#pInterior')?.addEventListener('click', () => $('#tInterior').click());
+  const pb = $('#pbody'); pb.innerHTML = h; pb.scrollTop = 0; pb.classList.remove('enter'); void pb.offsetWidth; pb.classList.add('enter');
+  $('#pInterior')?.addEventListener('click', toggleInterior);
 }
 $('#pbody').addEventListener('click', e => {
   const t = e.target.closest('[data-go],[data-part],[data-pg],[data-side]'); if (!t) return; e.preventDefault();
   if (t.dataset.go) openEntry(t.dataset.go, null, {});
   else if (t.dataset.part) setFocus(st.focus === t.dataset.part ? null : t.dataset.part);
-  else if (t.dataset.pg) openBook(+t.dataset.pg);
+  else if (t.dataset.pg) openBook(+t.dataset.pg, bookTarget().name);
   else if (t.dataset.side) { st.side = t.dataset.side; openScope(st.scope, { nohist: 1 }); }
 });
 function renderCrumbs() {
@@ -398,9 +436,33 @@ function syncNav() {
 $('#menu').onclick = () => document.body.classList.toggle('navopen');
 $('#scrim').onclick = () => document.body.classList.remove('navopen');
 
-/* ---------- toolbar toggles ---------- */
-$('#tLabels').onclick = e => { st.labels = !st.labels; e.currentTarget.classList.toggle('on', st.labels); labelsDirty = true; frame(visibleList()); };
-$$('#tColor button').forEach(b => b.onclick = () => { st.color = b.dataset.c; $$('#tColor button').forEach(x => x.classList.toggle('on', x === b)); applyColor(); renderPanel(); });
+/* ---------- tool dock ---------- */
+const COLOR_MODES = [['parts', 'แยกส่วน', 'ระบายสีแต่ละส่วนตามสมุด'], ['axap', 'แกน/ระยางค์', 'ฟ้า = กระดูกแกน (axial) · แดง = ระยางค์ (appendicular)'], ['off', 'ปิดสี', 'สีงาช้างทั้งหมด']];
+function bookTarget() {
+  if (st.lesson) { const l = LESSONS.find(x => x.id === st.lesson); return { pg: l.pg[0], name: l.t }; }
+  if (st.entry) return { pg: (D[st.entry].pg || [])[0], name: D[st.entry].en };
+  return { pg: (SEC[st.scope].pg || [2])[0], name: SEC[st.scope].t };
+}
+function syncDock() {
+  const set = (id, on, sub) => { const b = $(id); b.classList.toggle('on', !!on); b.querySelector('small').textContent = sub; };
+  set('#tLabels', st.labels, st.labels ? 'เปิด' : 'ปิด');
+  set('#tColor', st.color !== 'off', COLOR_MODES.find(c => c[0] === st.color)[1]);
+  set('#tInterior', st.interior, st.canInterior ? (st.interior ? 'เปิด' : 'ปิด') : 'กระดูกยาว');
+  $('#tInterior').classList.toggle('na', !st.canInterior);
+  const bt = bookTarget(); set('#tBook', false, bt.pg ? 'หน้า ' + bt.pg : '—');
+}
+$('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดป้ายชี้' : 'ปิดป้ายชี้', st.labels ? 'เส้นชี้บอกชื่อแต่ละส่วน · แตะป้ายเพื่อไฮไลต์' : 'ซ่อนเส้นชี้ทั้งหมด'); };
+$('#tColor').onclick = () => { const i = COLOR_MODES.findIndex(c => c[0] === st.color), n = COLOR_MODES[(i + 1) % 3]; st.color = n[0]; applyColor(); renderPanel(); syncDock(); toast('สี: ' + n[1], n[2]); };
+$('#tInterior').onclick = toggleInterior;
+$('#tBook').onclick = () => { const bt = bookTarget(); if (!bt.pg) return; openBook(bt.pg, bt.name); };
+let toastT = 0;
+function toast(t, sub = '') { const e = $('#toast'); e.innerHTML = `<b>${esc(t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('show'), 2200); }
+// ripple ตอนกดปุ่ม
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('.press,.dk,.nb,.chips button,.parts button,.legend button,#viewbar button,#crumbs button,.lbl'); if (!b) return;
+  const r = b.getBoundingClientRect(), d = document.createElement('i'); d.className = 'rip'; const sz = Math.max(r.width, r.height) * 1.6;
+  d.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX - r.left - sz / 2}px;top:${e.clientY - r.top - sz / 2}px`; b.appendChild(d); setTimeout(() => d.remove(), 520);
+}, { passive: true });
 
 /* ---------- search ---------- */
 const q = $('#q'), res = $('#res');
@@ -420,19 +482,18 @@ q.onblur = () => setTimeout(() => res.hidden = true, 150);
 
 /* ---------- notebook viewer ---------- */
 const NB = 32; let bookPg = 1, zoom = 1;
-function openBook(p) { bookPg = p; zoom = 1; $('#book').hidden = false; showPage(); }
+function openBook(p, name) { bookPg = p; zoom = 1; const b = $('#book'); b.hidden = false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); $('#bfor').textContent = name ? 'อธิบาย ' + name : ''; showPage(); }
 function showPage() { const img = $('#bimg'); img.src = `book/p-${String(bookPg).padStart(2, '0')}.jpg`; img.style.width = (zoom * 100) + '%'; $('#bnum').textContent = `หน้า ${bookPg} / ${NB}`; $('#bscroll').scrollTop = 0; }
 $('#bprev').onclick = () => { if (bookPg > 1) { bookPg--; showPage(); } };
 $('#bnext').onclick = () => { if (bookPg < NB) { bookPg++; showPage(); } };
 $('#bzin').onclick = () => { zoom = Math.min(3, zoom + .5); showPage(); };
 $('#bzout').onclick = () => { zoom = Math.max(1, zoom - .5); showPage(); };
-$('#bclose').onclick = () => $('#book').hidden = true;
-$('#tBook').onclick = () => openBook(((st.lesson && LESSONS.find(l => l.id === st.lesson).pg) || (st.entry && D[st.entry].pg) || SEC[st.scope].pg || [2])[0] || 2);
+$('#bclose').onclick = () => { const b = $('#book'); b.classList.remove('in'); b.classList.add('out'); setTimeout(() => { b.hidden = true; b.classList.remove('out'); }, 200); };
 addEventListener('keydown', e => { if ($('#book').hidden) return; if (e.key === 'ArrowRight') $('#bnext').click(); if (e.key === 'ArrowLeft') $('#bprev').click(); if (e.key === 'Escape') $('#bclose').click(); });
 
 /* ---------- bottom sheet (มือถือ) ---------- */
 const panel = $('#panel'), LV = [.3, .55, .9]; let lv = 0, dr = null;
-function setLv(i) { lv = i; panel.style.height = innerWidth < 760 ? LV[i] * 100 + 'dvh' : ''; setTimeout(() => { viewOff(); labelsDirty = true; }, 260); }
+function setLv(i) { lv = i; panel.style.height = innerWidth < 760 ? LV[i] * 100 + 'dvh' : ''; setTimeout(() => { invalidate(); viewOff(); }, 260); }
 $('#grab').addEventListener('pointerdown', e => { if (innerWidth >= 760) return; dr = { y: e.clientY, h: panel.getBoundingClientRect().height }; panel.classList.add('drag'); e.currentTarget.setPointerCapture(e.pointerId); });
 $('#grab').addEventListener('pointermove', e => { if (dr) panel.style.height = Math.max(innerHeight * .15, Math.min(innerHeight * .92, dr.h + dr.y - e.clientY)) + 'px'; });
 $('#grab').addEventListener('pointerup', e => { if (!dr) return; panel.classList.remove('drag'); const f = panel.getBoundingClientRect().height / innerHeight; if (Math.abs(e.clientY - dr.y) < 6) setLv((lv + 1) % 3); else { let b = 0; LV.forEach((v, i) => { if (Math.abs(v - f) < Math.abs(LV[b] - f)) b = i; }); setLv(b); } dr = null; });
@@ -442,11 +503,12 @@ addEventListener('resize', () => setLv(lv));
 document.addEventListener('touchmove', e => { if (!e.target.closest('.scroll')) e.preventDefault(); }, { passive: false });
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
 
-/* ---------- loop ---------- */
+/* ---------- loop: เรนเดอร์เฉพาะเมื่อมีการเปลี่ยนแปลง ---------- */
 R.setAnimationLoop(() => {
-  if (tw) { let k = Math.min(1, (performance.now() - tw.t0) / 600); k = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; ctl.target.lerpVectors(tw.ft, tw.t, k); cam.position.lerpVectors(tw.fp, tw.p, k); if (k >= 1) tw = null; }
+  if (tw) { let k = Math.min(1, (performance.now() - tw.t0) / 550); k = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; ctl.target.lerpVectors(tw.ft, tw.t, k); cam.position.lerpVectors(tw.fp, tw.p, k); if (k >= 1) { tw = null; occDirty = true; } motion(); dirty = true; }
   ctl.update();
-  if (st.interior && st.iso) { const m = byName[st.iso[0]]; const c = m.userData.inAxis ? m.userData.inAxis.at(.5).c : boxOf([m]).getCenter(V3()); const n = ctl.target.clone().sub(cam.position).normalize(); clip.setFromNormalAndCoplanarPoint(n, c); }
-  R.render(scene, cam); frameN++; drawLabels();
+  if (!dirty) return; dirty = false;
+  if (st.interior && st.iso) { const m = byName[st.iso[0]]; const c = m.userData.inAxis ? m.userData.inAxis.at(.5).c : visBox.getCenter(V3()); const n = ctl.target.clone().sub(cam.position).normalize(); clip.setFromNormalAndCoplanarPoint(n, c); }
+  R.render(scene, cam); drawLabels();
 });
-window.__humnoi = { st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };
+window.__humnoi = { R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };

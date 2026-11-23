@@ -319,6 +319,7 @@ for n, g in G.items():
 for n, R in REGIDX.items():
     G[n].vertex_attributes['_region'] = R.astype(np.float32)
 # trimesh exports custom vertex_attributes as _NAME
-sc.export(out + '/skeleton_lm_raw.glb')
+for g in G.values(): g.vertex_normals  # คำนวณ normal ไว้ใน GLB (ไม่ต้องคำนวณบน iPad)
+sc.export(out + '/skeleton_lm_raw.glb', include_normals=True)
 json.dump({'landmarks': LM, 'regions': REG}, open(out + '/landmarks.json', 'w'), ensure_ascii=False)
 print('landmarked', len(LM), 'regions', len(REG))
