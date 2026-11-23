@@ -76,7 +76,7 @@ S['femur'] = [
  ('Intertrochanteric crest', {'v': (.82, .9), 'm': (.25, .55)}, {'a': -1}),
  ('Gluteal tuberosity', {'v': (.68, .76)}, {'a': -1, 'm': -.5}),
  ('Pectineal line', {'v': (.7, .78)}, {'a': -1, 'm': .5}),
- ('Shaft (body)', {'v': (.48, .52)}, {'a': 1}),
+ ('Shaft (body)', {'v': (.58, .62)}, {'a': 1}),
  ('Linea aspera', {'v': (.4, .55)}, {'a': -1}),
  ('Adductor tubercle', {'v': (.1, .17)}, {'m': 1}),
  ('Medial epicondyle', {'v': (.05, .1)}, {'m': 1}),
@@ -101,14 +101,14 @@ S['fibula'] = [
  ('Lateral malleolus', {'v': (0, .06)}, {'m': -1, 'v': -.4}),
 ]
 S['radius'] = [
- ('Head', {'v': (.96, 1)}, {'v': 1}),
- ('Neck', {'v': (.9, .93)}, {'a': 1}),
+ ('Head', {'v': (.93, .985)}, {'m': -1}),
+ ('Neck', {'v': (.88, .92)}, {'a': 1}),
  ('Radial tuberosity', {'v': (.8, .88)}, {'m': 1}),
  ('Shaft', {'v': (.45, .55)}, {'a': 1}),
  ('Styloid process', {'v': (0, .05)}, {'m': -1, 'v': -.6}),
 ]
 S['ulna'] = [
- ('Olecranon process', {'v': (.94, 1)}, {'v': 1, 'a': -.5}),
+ ('Olecranon process', {'v': (.95, 1)}, {'v': 1, 'a': -.3}),
  ('Trochlear notch', {'v': (.86, .95), 'm': (.3, .7), 'face': (1, 0)}, {'a': -1}),
  ('Coronoid process', {'v': (.84, .91)}, {'a': 1}),
  ('Radial notch', {'v': (.86, .92)}, {'m': -1}),
@@ -131,10 +131,10 @@ S['scapula'] = [
 S['clavicle'] = [('ปลายใน (–sternum)', {}, {'m': 1}), ('ปลายนอก (–acromion)', {}, {'m': -1})]
 S['sternum'] = [
  ('Suprasternal notch', {'m': (.4, .6)}, {'v': 1}),
- ('Manubrium', {'v': (.82, .9)}, {'a': 1}),
+ ('Manubrium', {'v': (.86, .94), 'm': (.35, .65)}, {'a': 1}),
  ('Sternomanubrial angle', {'v': (.74, .79)}, {'a': 1}),
  ('Body', {'v': (.4, .5)}, {'a': 1}),
- ('Xiphoid process', {}, {'v': -1}),
+ ('Xiphoid process', {'m': (.35, .65)}, {'v': -1}),
 ]
 S['patella'] = [('Patella (สามเหลี่ยม)', {'v': (.4, .6)}, {'a': 1})]
 S['hip'] = [
@@ -152,16 +152,16 @@ S['hip'] = [
  ('Pubic tubercle', {'v': (.15, .3)}, {'a': 1}),
  ('Pubic body / pubic symphysis', {'v': (.05, .3)}, {'m': 1}),
 ]
-S['vert'] = [  # กระดูกสันหลังทั่วไป (ใช้กับ C3–L5)
- ('Vertebral body', {'m': (.35, .65)}, {'a': 1}),
- ('Spinous process', {'m': (.4, .6)}, {'a': -1, 'v': -.3}),
+S['vert'] = [  # กระดูกสันหลังทั่วไป (C3–L5) — m = ระยะห่างจากแนวกลาง (0 = กลาง, 1 = ข้างสุด)
+ ('Vertebral body', {'m': (0, .2)}, {'a': 1}),
+ ('Spinous process', {'m': (0, .18)}, {'a': -1, 'v': -.4}),
  ('Transverse process', {}, {'m': 1}),
  ('Superior articular process', {'a': (.15, .55)}, {'v': 1, 'm': .2}),
- ('Lamina', {'m': (.3, .42), 'a': (.15, .35)}, {'a': -1}),
- ('Pedicle', {'m': (.28, .38), 'a': (.45, .62)}, {'m': -1}),
+ ('Lamina', {'m': (.15, .38), 'a': (.12, .4), 'face': (-1, 0)}, {'a': -1}),
+ ('Pedicle', {'m': (.25, .5), 'a': (.45, .66)}, {'m': 1, 'v': -.2}),
 ]
 S['vert_C1'] = [('Anterior arch', {}, {'a': 1}), ('Posterior arch', {}, {'a': -1}), ('Transverse process', {}, {'m': 1})]
-S['vert_C2'] = [('Dens', {}, {'v': 1}), ('Body', {'m': (.35, .65)}, {'a': 1, 'v': -.4}), ('Bifid spinous process', {}, {'a': -1})]
+S['vert_C2'] = [('Dens', {}, {'v': 1}), ('Body', {'m': (0, .25)}, {'a': 1, 'v': -.4}), ('Bifid spinous process', {}, {'a': -1})]
 S['temporal'] = [
  ('Squamous part', {'v': (.75, 1)}, {'m': -1}),
  ('Zygomatic process', {'v': (.3, .6)}, {'a': 1, 'm': -.3}),
@@ -187,7 +187,7 @@ def base(n):
     if n.startswith('vert_'): return n if n in ('vert_C1', 'vert_C2') else 'vert'
     return n.rsplit('_', 1)[0] if side_of(n) else n
 
-PCA = {'humerus', 'radius', 'ulna', 'femur', 'tibia', 'fibula', 'clavicle'}
+PCA = {'humerus', 'radius', 'ulna', 'femur', 'tibia', 'fibula'}
 LM = {}
 for n, g in G.items():
     b = base(n); spec = S.get(b)
@@ -214,7 +214,7 @@ for s in 'LR':
         F = Frame(np.asarray(G[f'femur_{s}'].vertices), s, pca=True)
         hv = F.V[(F.v > .9) & (F.m > .55)]; c, r = sphere_fit(hv)
         H = np.asarray(G[f'hip_{s}'].vertices); i = np.argmin(np.linalg.norm(H - c, axis=1))
-        LM[f'hip_{s}']['Acetabulum'] = [round(float(x), 5) for x in (H[i] * .5 + c * .5)]
+        LM[f'hip_{s}']['Acetabulum'] = [round(float(x), 5) for x in H[i]]  # ก้นเบ้า (จุดบนผิวที่ลึกที่สุด)
         # obturator foramen = รูปิดล้อมเดียวในภาพฉายด้านข้าง (z,y) ของครึ่งล่าง hip bone (สุ่มจุดบนผิวแบบหนาแน่น)
         from scipy import ndimage
         Ps, _ = trimesh.sample.sample_surface(G[f'hip_{s}'], 300000, seed=1); P = Ps[Ps[:, 1] < c[1]]
@@ -234,10 +234,10 @@ for s in 'LR':
     if f'parietal_{s}' in G:
         A, d = near(f'parietal_{s}', 'frontal'); k = d < .004
         if k.any():
-            P = A[k]; LM[f'parietal_{s}']['Coronal suture'] = list(map(float, P[np.argmax(P[:, 1])]))
+            P = A[k][np.argsort(A[k][:, 1])]; LM[f'parietal_{s}']['Coronal suture'] = list(map(float, P[int(len(P) * .6)]))
         A, d = near(f'parietal_{s}', f'parietal_{"R" if s=="L" else "L"}'); k = d < .004
         if k.any():
-            P = A[k]; LM[f'parietal_{s}']['Sagittal suture'] = list(map(float, P[np.argmax(P[:, 1])]))
+            Q = A[k][np.argsort(A[k][:, 2])]; LM[f'parietal_{s}']['Sagittal suture'] = list(map(float, Q[len(Q) // 2])); P = A[k]
             LM[f'parietal_{s}']['Lambda'] = list(map(float, P[np.argmin(P[:, 2])]))
         A, d = near(f'parietal_{s}', 'occipital'); k = d < .004
         if k.any():
@@ -247,12 +247,86 @@ for s in 'LR':
         d = sum(cKDTree(np.asarray(G[o].vertices)).query(A)[0] for o in ['frontal', f'parietal_{s}', f'temporal_{s}'])
         A2 = A[(A[:, 0] > 0) if s == 'L' else (A[:, 0] < 0)]
         d2 = d[(A[:, 0] > 0) if s == 'L' else (A[:, 0] < 0)]
-        LM[f'temporal_{s}']['Pterion (ทัดดอกไม้)'] = list(map(float, A2[np.argmin(d2)]))
+        pt = A2[np.argmin(d2)]; T = np.asarray(G[f'temporal_{s}'].vertices)  # ย้ายไปจุดบนผิว temporal ที่ใกล้ที่สุด
+        LM[f'temporal_{s}']['Pterion (ทัดดอกไม้)'] = list(map(float, T[np.argmin(np.linalg.norm(T - pt, axis=1))]))
 if 'occipital' in G:
     O = np.asarray(G['occipital'].vertices); F = Frame(O, '')
     k = (F.v < .2) & (F.m > .4) & (F.m < .6)
     # foramen magnum = กลางรูด้านล่าง: เฉลี่ยขอบรู (จุดต่ำสุดหน้า/หลัง)
-    ring = O[(F.v < .12)]; c = ring.mean(0); LM['occipital']['Foramen magnum'] = list(map(float, c))
+    ring = O[(F.v < .12)]; c = ring.mean(0)
+    cand = O[(np.abs(O[:, 0] - c[0]) < .005) & (O[:, 2] < c[2]) & (np.abs(O[:, 1] - c[1]) < .02)]  # ขอบหลังของรู (opisthion) — อยู่บนกระดูก
+    LM['occipital']['Foramen magnum'] = list(map(float, cand[np.argmin(np.linalg.norm(cand - c, axis=1))] if len(cand) else c))
+    if 'parietal_R' in G:
+        A, d = near('occipital', 'parietal_R'); k = d < .004
+        if k.any(): P = A[k][np.argsort(A[k][:, 1])]; LM['occipital']['Lambdoid suture'] = list(map(float, P[len(P) // 2]))
+
+# ---------- แก้ไขละเอียด (ตรวจด้วยภาพเรนเดอร์ทีละชิ้น) ----------
+def refit(P, c, r):
+    for _ in range(3):
+        k = np.abs(np.linalg.norm(P - c, axis=1) - r) < .12 * r
+        if k.sum() < 20: break
+        c, r = sphere_fit(P[k])
+    return c, r
+def setlm(n, k, p): LM[n][k] = [round(float(x), 5) for x in p]
+UP, FRONT = np.array([0, 1., 0]), np.array([0, 0, 1.])
+for s_ in 'LR':
+    med = np.array([1., 0, 0]) if s_ == 'R' else np.array([-1., 0, 0])  # ทิศเข้าแนวกลางลำตัว
+    # --- humerus: head = ขั้วของหัวกระดูก, anatomical neck = ขอบหัวด้านหน้า, surgical neck = ด้านข้างใต้ tubercles, groove = ร่องระหว่าง tubercles
+    n = f'humerus_{s_}'
+    if n in G:
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); F = Frame(V, s_, pca=True, N=N)
+        hv = V[(F.v > .88) & (F.m > .5)]; c, r = refit(V[(F.v > .8)], *sphere_fit(hv))
+        cap = (np.abs(np.linalg.norm(V - c, axis=1) - r) < .08 * r) & (F.v > .8)
+        ax = V[cap].mean(0) - c; ax /= np.linalg.norm(ax)
+        dots = (V - c) @ ax / r; ci = np.where(cap)[0]
+        dh = ax + FRONT * .6; dh /= np.linalg.norm(dh); setlm(n, 'Head', V[ci[np.argmax((V[ci] - c) @ dh)]])
+        rim = ci[dots[ci] < np.quantile(dots[ci], .12)]; dn = med * .8 - UP * .55 + FRONT * .25; dn /= np.linalg.norm(dn)  # ขอบหัวด้านใน-ล่าง
+        setlm(n, 'Anatomical neck', V[rim[np.argmax((V[rim] - c) @ dn)]])
+        p = F.pick({'v': (.76, .8)}, {'m': -1}); setlm(n, 'Surgical neck', p)
+        g_ = np.asarray(LM[n]['Greater tubercle']); l_ = np.asarray(LM[n]['Lesser tubercle'])
+        mid = (g_ + l_) / 2; ylo = min(g_[1], l_[1]) - .02
+        k = (V[:, 1] > ylo) & (V[:, 1] < max(g_[1], l_[1])) & (N[:, 2] > .35) & (np.abs(V[:, 0] - mid[0]) < abs(g_[0] - l_[0]) * .3 + .002)
+        if k.any(): ii = np.where(k)[0]; setlm(n, 'Intertubercular groove', V[ii[np.argmin(V[ii, 2] - .15 * V[ii, 1])]])  # จุดลึกสุดของร่องด้านหน้า
+    # --- femur: head = ผิวหัวด้านบน-หน้า, fovea = ขั้วด้านในตามแนวคอ (ค่อนล่าง-หลัง), neck = กลางคอด้านหน้า
+    n = f'femur_{s_}'
+    if n in G:
+        V = np.asarray(G[n].vertices); F = Frame(V, s_, pca=True)
+        c, r = refit(V[F.v > .82], *sphere_fit(V[(F.v > .9) & (F.m > .55)]))
+        cap = np.where((np.abs(np.linalg.norm(V - c, axis=1) - r) < .08 * r))[0]
+        nk = V[(F.v > .85) & (F.v < .93) & (F.m > .35) & (F.m < .65)]; nc = nk.mean(0)
+        ax = c - nc; ax /= np.linalg.norm(ax)
+        dh = ax * .3 + UP * .8 + FRONT * .35; dh /= np.linalg.norm(dh)
+        df = ax - UP * .25 - FRONT * .2; df /= np.linalg.norm(df)
+        setlm(n, 'Head', V[cap[np.argmax((V[cap] - c) @ dh)]]); setlm(n, 'Fovea capitis', V[cap[np.argmax((V[cap] - c) @ df)]])
+        dl = (V - nc) - np.outer((V - nc) @ FRONT, FRONT); near_ = np.where(np.linalg.norm(dl, axis=1) < .006)[0]
+        if len(near_): setlm(n, 'Neck', V[near_[np.argmax(V[near_, 2])]])
+    # --- scapula: fossae = กึ่งกลางของแอ่ง (ไม่ใช่ขอบ)
+    n = f'scapula_{s_}'
+    if n in G:
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); F = Frame(V, s_)
+        blade = F.v < .72; B = V[blade]; bc = B.mean(0); _, _, vt = np.linalg.svd(B - bc, full_matrices=False)
+        e3 = vt[2] * (1 if vt[2][2] < 0 else -1)  # แนวตั้งฉากแผ่นสะบัก ชี้ไปด้านหลัง
+        e1 = vt[0]; e2 = np.cross(e3, e1)
+        uv = np.c_[(V - bc) @ e1, (V - bc) @ e2]; nb = N @ e3
+        def fossa(face, vlo, vhi):
+            k = (nb * face > .6) & (F.v > vlo) & (F.v < vhi)
+            if not k.any(): return None
+            ii = np.where(k)[0]; cu = uv[ii].mean(0)  # จุดกึ่งกลางของแอ่งบนระนาบแผ่น
+            return V[ii[np.argmin(np.linalg.norm(uv[ii] - cu, axis=1))]]
+        for nm, args in [('Infraspinous fossa', (1, .25, .6)), ('Subscapular fossa', (-1, .3, .65)), ('Supraspinous fossa', (1, .8, .96))]:
+            q = fossa(*args)
+            if q is not None: setlm(n, nm, q)
+    # --- temporal: squamous = กลางแผ่นด้านนอก
+    n = f'temporal_{s_}'
+    if n in G:
+        V = np.asarray(G[n].vertices); N = np.asarray(G[n].vertex_normals); F = Frame(V, s_)
+        osg = -1 if s_ == 'R' else 1; k = (N[:, 0] * osg > .5) & (F.v > .62)
+        if k.any(): c = V[k].mean(0); ii = np.where(k)[0]; setlm(n, 'Squamous part', V[ii[np.argmin(np.linalg.norm(V[ii] - c, axis=1))]])
+# --- sphenoid: sella turcica = แอ่งลึกตรงกลางด้านบน
+if 'sphenoid' in G:
+    V = np.asarray(G['sphenoid'].vertices); N = np.asarray(G['sphenoid'].vertex_normals); F = Frame(V, '')
+    k = (N[:, 1] > .5) & (np.abs(V[:, 0] - V[:, 0].mean()) < .006) & (F.a > .3) & (F.a < .65) & (F.v > .5)
+    if k.any(): ii = np.where(k)[0]; setlm('sphenoid', 'Sella turcica (pituitary gland)', V[ii[np.argmin(V[ii, 1])]])
 
 # ---------- regions (สีแยกส่วนตามสมุด) ----------
 REG = [('—', '#e8e0cc')]

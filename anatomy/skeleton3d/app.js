@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795442569';
+import { DATA, SECS, LESSONS } from './data.js?v=1795444592';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,7 +81,7 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795442569').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795442569')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795444592').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795444592')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -265,6 +265,17 @@ function toggleInterior() {
 
 /* ---------- leader-line labels ---------- */
 const svg = $('#lines'), lblBox = $('#labels'); let labelsDirty = true, labelItems = [];
+const FOOT = new Set(['calcaneus', 'talus', 'navicular', 'cuboid', 'cuneiform', 'metatarsal', 'phalanx_f']);
+function prefDir(id) { // ทิศที่อยากให้หมุดชี้ออก (ฝั่งที่มองเห็นได้ง่าย)
+  if (id === 'calcaneus') return V3(0, .6, -1).normalize(); // ส้นเท้า: ด้านหลัง-บน
+  return FOOT.has(id) ? V3(0, 1, .35).normalize() : V3(0, .2, 1).normalize();
+}
+function surfacePick(m, C, out, bias, k) { // จุดบนผิวที่หันไปทาง out+bias มากที่สุด ใกล้แกนกลางชิ้น
+  const dir = V3(); if (out && out.lengthSq() > 1e-8) dir.add(out.clone().normalize()); dir.addScaledVector(bias, k).normalize();
+  let p = m.userData.anchor, bd = -1e9;
+  for (const v of m.userData.samples) { const sc = v.clone().sub(C).dot(dir) - v.distanceTo(m.userData.center) * .35; if (sc > bd) { bd = sc; p = v; } }
+  return p.clone();
+}
 function landmarkItems() {
   const items = [];
   if (st.iso && st.iso.length === 1) {
@@ -272,7 +283,7 @@ function landmarkItems() {
     if (st.interior && m.userData.inAxis) return interiorItems(m);
     const lm = LMJ.landmarks[n] || {}; const keys = d?.lm || Object.keys(lm);
     keys.forEach(k => lm[k] && items.push({ t: k, p: V3(...lm[k]), part: k, node: n }));
-    if (!items.length) items.push({ t: nodeTitle(n), p: m.userData.anchor.clone() });
+    if (!items.length) { const id = m.userData.id; items.push({ t: nodeTitle(n), p: surfacePick(m, m.userData.center, null, prefDir(id), 1), node: n }); }
     return items;
   }
   const vis = visibleList(); if (!vis.length) return items;
@@ -289,8 +300,8 @@ function landmarkItems() {
     const c = V3(); g.ms.forEach(m => c.add(m.userData.center)); c.divideScalar(g.ms.length);
     let best = g.ms[0], bd = 1e9; g.ms.forEach(m => { const dd = m.userData.anchor.distanceToSquared(c); if (dd < bd) { bd = dd; best = m; } });
     // ปักหมุดด้านที่หันออกจากกลุ่ม (ไม่ปักด้านในที่มองไม่เห็น)
-    const C = visBox.getCenter(V3()), dir = best.userData.center.clone().sub(C); let p = best.userData.anchor.clone();
-    if (dir.lengthSq() > 1e-8) { dir.normalize(); let bd2 = -1e9; for (const v of best.userData.samples) { const sc = v.clone().sub(C).dot(dir) - v.distanceTo(best.userData.center) * .35; if (sc > bd2) { bd2 = sc; p = v; } } p = p.clone(); }
+    const C = visBox.getCenter(V3()), id0 = best.userData.id, foot = FOOT.has(id0);
+    const p = surfacePick(best, C, foot ? null : best.userData.center.clone().sub(C), prefDir(id0), foot ? 1 : .6);
     items.push({ t: g.t, p, node: best.userData.n, id: D[best.userData.id].id });
   }
   return items;
@@ -318,13 +329,50 @@ function normalAt(mesh, p) { // normal ของจุดบนผิวที�
 }
 function pinLen() { const s = visBox.getSize(V3()); return Math.min(Math.max(s.x, s.y, s.z) * .075, .045); }
 function placePin(it, i) {
-  const L = pinLen() * [1, 1.5, 2][i % 3], m = byName[it.node];
+  const m = byName[it.node];
   let n = it.dirv ? it.dirv.clone() : m ? normalAt(m, it.p) : null;
   if (!n) n = it.p.clone().sub(visBox.getCenter(V3())).normalize();
-  if (!it.dirv) n.add(V3(0, .25, 0)).normalize(); // เอียงขึ้นเล็กน้อยให้อ่านง่าย
-  const q = new THREE.Quaternion().setFromUnitVectors(UPY, n), r = L * .035, hr = L * .11;
-  it.needle.position.copy(it.p); it.needle.quaternion.copy(q); it.needle.scale.set(r, L, r);
-  it.headP = it.p.clone().addScaledVector(n, L); it.head.position.copy(it.headP); it.head.scale.setScalar(hr); it.hr = hr;
+  if (!it.dirv) { if (m && FOOT.has(m.userData.id) && n.y < .2) n.y = .2; n.add(V3(0, .25, 0)).normalize(); } // เอียงขึ้นเล็กน้อยให้อ่านง่าย
+  it.n0 = n.clone(); setPin(it, n, pinLen() * [1, 1.4, 1.8][i % 3]);
+}
+function setPin(it, d, L) {
+  const L0 = pinLen(), r = L0 * .035, hr = L0 * .11;
+  it.dir = d.clone(); it.L = L;
+  it.needle.position.copy(it.p); it.needle.quaternion.setFromUnitVectors(UPY, d); it.needle.scale.set(r, L, r);
+  it.headP = it.p.clone().addScaledVector(d, L); it.head.position.copy(it.headP); it.hr = hr; it.head.scale.setScalar(hr * (it._foc ? 1.35 : 1));
+  if (it.spr) sizeSprite(it);
+}
+// จัดหมุดเมื่อกล้องหยุด: ลองหลายทิศ/ความยาว เลือกแบบที่ป้ายไม่ทับกันและอยู่ในจอ
+let pinTw = null;
+function layoutPins() {
+  if (st.lstyle !== 'pin' || st.interior || !labelItems.length || !labelItems[0].spr) return;
+  cam.updateMatrixWorld(); const r = stageRect(), f = freeRect(), L0 = pinLen();
+  const cR = V3().setFromMatrixColumn(cam.matrixWorld, 0), cU = V3().setFromMatrixColumn(cam.matrixWorld, 1), toCam = V3().setFromMatrixColumn(cam.matrixWorld, 2);
+  const tanH = Math.tan(cam.fov * Math.PI / 360), placed = [], heads = [], plan = [];
+  const ov = (a, b) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+  const order = labelItems.slice().sort((a, b) => project(a.p, r).y - project(b.p, r).y);
+  for (const it of order) {
+    const n0 = it.n0, cands = [];
+    for (const a of [0, .6, 1.2, -.5]) for (const b of [0, .7, -.7, 1.4, -1.4]) {
+      const d = n0.clone().addScaledVector(cU, a).addScaledVector(cR, b).normalize();
+      if (d.dot(n0) < .2) continue; cands.push(d);
+    }
+    let best = null;
+    for (const k of [1, 1.4, 1.8, 2.4, 3]) for (const d of cands) {
+      const L = L0 * k, h = it.p.clone().addScaledVector(d, L), s = project(h, r), dist = cam.position.distanceTo(h);
+      const hpx = Math.min(L0 * .7, 2 * dist * tanH * 20 / r.height) / (2 * dist * tanH) * r.height, wpx = hpx * it.spr.userData.aspect;
+      const rc = { x0: s.x + wpx * .12 - 2, x1: s.x + wpx * 1.12 + 2, y0: s.y - hpx / 2 - 2, y1: s.y + hpx / 2 + 2 };
+      const hd = { x0: s.x - 6, x1: s.x + 6, y0: s.y - 6, y1: s.y + 6 };
+      let cost = 0;
+      for (const q of placed) cost += ov(rc, q) * 4;
+      for (const q of heads) cost += ov(rc, q) * 2 + ov(hd, q);
+      const off = Math.max(0, f.t - rc.y0) + Math.max(0, rc.y1 - f.b) + Math.max(0, 4 - rc.x0) + Math.max(0, rc.x1 - (f.r - 4));
+      cost += off * hpx * 3 + (k - 1) * 60 + (1 - d.dot(n0)) * 120 + Math.max(0, -d.dot(toCam)) * 200;
+      if (!best || cost < best.cost) best = { cost, d, L, rc, hd, h };
+    }
+    placed.push(best.rc); heads.push(best.hd); plan.push({ it, d0: it.dir.clone(), L0: it.L, d1: best.d, L1: best.L }); it.headT = best.h;
+  }
+  pinTw = { t0: performance.now(), plan }; dirty = true;
 }
 function textSprite(t, foc) {
   const fs = 56, pad = 22, c = document.createElement('canvas'), x = c.getContext('2d'); x.font = `600 ${fs}px Inter, "IBM Plex Sans Thai", sans-serif`;
@@ -354,11 +402,12 @@ function buildLabelDom() {
     pinGroup.add(it.needle, it.head); placePin(it, i);
     it.spr = textSprite(it.t, false); it.spr.userData.item = it; pinGroup.add(it.spr); sizeSprite(it);
   });
+  occDirty = true;
 }
 function updateOcclusion() {
   const vis = visibleList(); occDirty = false;
   if (vis.length > 80) { labelItems.forEach(it => it.hidden = false); return; } // ทั้งตัว: ข้ามเพื่อความลื่น
-  labelItems.forEach(it => { const tp = it.headP || it.p, dir = tp.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
+  labelItems.forEach(it => { const tp = it.headT || it.headP || it.p, dir = tp.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
 }
 function drawLines() {
   const r = stageRect(), f = freeRect(), bb = visBox, pts = [];
@@ -390,11 +439,11 @@ function drawLines() {
 }
 function drawLabels() {
   if (!st.labels || !root) { if (labelItems.length) { pinGroup.clear(); lblBox.textContent = ''; svg.textContent = ''; labelItems = []; } return; }
-  if (labelsDirty) { labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
+  if (labelsDirty) { pinTw = null; labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
   if (!labelItems.length) return;
   if (st.lstyle === 'line') return drawLines();
   else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => { const it = labelItems[i]; if (it) { it.p = f.p; it.dirv = f.dirv; placePin(it, i); sizeSprite(it); } }); }
-  if (occDirty && !moving) { updateOcclusion(); labelItems.forEach(it => { it.spr.material.opacity = it.hidden ? .3 : 1; it.spr.renderOrder = it.hidden ? 1 : 3; }); }
+  if (occDirty && !moving) { layoutPins(); updateOcclusion(); labelItems.forEach(it => { it.spr.material.opacity = it.hidden ? .3 : 1; it.spr.renderOrder = it.hidden ? 1 : 3; }); }
   labelItems.forEach(it => {
     const foc = !!(st.focus && st.focus === it.part);
     if (it._foc !== foc) { it._foc = foc; it.head.material = foc ? headFoc : headMat; it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1));
@@ -616,6 +665,10 @@ R.setAnimationLoop(() => {
   ctl.update();
   if (!dirty) return; dirty = false;
   if (st.interior && st.iso) { const m = byName[st.iso[0]]; const c = m.userData.inAxis ? m.userData.inAxis.at(.5).c : visBox.getCenter(V3()); const n = ctl.target.clone().sub(cam.position).normalize(); clip.setFromNormalAndCoplanarPoint(n, c); }
-  drawLabels(); labelItems.forEach(it => it.spr && sizeSprite(it)); R.render(scene, cam); adapt(performance.now());
+  drawLabels();
+  if (pinTw) { let k = Math.min(1, (performance.now() - pinTw.t0) / 260); k = 1 - (1 - k) * (1 - k);
+    for (const q of pinTw.plan) if (q.it.spr) setPin(q.it, q.d0.clone().lerp(q.d1, k).normalize(), q.L0 + (q.L1 - q.L0) * k);
+    if (k >= 1) pinTw = null; dirty = true; }
+  labelItems.forEach(it => it.spr && sizeSprite(it)); R.render(scene, cam); adapt(performance.now());
 });
 window.__humnoi = { R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };
