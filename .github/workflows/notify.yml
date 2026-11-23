@@ -1,0 +1,32 @@
+name: notify-updates
+# ส่งแจ้งเตือนเข้ามือถือ (แอพ ntfy) เมื่อมีรายการใหม่ใน updates.json
+on:
+  push:
+    branches: [main]
+    paths: [updates.json]
+permissions:
+  contents: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Send new updates to ntfy
+        env:
+          TOPIC: payapkuytok-f8ad123d
+          SITE: https://nytoff5389-boop.github.io/px5/
+        run: |
+          git show HEAD~1:updates.json > old.json 2>/dev/null || echo '[]' > old.json
+          node -e '
+            const fs=require("fs");
+            const now=JSON.parse(fs.readFileSync("updates.json","utf8")), old=JSON.parse(fs.readFileSync("old.json","utf8"));
+            const seen=new Set(old.map(u=>u.id)), fresh=now.filter(u=>!seen.has(u.id)).sort((a,b)=>a.id-b.id).slice(-3);
+            fs.writeFileSync("msgs.json",JSON.stringify(fresh.map(u=>({topic:process.env.TOPIC,title:"PAYAPkuytok: "+u.t,message:u.m||u.t,tags:["bell"],click:new URL(u.h||"",process.env.SITE).href}))));
+            console.log("new updates:",fresh.length);'
+          # รอให้เว็บอัปเดตเสร็จก่อน คนกดแจ้งเตือนแล้วจะเจอหน้าใหม่
+          sleep 60
+          node -e '
+            const m=JSON.parse(require("fs").readFileSync("msgs.json","utf8"));
+            (async()=>{ for(const x of m){ const r=await fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify(x)}); console.log(r.status,x.title); if(!r.ok) process.exitCode=1; } })();'

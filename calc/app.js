@@ -1956,7 +1956,7 @@ function homeHTML(){
     <div class="hero-main">
      <p class="eyebrow num">Pharmaceutical Calculation · PHT111</p>
      <h1>คำนวณเภสัช<br><span class="hl">แม่นทุกตัวเลข</span></h1>
-     <p class="lede">อ่านสรุปบทที่ 1 เลขโรมันและเลขนัยสำคัญ และบทที่ 2 มาตรชั่งและตวง แล้วลองทำข้อสอบแบบพิมพ์ตอบและช้อยส์ ทุกข้อมีเฉลยพร้อมหลักการคิด</p>
+     <p class="lede">อ่านสรุปบทที่ 1 เลขโรมันและเลขนัยสำคัญ บทที่ 2 มาตรชั่งและตวง และบทที่ 3 Aliquot method แล้วลองทำข้อสอบแบบพิมพ์ตอบและช้อยส์ ทุกข้อมีเฉลยพร้อมหลักการคิด</p>
      <div class="cta-row"><button class="btn lg rp" data-read="0">${I.book}${p>1?'อ่านต่อหน้า '+p:'เริ่มอ่านบทที่ 1'}</button>
       <button class="btn ghost lg rp" data-tab="quiz">${I.quiz}ทำข้อสอบ</button></div>
     </div>
