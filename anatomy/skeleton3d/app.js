@@ -49,7 +49,7 @@ const TOP = { skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine',
 /* ---------- three setup ---------- */
 const stage = $('#stage'), cvs = $('#cvs');
 const R = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
-const PR_IDLE = Math.min(devicePixelRatio, 1.5), PR_MOVE = Math.min(devicePixelRatio, 1);
+const PR_IDLE = Math.min(devicePixelRatio, 1.5), PR_MOVE = Math.min(devicePixelRatio, .85);
 let prNow = PR_IDLE; R.setPixelRatio(prNow); R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace; R.localClippingEnabled = true;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000);
 const cam = new THREE.PerspectiveCamera(30, 1, .005, 50);
@@ -78,7 +78,7 @@ Promise.all([fetch('landmarks.json').then(r => r.json()).catch(() => LMJ), loade
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
     if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
-    o.material = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .55, metalness: 0 });
+    o.material = new THREE.MeshLambertMaterial({ color: IVORY }); // Lambert เบากว่า Standard บน GPU มือถือ
     o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
     o.userData = { n, id: p.id, side: p.side }; meshes.push(o); byName[n] = o;
     // anchor = จุดบนผิวที่ใกล้ centroid
@@ -86,6 +86,7 @@ Promise.all([fetch('landmarks.json').then(r => r.json()).catch(() => LMJ), loade
     for (let i = 0; i < pa.count; i += step) { c.add(t.fromBufferAttribute(pa, i)); k++; } c.divideScalar(k);
     let best = 1e9, bi = 0; for (let i = 0; i < pa.count; i += step) { const d = t.fromBufferAttribute(pa, i).distanceToSquared(c); if (d < best) { best = d; bi = i; } }
     o.userData.anchor = o.localToWorld(t.fromBufferAttribute(pa, bi).clone()); o.userData.center = o.localToWorld(c.clone());
+    const st2 = Math.max(1, pa.count / 400 | 0), sp = []; for (let i = 0; i < pa.count; i += st2) sp.push(o.localToWorld(t.fromBufferAttribute(pa, i).clone())); o.userData.samples = sp;
     const rg = o.geometry.attributes._region; if (rg) { const s = new Set(); for (let i = 0; i < rg.count; i += step) s.add(rg.getX(i)); o.userData.regions = [...s]; }
   });
   $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
@@ -136,7 +137,7 @@ function boxOf(list) { const b = new THREE.Box3(); list.forEach(m => b.expandByO
 let tw = null;
 function frame(list, dir, instant) {
   if (!list.length) return; const b = boxOf(list), c = b.getCenter(V3()), sph = b.getBoundingSphere(new THREE.Sphere());
-  const f = freeRect(), fov = cam.fov * Math.PI / 180, fw = st.labels ? .5 : .9, fh = (f.b - f.t) / f.h * .9;
+  const f = freeRect(), fov = cam.fov * Math.PI / 180, fw = .86, fh = (f.b - f.t) / f.h * (st.labels ? .8 : .9);
   const d = (dir || cam.position.clone().sub(ctl.target)).clone().normalize();
   const upv = Math.abs(d.y) > .99 ? V3(0, 0, -1) : V3(0, 1, 0), rt = V3().crossVectors(upv, d).normalize(), uu = V3().crossVectors(d, rt);
   let ex = 0, ey = 0, ez = 0; for (let i = 0; i < 8; i++) { const q = V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(c); ex = Math.max(ex, Math.abs(q.dot(rt))); ey = Math.max(ey, Math.abs(q.dot(uu))); ez = Math.max(ez, Math.abs(q.dot(d))); }
@@ -149,7 +150,7 @@ function frame(list, dir, instant) {
 function resize() {
   invalidate(); const r = stageRect(); R.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; viewOff();
 }
-new ResizeObserver(() => { resize(); }).observe(stage);
+let roT = 0; new ResizeObserver(() => { resize(); clearTimeout(roT); roT = setTimeout(() => frame(visibleList()), 120); }).observe(stage);
 addEventListener('orientationchange', () => setTimeout(() => { resize(); frame(visibleList(), null, true); }, 300));
 const DIRS = { front: V3(0, 0, 1), back: V3(0, 0, -1), right: V3(-1, 0, 0), left: V3(1, 0, 0), top: V3(0, 1, .0001), bottom: V3(0, -1, .0001) };
 $$('#viewbar [data-v]').forEach(b => b.onclick = () => frame(visibleList(), b.dataset.v === 'reset' ? DIRS.front : DIRS[b.dataset.v]));
@@ -261,7 +262,7 @@ function landmarkItems() {
     const m = byName[st.iso[0]], n = m.userData.n, d = D[st.entry]?.node && n.startsWith(D[st.entry].node) ? D[st.entry] : D[m.userData.id];
     if (st.interior && m.userData.inAxis) return interiorItems(m);
     const lm = LMJ.landmarks[n] || {}; const keys = d?.lm || Object.keys(lm);
-    keys.forEach(k => lm[k] && items.push({ t: k, p: V3(...lm[k]), part: k }));
+    keys.forEach(k => lm[k] && items.push({ t: k, p: V3(...lm[k]), part: k, node: n }));
     if (!items.length) items.push({ t: nodeTitle(n), p: m.userData.anchor.clone() });
     return items;
   }
@@ -278,7 +279,10 @@ function landmarkItems() {
   for (const [k, g] of groups) {
     const c = V3(); g.ms.forEach(m => c.add(m.userData.center)); c.divideScalar(g.ms.length);
     let best = g.ms[0], bd = 1e9; g.ms.forEach(m => { const dd = m.userData.anchor.distanceToSquared(c); if (dd < bd) { bd = dd; best = m; } });
-    items.push({ t: g.t, p: best.userData.anchor.clone(), node: best.userData.n, id: D[best.userData.id].id });
+    // ปักหมุดด้านที่หันออกจากกลุ่ม (ไม่ปักด้านในที่มองไม่เห็น)
+    const C = visBox.getCenter(V3()), dir = best.userData.center.clone().sub(C); let p = best.userData.anchor.clone();
+    if (dir.lengthSq() > 1e-8) { dir.normalize(); let bd2 = -1e9; for (const v of best.userData.samples) { const sc = v.clone().sub(C).dot(dir) - v.distanceTo(best.userData.center) * .35; if (sc > bd2) { bd2 = sc; p = v; } } p = p.clone(); }
+    items.push({ t: g.t, p, node: best.userData.n, id: D[best.userData.id].id });
   }
   return items;
 }
@@ -288,16 +292,37 @@ function interiorItems(m) {
   const P = (v, k) => { const q = A.at(v); return q.c.add(right.clone().multiplyScalar(k * q.r)); };
   return [['Articular cartilage', .985, -.35], ['Epiphysis (spongy bone · red marrow)', .93, .15], ['Epiphyseal line', .86, -.3], ['Metaphysis', .8, .55],
     ['Diaphysis', .58, -.98], ['Medullary cavity (yellow marrow)', .45, 0], ['Compact bone', .35, .5], ['Periosteum', .25, -.95], ['Epiphysis (ปลายล่าง)', .06, .2]]
-    .map(([t, v, k]) => ({ t, p: P(v, k), part: t }));
+    .map(([t, v, k]) => ({ t, p: P(v, k), part: t, node: m.userData.n, dirv: right.clone().multiplyScalar(k >= 0 ? 1 : -1) }));
 }
 function project(p, r) { const v = p.clone().project(cam); return { x: (v.x + 1) / 2 * r.width, y: (1 - v.y) / 2 * r.height, z: v.z }; }
 const occ = new THREE.Raycaster(); let occDirty = true;
 const SVGNS = 'http://www.w3.org/2000/svg';
+const pinGroup = new THREE.Group(); scene.add(pinGroup);
+const NEEDLE = new THREE.CylinderGeometry(1, .35, 1, 8, 1).translate(0, .5, 0), HEADG = new THREE.SphereGeometry(1, 18, 14);
+const needleMat = new THREE.MeshLambertMaterial({ color: 0xd8dce2 }), headMat = new THREE.MeshLambertMaterial({ color: 0xff4436, emissive: 0x330400 }), headFoc = new THREE.MeshLambertMaterial({ color: 0xff9f43, emissive: 0x3a1c00 });
+const UPY = V3(0, 1, 0), m3 = new THREE.Matrix3();
+function normalAt(mesh, p) { // normal ของจุดบนผิวที่ใกล้ p ที่สุด (world)
+  const g = mesh.geometry, pa = g.attributes.position, na = g.attributes.normal; if (!na) return null;
+  const lp = mesh.worldToLocal(p.clone()), t = V3(); let best = 1e30, bi = 0;
+  for (let i = 0; i < pa.count; i++) { const d = t.fromBufferAttribute(pa, i).distanceToSquared(lp); if (d < best) { best = d; bi = i; } }
+  return t.fromBufferAttribute(na, bi).applyMatrix3(m3.getNormalMatrix(mesh.matrixWorld)).normalize().clone();
+}
+function pinLen() { const s = visBox.getSize(V3()); return Math.min(Math.max(s.x, s.y, s.z) * .075, .045); }
+function placePin(it, i) {
+  const L = pinLen() * (i % 2 ? 1.35 : 1), m = byName[it.node];
+  let n = it.dirv ? it.dirv.clone() : m ? normalAt(m, it.p) : null;
+  if (!n) n = it.p.clone().sub(visBox.getCenter(V3())).normalize();
+  if (!it.dirv) n.add(V3(0, .25, 0)).normalize(); // เอียงขึ้นเล็กน้อยให้อ่านง่าย
+  const q = new THREE.Quaternion().setFromUnitVectors(UPY, n), r = L * .035, hr = L * .11;
+  it.needle.position.copy(it.p); it.needle.quaternion.copy(q); it.needle.scale.set(r, L, r);
+  it.headP = it.p.clone().addScaledVector(n, L); it.head.position.copy(it.headP); it.head.scale.setScalar(hr); it.hr = hr;
+}
 function buildLabelDom() {
-  lblBox.textContent = ''; svg.textContent = '';
+  lblBox.textContent = ''; svg.textContent = ''; pinGroup.clear();
   labelItems.forEach((it, i) => {
     const e = document.createElement('button'); e.className = 'lbl'; e.textContent = it.t; e.onclick = () => labelClick(it); e.style.animationDelay = Math.min(i * 18, 300) + 'ms'; lblBox.appendChild(e); it.el = e;
-    it.line = document.createElementNS(SVGNS, 'polyline'); it.dot = document.createElementNS(SVGNS, 'circle'); it.dot.setAttribute('r', '3.4'); svg.append(it.line, it.dot);
+    it.needle = new THREE.Mesh(NEEDLE, needleMat); it.head = new THREE.Mesh(HEADG, headMat); it.needle.raycast = it.head.raycast = () => { };
+    pinGroup.add(it.needle, it.head); placePin(it, i);
   });
   labelItems.forEach(it => { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; }); // วัดครั้งเดียว
   occDirty = true;
@@ -305,37 +330,38 @@ function buildLabelDom() {
 function updateOcclusion() {
   const vis = visibleList(); occDirty = false;
   if (vis.length > 80) { labelItems.forEach(it => it.hidden = false); return; } // ทั้งตัว: ข้ามเพื่อความลื่น
-  labelItems.forEach(it => { const dir = it.p.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
+  labelItems.forEach(it => { const tp = it.headP || it.p, dir = tp.clone().sub(cam.position), dl = dir.length(); occ.set(cam.position, dir.normalize()); occ.far = dl; const h = occ.intersectObjects(vis, false).find(h => !st.interior || clip.distanceToPoint(h.point) >= 0); it.hidden = !!h && h.distance < dl - Math.max(.004, dl * .012); });
 }
 function drawLabels() {
-  if (!st.labels || !root) { if (labelItems.length) { svg.textContent = ''; lblBox.textContent = ''; labelItems = []; } return; }
+  if (!st.labels || !root) { if (labelItems.length) { lblBox.textContent = ''; pinGroup.clear(); labelItems = []; } return; }
   const r = stageRect();
   if (labelsDirty) { labelItems = landmarkItems(); labelsDirty = false; buildLabelDom(); }
-  else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => labelItems[i] && (labelItems[i].p = f.p)); }
+  else if (st.interior) { const fresh = landmarkItems(); fresh.forEach((f, i) => { const it = labelItems[i]; if (it) { it.p = f.p; it.dirv = f.dirv; placePin(it, i); } }); }
   if (!labelItems.length) return;
-  const f = freeRect(), bb = visBox, pts = [];
-  for (let i = 0; i < 8; i++) pts.push(project(V3(i & 1 ? bb.max.x : bb.min.x, i & 2 ? bb.max.y : bb.min.y, i & 4 ? bb.max.z : bb.min.z), r));
-  const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x)), midX = (minX + maxX) / 2;
+  const f = freeRect();
   if (occDirty && !moving) updateOcclusion();
-  labelItems.forEach(it => { it.s = project(it.p, r); });
-  const L = labelItems.filter(i => i.s.x < midX).sort((a, b) => a.s.y - b.s.y), Rr = labelItems.filter(i => i.s.x >= midX).sort((a, b) => a.s.y - b.s.y);
-  const gap = 5, top = f.t + 4, bot = f.b - 4;
-  const place = (col, left) => {
-    let y = top; col.forEach(it => { it.ly = Math.max(y, it.s.y - it.h / 2); y = it.ly + it.h + gap; });
-    const over = y - gap - bot; if (over > 0) col.forEach(it => it.ly -= over);
-    for (let i = 0; i < col.length; i++) { const lim = i ? col[i - 1].ly + col[i - 1].h + gap : top; if (col[i].ly < lim) col[i].ly = lim; }
-    col.forEach(it => { let x = left ? minX - 28 - it.w : maxX + 28; x = Math.max(8, Math.min(f.r - it.w - 8, x)); it.lx = x; });
-  };
-  place(L, true); place(Rr, false);
+  const pxPer = it => { const a = project(it.headP, r), b = project(it.headP.clone().add(cam.up.clone().multiplyScalar(it.hr)), r); return Math.abs(a.y - b.y); };
+  labelItems.forEach(it => { it.s = project(it.headP, r); it.foot = project(it.p, r); it.hp = pxPer(it); });
+  // ชื่ออยู่ข้างหัวหมุด (ฝั่งที่เข็มชี้ออก) หลบกันไม่ให้ทับ
+  const placed = [], order = labelItems.slice().sort((a, b) => (a.hidden - b.hidden) || (a.s.z - b.s.z));
+  const hit = q => placed.some(o => q.x < o.x + o.w + 3 && q.x + q.w + 3 > o.x && q.y < o.y + o.h + 2 && q.y + q.h + 2 > o.y);
+  const inb = q => q.x >= 4 && q.x + q.w <= f.r - 4 && q.y >= f.t && q.y + q.h <= f.b;
+  for (const it of order) {
+    it.off = it.s.z > 1; if (it.off) continue;
+    const pref = it.s.x >= it.foot.x ? 1 : -1, gap = it.hp + 5; let best = null;
+    for (const dy of [0, -1, 1, -2, 2, -3, 3]) { for (const sd of [pref, -pref]) {
+      const q = { x: sd > 0 ? it.s.x + gap : it.s.x - gap - it.w, y: it.s.y - it.h / 2 + dy * (it.h + 3), w: it.w, h: it.h };
+      if (inb(q) && !hit(q)) { best = q; break; } } if (best) break; }
+    if (!best) best = { x: Math.max(4, Math.min(f.r - it.w - 4, pref > 0 ? it.s.x + gap : it.s.x - gap - it.w)), y: it.s.y - it.h / 2, w: it.w, h: it.h };
+    placed.push(best); it.q = best;
+  }
   labelItems.forEach(it => {
-    const left = it.lx + it.w / 2 < it.s.x, ex = left ? it.lx + it.w : it.lx, ey = it.ly + it.h / 2, foc = st.focus && st.focus === it.part;
-    it.el.style.transform = `translate3d(${it.lx | 0}px,${it.ly | 0}px,0)`;
+    if (it.off) { it.el.style.visibility = 'hidden'; return; }
+    it.el.style.visibility = '';
+    const foc = st.focus && st.focus === it.part;
+    it.el.style.transform = `translate3d(${it.q.x | 0}px,${it.q.y | 0}px,0)`;
     if (it._hid !== !!it.hidden) { it.el.classList.toggle('dim', !!it.hidden); it._hid = !!it.hidden; }
-    if (it._foc !== !!foc) { it.el.classList.toggle('foc', !!foc); it._foc = !!foc; }
-    const colr = foc ? '#ff9f43' : '#e8e8e8', op = it.hidden ? .35 : .85;
-    it.line.setAttribute('points', `${ex|0},${ey|0} ${(ex + (left ? 10 : -10))|0},${ey|0} ${it.s.x|0},${it.s.y|0}`);
-    it.line.setAttribute('stroke', colr); it.line.setAttribute('stroke-opacity', op); it.line.setAttribute('stroke-width', foc ? 1.8 : 1.1); it.line.setAttribute('fill', 'none');
-    it.dot.setAttribute('cx', it.s.x | 0); it.dot.setAttribute('cy', it.s.y | 0); it.dot.setAttribute('fill', it.hidden ? 'none' : colr); it.dot.setAttribute('stroke', it.hidden ? colr : '#000'); it.dot.setAttribute('stroke-opacity', it.hidden ? .6 : 1);
+    if (it._foc !== !!foc) { it.el.classList.toggle('foc', !!foc); it._foc = !!foc; it.head.material = foc ? headFoc : headMat; it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1)); }
   });
 }
 function labelClick(it) {
@@ -354,12 +380,13 @@ const pgBtns = (pg, name) => (pg || []).length ? `<div class="bookcard"><div cla
 const sec = (t, body) => body ? `<section><h4>${t}</h4>${body}</section>` : '';
 const ul = a => a?.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
 function legendHTML() {
-  if (st.color !== 'parts') return '';
+  const sw = `<div class="cswitch">${COLOR_MODES.map(c => `<button class="press" data-cmode="${c[0]}">${c[0] === 'off' ? 'ปิดสี' : c[1]}</button>`).join('')}</div>`;
+  if (st.color !== 'parts') return sec('สี', sw + (st.color === 'axap' ? '<div class="legend"><button><i style="background:#4aa3ff"></i>Axial · กระดูกแกน</button><button><i style="background:#ff6b6b"></i>Appendicular · ระยางค์</button></div>' : ''));
   const s = new Set(); visibleList().forEach(m => (m.userData.regions || []).forEach(r => r && s.add(r)));
   const multiT = visibleList().some(m => m.userData.id === 'temporal') && !(st.iso && st.iso.length === 1);
   if (multiT) visibleList().filter(m => m.userData.id === 'temporal').forEach(m => m.userData.regions.forEach(r => s.delete(r)));
   const extra = multiT ? `<button data-part="Temporal bones"><i style="background:#e04a3f"></i>Temporal</button>` : '';
-  if (!s.size && !extra) return ''; return sec('สีแยกส่วน', `<div class="legend">${extra}${[...s].sort((a, b) => a - b).map(i => `<button data-part="${esc(LMJ.regions[i][0])}"><i style="background:${LMJ.regions[i][1]}"></i>${esc(LMJ.regions[i][0])}</button>`).join('')}</div>`);
+  if (!s.size && !extra) return sec('สี', sw); return sec('สี', sw + `<div class="legend">${extra}${[...s].sort((a, b) => a - b).map(i => `<button data-part="${esc(LMJ.regions[i][0])}"><i style="background:${LMJ.regions[i][1]}"></i>${esc(LMJ.regions[i][0])}</button>`).join('')}</div>`);
 }
 function renderPanel() {
   let h = '';
@@ -395,7 +422,8 @@ function renderPanel() {
   $('#pInterior')?.addEventListener('click', toggleInterior);
 }
 $('#pbody').addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-part],[data-pg],[data-side]'); if (!t) return; e.preventDefault();
+  const t = e.target.closest('[data-go],[data-part],[data-pg],[data-side],[data-cmode]'); if (!t) return; e.preventDefault();
+  if (t.dataset.cmode) return setColor(t.dataset.cmode);
   if (t.dataset.go) openEntry(t.dataset.go, null, {});
   else if (t.dataset.part) setFocus(st.focus === t.dataset.part ? null : t.dataset.part);
   else if (t.dataset.pg) openBook(+t.dataset.pg, bookTarget().name);
@@ -433,11 +461,13 @@ function syncNav() {
   $$('#nav .nb').forEach(b => b.classList.toggle('on', !st.lesson && !st.entry && b.dataset.s === st.scope || st.lesson && b.dataset.l === st.lesson));
   $$('#nav [data-e]').forEach(b => b.classList.toggle('on', b.dataset.e === st.entry));
 }
-$('#menu').onclick = () => document.body.classList.toggle('navopen');
+$('#menu').onclick = () => navToggle();
 $('#scrim').onclick = () => document.body.classList.remove('navopen');
 
 /* ---------- tool dock ---------- */
-const COLOR_MODES = [['parts', 'แยกส่วน', 'ระบายสีแต่ละส่วนตามสมุด'], ['axap', 'แกน/ระยางค์', 'ฟ้า = กระดูกแกน (axial) · แดง = ระยางค์ (appendicular)'], ['off', 'ปิดสี', 'สีงาช้างทั้งหมด']];
+const COLOR_MODES = [['parts', 'แยกส่วน', 'ระบายสีแต่ละส่วนตามสมุด'], ['axap', 'แกน/ระยางค์', 'ฟ้า = กระดูกแกน (axial) · แดง = ระยางค์ (appendicular)'], ['off', 'ปิด', 'สีงาช้างทั้งหมด']];
+let colorMode = 'parts'; // แบบสีที่เลือกไว้ (ใช้ตอนเปิดสี)
+function setColor(c) { st.color = c; if (c !== 'off') colorMode = c; applyColor(); renderPanel(); syncDock(); const m = COLOR_MODES.find(x => x[0] === c); toast(c === 'off' ? 'ปิดสี' : 'เปิดสี: ' + m[1], m[2]); }
 function bookTarget() {
   if (st.lesson) { const l = LESSONS.find(x => x.id === st.lesson); return { pg: l.pg[0], name: l.t }; }
   if (st.entry) return { pg: (D[st.entry].pg || [])[0], name: D[st.entry].en };
@@ -446,15 +476,32 @@ function bookTarget() {
 function syncDock() {
   const set = (id, on, sub) => { const b = $(id); b.classList.toggle('on', !!on); b.querySelector('small').textContent = sub; };
   set('#tLabels', st.labels, st.labels ? 'เปิด' : 'ปิด');
-  set('#tColor', st.color !== 'off', COLOR_MODES.find(c => c[0] === st.color)[1]);
+  $$('[data-cmode]').forEach(b => b.classList.toggle('on', b.dataset.cmode === st.color));
+  set('#tColor', st.color !== 'off', st.color === 'off' ? 'ปิด' : COLOR_MODES.find(c => c[0] === st.color)[1]);
   set('#tInterior', st.interior, st.canInterior ? (st.interior ? 'เปิด' : 'ปิด') : 'กระดูกยาว');
   $('#tInterior').classList.toggle('na', !st.canInterior);
   const bt = bookTarget(); set('#tBook', false, bt.pg ? 'หน้า ' + bt.pg : '—');
 }
-$('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดป้ายชี้' : 'ปิดป้ายชี้', st.labels ? 'เส้นชี้บอกชื่อแต่ละส่วน · แตะป้ายเพื่อไฮไลต์' : 'ซ่อนเส้นชี้ทั้งหมด'); };
-$('#tColor').onclick = () => { const i = COLOR_MODES.findIndex(c => c[0] === st.color), n = COLOR_MODES[(i + 1) % 3]; st.color = n[0]; applyColor(); renderPanel(); syncDock(); toast('สี: ' + n[1], n[2]); };
+$('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดหมุดชื่อ' : 'ปิดหมุดชื่อ', st.labels ? 'หมุดปักบนกระดูกบอกชื่อแต่ละส่วน · แตะชื่อเพื่อไฮไลต์' : 'ซ่อนหมุดทั้งหมด'); };
+$('#tColor').onclick = () => setColor(st.color === 'off' ? colorMode : 'off');
 $('#tInterior').onclick = toggleInterior;
 $('#tBook').onclick = () => { const bt = bookTarget(); if (!bt.pg) return; openBook(bt.pg, bt.name); };
+const dock = $('#dock'), LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { } };
+function placeDock(y) { // y = ตำแหน่งบนสุดของแถบ (px จากบน stage)
+  const r = stageRect(), h = dock.offsetHeight; y = Math.max(8, Math.min(r.height - h - 8, y)); dock.style.top = y + 'px'; dock.style.bottom = 'auto'; dock.style.transform = 'none'; return y;
+}
+{ const y = +LS('hn-docky'); const dh = LS('hn-dockhide'); if (dh === '1' || (dh === null && innerWidth < 760)) dock.classList.add('hid'); requestAnimationFrame(() => { if (y) placeDock(y); invalidate(); viewOff(); }); }
+let dd = null;
+$('#dkGrip').addEventListener('pointerdown', e => { dd = { y: e.clientY, t: dock.offsetTop }; dock.classList.add('drag'); e.currentTarget.setPointerCapture(e.pointerId); });
+$('#dkGrip').addEventListener('pointermove', e => { if (dd) placeDock(dd.t + e.clientY - dd.y); });
+$('#dkGrip').addEventListener('pointerup', e => { if (!dd) return; dock.classList.remove('drag'); const y = placeDock(dd.t + e.clientY - dd.y); LS('hn-docky', y | 0); dd = null; invalidate(); viewOff(); });
+$('#dkHide').onclick = () => { const h = dock.classList.toggle('hid'); LS('hn-dockhide', h ? '1' : '0'); setTimeout(() => { placeDock(dock.offsetTop); invalidate(); viewOff(); frame(visibleList()); }, 10); toast(h ? 'ซ่อนแถบเครื่องมือ' : 'แสดงแถบเครื่องมือ', h ? 'กดปุ่ม "เครื่องมือ" เพื่อเปิดอีกครั้ง' : 'ลากที่แถบจับด้านบนเพื่อย้ายขึ้นลง'); };
+$('#dkShow').onclick = () => $('#dkHide').click();
+function navToggle() {
+  if (innerWidth < 1100) { document.body.classList.toggle('navopen'); return; }
+  const h = document.body.classList.toggle('navhide'); LS('hn-navhide', h ? '1' : '0'); toast(h ? 'ซ่อนแถบสารบัญ' : 'แสดงแถบสารบัญ', h ? 'กดปุ่ม ☰ มุมซ้ายบนเพื่อเปิดอีกครั้ง' : '');
+}
+if (LS('hn-navhide') === '1') document.body.classList.add('navhide');
 let toastT = 0;
 function toast(t, sub = '') { const e = $('#toast'); e.innerHTML = `<b>${esc(t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('show'), 2200); }
 // ripple ตอนกดปุ่ม
