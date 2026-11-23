@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795447274';
+import { DATA, SECS, LESSONS } from './data.js?v=1795447452';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -81,7 +81,7 @@ const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, le
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795447274').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795447274')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795447452').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795447452')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
@@ -202,7 +202,8 @@ function render(fromBack) {
   const iso = st.iso && new Set(st.iso);
   setVisible(m => iso ? iso.has(m.userData.n) : inSec(st.scope, m.userData.id) && (!SEC[st.scope]?.side || !m.userData.side || m.userData.side === st.side));
   setInterior(st.interior); applyColor(); renderPanel(); renderCrumbs(); syncNav(); syncDock(); viewOff();
-  frame(visibleList(), DIRS.front, false); labelsDirty = true;
+  const handView = st.scope === 'hand' || (st.entry && HAND.has(st.entry));
+  frame(visibleList(), handView ? DIRS.back : DIRS.front, false); labelsDirty = true;
   const h = st.lesson ? '#lesson/' + st.lesson : st.entry ? '#bone/' + st.entry + (st.iso?.length === 1 ? '/' + st.iso[0] : '') : '#sec/' + st.scope + '/' + st.side;
   if (location.hash !== h) history.replaceState(null, '', h);
 }
@@ -281,8 +282,11 @@ function toggleInterior() {
 /* ---------- leader-line labels ---------- */
 const svg = $('#lines'), lblBox = $('#labels'); let labelsDirty = true, labelItems = [];
 const FOOT = new Set(['calcaneus', 'talus', 'navicular', 'cuboid', 'cuneiform', 'metatarsal', 'phalanx_f']);
+const HAND = new Set(['scaphoid', 'lunate', 'triquetrum', 'pisiform', 'trapezium', 'trapezoid', 'capitate', 'hamate', 'metacarpal', 'phalanx_h']);
+const DORSUM = V3(0, .15, -1).normalize(); // หลังมือ (ท่ากายวิภาค: ฝ่ามือหันไปด้านหน้า)
 function prefDir(id) { // ทิศที่อยากให้หมุดชี้ออก (ฝั่งที่มองเห็นได้ง่าย)
   if (id === 'calcaneus') return V3(0, .6, -1).normalize(); // ส้นเท้า: ด้านหลัง-บน
+  if (HAND.has(id)) return DORSUM.clone();
   return FOOT.has(id) ? V3(0, 1, .35).normalize() : V3(0, .2, 1).normalize();
 }
 function surfacePick(m, C, out, bias, k) { // จุดบนผิวที่หันไปทาง out+bias มากที่สุด ใกล้แกนกลางชิ้น
@@ -315,7 +319,7 @@ function landmarkItems() {
     const c = V3(); g.ms.forEach(m => c.add(m.userData.center)); c.divideScalar(g.ms.length);
     let best = g.ms[0], bd = 1e9; g.ms.forEach(m => { const dd = m.userData.anchor.distanceToSquared(c); if (dd < bd) { bd = dd; best = m; } });
     // ปักหมุดด้านที่หันออกจากกลุ่ม (ไม่ปักด้านในที่มองไม่เห็น)
-    const C = visBox.getCenter(V3()), id0 = best.userData.id, foot = FOOT.has(id0);
+    const C = visBox.getCenter(V3()), id0 = best.userData.id, foot = FOOT.has(id0) || HAND.has(id0);
     const p = surfacePick(best, C, foot ? null : best.userData.center.clone().sub(C), prefDir(id0), foot ? 1 : .6);
     items.push({ t: g.t, p, node: best.userData.n, id: D[best.userData.id].id });
   }
@@ -347,7 +351,7 @@ function placePin(it, i) {
   const m = byName[it.node];
   let n = it.dirv ? it.dirv.clone() : m ? normalAt(m, it.p) : null;
   if (!n) n = it.p.clone().sub(visBox.getCenter(V3())).normalize();
-  if (!it.dirv) { if (m && FOOT.has(m.userData.id) && n.y < .2) n.y = .2; n.add(V3(0, .25, 0)).normalize(); } // เอียงขึ้นเล็กน้อยให้อ่านง่าย
+  if (!it.dirv) { if (m && FOOT.has(m.userData.id) && n.y < .2) n.y = .2; if (m && HAND.has(m.userData.id)) n.addScaledVector(DORSUM, 1.2); n.add(V3(0, .25, 0)).normalize(); } // เอียงขึ้นเล็กน้อยให้อ่านง่าย
   it.n0 = n.clone(); setPin(it, n, pinLen() * [1, 1.4, 1.8][i % 3]);
 }
 function setPin(it, d, L) {
@@ -358,7 +362,7 @@ function setPin(it, d, L) {
   if (it.spr) sizeSprite(it);
 }
 // จัดหมุดเมื่อกล้องหยุด: ลองหลายทิศ/ความยาว เลือกแบบที่ป้ายไม่ทับกันและอยู่ในจอ
-let pinTw = null;
+let pinTw = null; const pinRay = new THREE.Raycaster();
 function layoutPins() {
   if (st.lstyle !== 'pin' || st.interior || !labelItems.length || !labelItems[0].spr) return;
   cam.updateMatrixWorld(); const r = stageRect(), f = freeRect(), L0 = pinLen();
@@ -372,7 +376,7 @@ function layoutPins() {
       const d = n0.clone().addScaledVector(cU, a).addScaledVector(cR, b).normalize();
       if (d.dot(n0) < .2) continue; cands.push(d);
     }
-    let best = null;
+    const all = [];
     for (const k of [1, 1.4, 1.8, 2.4, 3]) for (const d of cands) {
       const L = L0 * k, h = it.p.clone().addScaledVector(d, L), s = project(h, r), dist = cam.position.distanceTo(h);
       const hpx = Math.min(L0 * .7, 2 * dist * tanH * 20 / r.height) / (2 * dist * tanH) * r.height, wpx = hpx * it.spr.userData.aspect;
@@ -382,9 +386,13 @@ function layoutPins() {
       for (const q of placed) cost += ov(rc, q) * 4;
       for (const q of heads) cost += ov(rc, q) * 2 + ov(hd, q);
       const off = Math.max(0, f.t - rc.y0) + Math.max(0, rc.y1 - f.b) + Math.max(0, 4 - rc.x0) + Math.max(0, rc.x1 - (f.r - 4));
-      cost += off * hpx * 3 + (k - 1) * 60 + (1 - d.dot(n0)) * 120 + Math.max(0, -d.dot(toCam)) * 200;
-      if (!best || cost < best.cost) best = { cost, d, L, rc, hd, h };
+      cost += off * hpx * 3 + (k - 1) * 60 + (1 - d.dot(n0)) * 120 + Math.max(0, -d.dot(toCam)) * 60;
+      all.push({ cost, d, L, rc, hd, h });
     }
+    // ห้ามเข็มทะลุกระดูกชิ้นอื่น: ตรวจตามลำดับต้นทุน เลือกอันแรกที่เข็มไม่ชนกระดูก
+    all.sort((a, b) => a.cost - b.cost); let best = all[0], tries = 0;
+    for (const c of all) { if (++tries > 40) break; pinRay.set(it.p.clone().addScaledVector(c.d, L0 * .04), c.d); pinRay.far = c.L * 1.05;
+      if (!pinRay.intersectObjects(visCache, false).length) { best = c; break; } }
     placed.push(best.rc); heads.push(best.hd); plan.push({ it, d0: it.dir.clone(), L0: it.L, d1: best.d, L1: best.L }); it.headT = best.h;
   }
   pinTw = { t0: performance.now(), plan }; dirty = true;
