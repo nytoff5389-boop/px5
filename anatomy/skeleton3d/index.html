@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>3D Skeleton</title>
+<style>
+:root{--ac:#ff9f43;--gl:rgba(20,20,20,.7);--bd:rgba(255,255,255,.12);--tx:#f2f2f2;--mu:#9a9a9a;--sb:env(safe-area-inset-bottom);--st:env(safe-area-inset-top)}
+html,body{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;margin:0;background:#000;color:var(--tx);font:14px/1.45 -apple-system,"Sukhumvit Set",system-ui,sans-serif;height:100dvh}
+canvas{touch-action:none;display:block}
+#c{position:fixed;inset:0}
+.glass{background:var(--gl);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--bd);border-radius:14px}
+button{font:inherit;color:var(--tx);background:rgba(255,255,255,.08);border:1px solid var(--bd);border-radius:10px;padding:6px 10px;white-space:nowrap;cursor:pointer}
+button.on{background:var(--ac);color:#000;border-color:var(--ac)}
+#top{position:fixed;top:calc(var(--st) + 8px);left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);padding:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+#row1{display:flex;gap:6px;align-items:center}
+#q{flex:1;min-width:0;font:inherit;color:var(--tx);background:rgba(255,255,255,.08);border:1px solid var(--bd);border-radius:10px;padding:7px 10px;outline:none;-webkit-user-select:text;user-select:text}
+#row2{display:flex;gap:6px;overflow-x:auto;touch-action:pan-x;scrollbar-width:none}
+#row2::-webkit-scrollbar{display:none}
+#res{position:absolute;top:100%;left:8px;right:8px;margin-top:4px;max-height:40dvh;overflow-y:auto;touch-action:pan-y;display:none;padding:4px}
+#res div{padding:8px;border-bottom:1px solid var(--bd)}#res div small{color:var(--mu)}
+#crumb{font-size:13px;color:var(--mu)}#crumb a{color:var(--ac);text-decoration:none;margin:0 2px}
+#panel{position:fixed;z-index:6;display:flex;flex-direction:column}
+#handle{height:26px;display:flex;align-items:center;justify-content:center;touch-action:none;flex:none}
+#handle i{width:42px;height:5px;border-radius:3px;background:#666}
+#body{overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding:0 16px calc(16px + var(--sb));flex:1;-webkit-user-select:text;user-select:text}
+#body h2{margin:4px 0 2px;font-size:20px}#body h2 small{display:block;font-size:14px;color:var(--mu);font-weight:400}
+#body h4{margin:14px 0 4px;color:var(--ac);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+#body ul{margin:0;padding-left:18px}#body li{margin:2px 0}
+#body .kv{display:flex;gap:8px;margin:3px 0}#body .kv b{color:var(--mu);font-weight:500;min-width:92px}
+#body a{color:var(--ac);text-decoration:none}
+.tip{background:rgba(255,159,67,.12);border-left:3px solid var(--ac);padding:6px 10px;border-radius:6px;margin:4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font-size:13px}
+@media (max-width:767px){#panel{left:0;right:0;bottom:0;height:22dvh;border-radius:18px 18px 0 0;transition:height .25s}#panel.drag{transition:none}#hide{display:none}}
+@media (min-width:768px){#top{right:calc(env(safe-area-inset-right) + 396px)}#panel{top:calc(var(--st) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(var(--sb) + 8px);width:380px;transition:transform .25s}#panel.hid{transform:translateX(400px)}#handle{display:none}body.ph #top{right:8px}#hide{position:absolute;left:-44px;top:50%;width:36px;height:56px;padding:0}#panel.hid #hide{left:-52px}}
+#views{position:fixed;right:calc(env(safe-area-inset-right) + 8px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;padding:6px;z-index:4}
+@media (min-width:768px){#views{right:calc(env(safe-area-inset-right) + 448px)}body.ph #views{right:8px}}
+#stat{position:fixed;max-width:calc(100vw - 120px);font-size:10px!important;left:calc(env(safe-area-inset-left) + 8px);bottom:calc(var(--sb) + 8px);padding:6px 10px;font-size:12px;color:var(--mu);z-index:4}
+#stat b{color:var(--tx)}
+@media (max-width:767px){#stat{bottom:calc(22dvh + 8px)}}
+#toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:12px 18px;font-size:16px;display:none;z-index:9}
+.lbl{font-size:11px;color:#fff;background:rgba(0,0,0,.65);border:1px solid rgba(255,159,67,.6);padding:1px 6px;border-radius:6px;white-space:nowrap;pointer-events:none}
+#load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu);pointer-events:none}
+</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="c"></div>
+<div id="load">กำลังโหลด…</div>
+<div id="top" class="glass">
+ <div id="row1"><input id="q" placeholder="ค้นหา ไทย/English" autocomplete="off"><button id="bFile">เปิดไฟล์ .glb</button><input id="file" type="file" accept=".glb,.gltf,model/gltf-binary" hidden></div>
+ <div id="row2"></div>
+ <div id="crumb"></div>
+ <div id="res" class="glass"></div>
+</div>
+<div id="views" class="glass"><button data-v="front">หน้า</button><button data-v="back">หลัง</button><button data-v="side">ข้าง</button><button data-v="top">บน</button><button data-v="reset">Reset</button></div>
+<div id="panel" class="glass"><button id="hide">›</button><div id="handle"><i></i></div><div id="body"></div></div>
+<div id="stat" class="glass">Axial <b>80</b> · Appendicular <b>126</b> · รวม <b>206</b><br>BodyParts3D, © The Database Center for Life Science, CC BY 4.0</div>
+<div id="toast" class="glass"></div>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {CSS2DRenderer,CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ================= DATA ================= */
+const VG=['body (หน้า รับน้ำหนัก)','vertebral (neural) arch = pedicle×2 + lamina → vertebral foramen (spinal cord)','รอยเว้า pedicle → intervertebral foramen (spinal nerve root)','process 7: transverse 2 (จาก pedicle–lamina), spinous 1 (กลางหลัง ชี้หลัง-ลง คลำได้), articular 4 (บน2 ล่าง2 ต่อชิ้นข้างเคียง)'];
+const PT='★Pterion (ทัดดอกไม้) = squamous temporal + parietal + frontal + sphenoid จุดเปราะ';
+const PTC='Pterion แตก → middle meningeal artery → เลือดออกในกะโหลก';
+const CT='★S L T P / T T C H จากฝั่งนิ้วโป้ง';
+const B=(id,en,th,n,g,reg,loc,parts=[],con=[],pass=[],clin=[],tip=[])=>({id,en,th,n,g,reg,loc,parts,con,pass,clin,tip});
+const carp=(id,en,row,con=[])=>B(id,en,'กระดูกข้อมือ',1,'ap','upper',`Carpals แถว ${row}`,[],con,[],[],[CT]);
+const tars=(id,en,th,n,loc,con=[])=>B(id,en,th,n,'ap','lower',loc,[],con,[],[],['Tarsals 7: calcaneus, talus, navicular, cuboid, cuneiform×3']);
+const DATA=[
+B('frontal','Frontal bone','กระดูกหน้าผาก',1,'ax','skull','หน้าผาก (Cranial)',['frontal sinus ตรงหัวคิ้ว'],[['parietal','Fibrous: suture','coronal suture'],['sphenoid','Fibrous: suture','pterion']],[],[PTC],[PT]),
+B('parietal','Parietal bone','กระดูกข้างขม่อม',2,'ax','skull','ด้านบน-ข้างกะโหลก (Cranial)',['sagittal suture (กลาง)','coronal suture (–frontal)','lambdoid suture (–occipital)','จุด lambda'],[['parietal','Fibrous: suture','sagittal suture'],['frontal','Fibrous: suture','coronal suture'],['occipital','Fibrous: suture','lambdoid suture'],['temporal','Fibrous: suture','pterion']],[],[PTC],[PT]),
+B('temporal','Temporal bone','กระดูกขมับ',2,'ax','skull','ข้างกะโหลก รอบรูหู (Cranial)',['petrous part: ฐานใน; หูกลาง + หูใน','tympanic part: หูนอก; styloid process','squamous part: เหนือรูหู; pterion; zygomatic process → zygomatic','mastoid part: หลังรูหู; mastoid process'],[['zygomatic','Fibrous: suture','zygomatic process ของ temporal'],['parietal','Fibrous: suture','pterion'],['hyoid','ไม่ใช่ข้อต่อ','styloid process ยึด hyoid ด้วย m. stylohyoid']],[],[PTC],[PT]),
+B('occipital','Occipital bone','กระดูกท้ายทอย',1,'ax','skull','ท้ายทอย (Cranial)',['foramen magnum','external occipital protuberance (คลำได้)','lambdoid suture'],[['parietal','Fibrous: suture','lambdoid suture']],['foramen magnum: medulla oblongata → spinal cord']),
+B('sphenoid','Sphenoid bone','กระดูกรูปผีเสื้อ',1,'ax','skull','รูปผีเสื้อ กลางฐานกะโหลก (Cranial)',['sella turcica = pituitary gland','sphenoidal sinus'],[['frontal','Fibrous: suture','pterion'],['parietal','Fibrous: suture','pterion'],['temporal','Fibrous: suture','pterion']],[],[PTC],[PT]),
+B('ethmoid','Ethmoid bone','กระดูกเอทมอยด์',1,'ax','skull','ระหว่างโพรงจมูก–เบ้าตา (Cranial)',['cribriform plate','crista galli','ethmoidal sinus'],[],['cribriform plate: olfactory nerve']),
+B('nasal','Nasal bone','กระดูกจมูก',2,'ax','skull','สันจมูก (Facial)'),
+B('maxilla','Maxilla','กระดูกขากรรไกรบน',2,'ax','skull','ขากรรไกรบน (Facial)',['palatine process = เพดานหน้า','maxillary sinus'],[['zygomatic','Fibrous: suture','']]),
+B('zygomatic','Zygomatic bone','กระดูกโหนกแก้ม',2,'ax','skull','โหนกแก้ม (Facial)',[],[['temporal','Fibrous: suture','รับ zygomatic process ของ temporal']]),
+B('mandible','Mandible','กระดูกขากรรไกรล่าง',1,'ax','skull','ขากรรไกรล่าง (Facial)',['รากฟัน–ขากรรไกร = gomphosis (periodontal ligament)'],[['hyoid','ไม่ใช่ข้อต่อ','hyoid อยู่ระหว่างขากรรไกรล่าง–กล่องเสียง']]),
+B('lacrimal','Lacrimal bone','กระดูกน้ำตา',2,'ax','skull','ผนังในเบ้าตา (Facial)'),
+B('palatine','Palatine bone','กระดูกเพดานปาก',2,'ax','skull','เพดานหลัง (Facial)',[],[['maxilla','Fibrous: suture','palatine process ของ maxilla = เพดานหน้า']]),
+B('vomer','Vomer','กระดูกโวเมอร์',1,'ax','skull','ผนังกั้นช่องจมูก (Facial)'),
+B('concha','Inferior nasal concha','กระดูกเทอร์บิเนตล่าง',2,'ax','skull','แผ่นในช่องจมูก (Facial)',['superior / middle / inferior conchae']),
+B('hyoid','Hyoid bone','กระดูกไฮออยด์',1,'ax','skull','รูปตัว U หน้าลำคอ ระหว่างขากรรไกรล่าง–กล่องเสียง เหนือ larynx',['body','greater horn','lesser horn'],[['temporal','ไม่เป็นข้อต่อกับกระดูกใด','ยึดด้วยกล้ามเนื้อ/เอ็น; ยึด styloid process ด้วย m. stylohyoid']]),
+B('c1','C1 Atlas','กระดูกสันหลังคอชิ้นที่ 1',1,'ax','spine','คอ บนสุด',['วงแหวน ไม่มี body'],[['occipital','Synovial',''],['c2','Synovial','dens ของ axis สวมในวง atlas']],['vertebral foramen: spinal cord','transverse foramen: vertebral artery']),
+B('c2','C2 Axis','กระดูกสันหลังคอชิ้นที่ 2',1,'ax','spine','คอ',['dens สวมในวง atlas → หันหน้าซ้าย-ขวา','bifid spinous process'],[['c1','Synovial','dens–atlas'],['cervical','Cartilaginous: intervertebral disc','']],['vertebral foramen: spinal cord','transverse foramen: vertebral artery']),
+B('cervical','Cervical vertebrae','กระดูกสันหลังส่วนคอ','7 (C1–C7)','ax','spine','คอ',[...VG,'body เล็กสุด','transverse foramen (foramen transversarium)','bifid spinous process C2–C6'],[['c2','Cartilaginous: intervertebral disc',''],['thoracic','Cartilaginous: intervertebral disc','C7–T1']],['vertebral foramen: spinal cord','intervertebral foramen: spinal nerve root','transverse foramen: vertebral artery เลี้ยงสมองส่วนหลัง'],['vertebral artery อุดตัน → เวียนศีรษะ'],['★กินข้าวเช้า 7 โมง = คอ 7']),
+B('thoracic','Thoracic vertebrae','กระดูกสันหลังส่วนอก',12,'ax','spine','อก',[...VG,'spinous process ยาวชี้ลง','costal facet (body) + costotransverse facet (transverse) ต่อซี่โครง'],[['rib','Synovial','costal facet / costotransverse facet'],['cervical','Cartilaginous: intervertebral disc',''],['lumbar','Cartilaginous: intervertebral disc','']],['vertebral foramen: spinal cord','intervertebral foramen: spinal nerve root'],[],['★เที่ยง 12 = อก 12']),
+B('lumbar','Lumbar vertebrae','กระดูกสันหลังส่วนเอว',5,'ax','spine','เอว',[...VG,'ใหญ่/แข็งแรงสุด รับน้ำหนักมากสุด','body ใหญ่','spinous process สั้น หนา สี่เหลี่ยม'],[['thoracic','Cartilaginous: intervertebral disc',''],['sacrum','Cartilaginous: intervertebral disc','L5–S1'],['disc','Cartilaginous','']],['vertebral foramen: spinal cord','intervertebral foramen: spinal nerve root'],['herniated disc → ปวดร้าวลงขา'],['★เย็น 5 โมง = เอว 5','★รักษา lumbar discectomy']),
+B('disc','Intervertebral disc','หมอนรองกระดูกสันหลัง','—','ax','spine','ระหว่าง body ของกระดูกสันหลัง (Cartilaginous joint)',['nucleus pulposus (วุ้นกลาง)','annulus fibrosus (นอก)','หน้าที่: รับน้ำหนัก กระจายแรง'],[['lumbar','Cartilaginous',''],['thoracic','Cartilaginous',''],['cervical','Cartilaginous','']],[],['herniated: annulus ฉีก nucleus ปลิ้นกดรากประสาท/ไขสันหลัง ปวดร้าวลงขา','degeneration → osteophytes (bone spurs) กดรากประสาท/หลอดเลือด/อวัยวะข้างเคียง','ชนิด: normal, degenerated, bulging, herniated, thinning, osteophyte'],['★รักษา lumbar discectomy']),
+B('sacrum','Sacrum','กระดูกกระเบนเหน็บ',1,'ax','spine','สามเหลี่ยม ระหว่าง hip bone 2 ข้าง',['5 ชิ้นเชื่อมเป็น 1'],[['lumbar','Cartilaginous: intervertebral disc','L5'],['ilium','Synovial: SIJ','ถ่ายน้ำหนักกระดูกสันหลัง → ขา'],['coccyx','','ต่อล่าง sacrum']]),
+B('coccyx','Coccyx (tailbone)','กระดูกก้นกบ',1,'ax','spine','สามเหลี่ยม ใต้ sacrum',['4 ชิ้นเชื่อมเป็น 1'],[['sacrum','','ต่อล่าง sacrum']]),
+B('sternum','Sternum','กระดูกอก',1,'ax','thorax','กลางหน้าอก',['manubrium: suprasternal notch (คลำได้ที่คอ); แอ่งต่อ clavicle + rib 1','sternomanubrial angle','body: ใหญ่สุด; costal cartilage ต่อซี่โครง','xiphoid process ลิ้นปี่: ที่เกาะกล้ามเนื้อผนังหน้าท้อง'],[['clavicle','Synovial','manubrium'],['rib','costal cartilage','rib 1–7 (true ribs)']]),
+B('rib','Ribs','กระดูกซี่โครง','24 (12 คู่)','ax','thorax','ทรวงอก',['true ribs 1–7: costal cartilage → sternum ตรง','false ribs 8–10: → costal cartilage ซี่บน','floating ribs 11–12: ปลายลอย'],[['sternum','costal cartilage','true ribs 1–7'],['thoracic','Synovial','หลังต่อ costal facet ของ thoracic vertebra']],[],['floating ribs หักง่ายเมื่อบาดเจ็บหลังช่องอกล่าง/ช่องท้อง']),
+B('scapula','Scapula','กระดูกสะบัก',2,'ap','shoulder','แบนสามเหลี่ยม หลังทรวงอก',['หลัง: spine, acromion (ปลายนอก spine ต่อ clavicle), supraspinous fossa, infraspinous fossa, glenoid fossa (ใต้ acromion ส่วนข้อไหล่)','หน้า: coracoid process (ตะขอ ที่เกาะ short head of biceps brachii), subscapular fossa','อื่น: axillary border, inferior angle, scapular notch, medial / lateral border'],[['humerus','Synovial','shoulder joint'],['clavicle','Synovial','acromion']]),
+B('clavicle','Clavicle','กระดูกไหปลาร้า',2,'ap','shoulder','หน้าไหล่ แนวนอน',['ปลายใน (–sternum)','ปลายนอก (–acromion)'],[['sternum','Synovial','ปลายใน'],['scapula','Synovial','ปลายนอก–acromion']],[],['หักบ่อยจากล้มเอามือ/ไหล่ลง']),
+B('humerus','Humerus','กระดูกต้นแขน',2,'ap','upper','ต้นแขน',['head','anatomical neck','surgical neck (หักบ่อย)','greater tubercle (ข้าง)','lesser tubercle (หน้า)','intertubercular (bicipital) groove','shaft + deltoid tuberosity (เกาะ deltoid)','capitulum (นอก ต่อ head radius)','trochlea (ใน รูปรอก)','olecranon fossa (หลัง)','coronoid fossa','radial fossa','medial / lateral epicondyle'],[['scapula','Synovial','shoulder joint (glenoid fossa)'],['radius','Synovial','capitulum–head of radius'],['ulna','Synovial','ข้อศอก: trochlea/olecranon fossa + trochlear notch']],[],['surgical neck หักบ่อย']),
+B('radius','Radius','กระดูกเรเดียส',2,'ap','upper','แขนท่อนล่าง ด้านนอก (ฝั่งนิ้วโป้ง)',['head กลมแบน','neck','radial tuberosity (ด้านใน)','shaft กว้างลงล่าง','styloid process'],[['humerus','Synovial','capitulum'],['ulna','Fibrous: radioulnar syndesmosis','interosseous membrane (เคลื่อนได้เล็กน้อย); ปลายล่างมี articular disk คั่น ulna'],['scaphoid','Synovial','ปลายล่าง'],['lunate','Synovial','ปลายล่าง']]),
+B('ulna','Ulna','กระดูกอัลนา',2,'ap','upper','แขนท่อนล่าง ด้านใน (ฝั่งนิ้วก้อย)',['olecranon process (ปุ่มศอก ตะขอ/C)','trochlear notch (ต่อ trochlea + olecranon fossa)','coronoid process','radial notch','head (ล่าง)','styloid process'],[['humerus','Synovial','ข้อศอก'],['radius','Fibrous: radioulnar syndesmosis','interosseous membrane; radial notch']]),
+carp('scaphoid','Scaphoid','proximal',[['radius','Synovial','']]),carp('lunate','Lunate','proximal',[['radius','Synovial','']]),carp('triquetrum','Triquetrum','proximal'),carp('pisiform','Pisiform','proximal'),
+carp('trapezium','Trapezium','distal',[['metacarpal','','']]),carp('trapezoid','Trapezoid','distal',[['metacarpal','','']]),carp('capitate','Capitate','distal',[['metacarpal','','']]),carp('hamate','Hamate','distal',[['metacarpal','','']]),
+B('metacarpal','Metacarpals','กระดูกฝ่ามือ','5 ต่อข้าง','ap','upper','ฝ่ามือ',[],[['phalanx_h','',''],['capitate','','carpals แถว distal']],[],[],['มือ–เท้า: metacarpals 5 / metatarsals 5']),
+B('phalanx_h','Phalanges (hand)','กระดูกนิ้วมือ','14 ต่อข้าง','ap','upper','นิ้วมือ',['proximal','middle','distal'],[['metacarpal','','']],[],[],['★นิ้วโป้งไม่มี middle','มือ–เท้า: phalanges 14 / 14']),
+B('hip','Hip bone (Pelvis)','กระดูกสะโพก',2,'ap','pelvis','เชิงกราน: ilium + ischium + pubis เชื่อมกันเมื่อโต',['Acetabulum: เบ้ารับ head of femur = ข้อสะโพก; acetabular labrum, ligament of head of femur; เด็กมี triradiate cartilage','Obturator foramen: ระหว่าง ischium–pubis; obturator membrane','หญิง: pubic arch กว้างกว่า, pelvic brim กว้างกลม (คลอดบุตร); ชาย arch แคบ','Glossary: ASIS, AIIS, PSIS, PIIS, SIJ'],[['femur','Synovial','ข้อสะโพก (acetabulum)'],['sacrum','Synovial: SIJ',''],['hip','Cartilaginous: pubic symphysis','']],['obturator canal → obturator nerve + vessels ไปต้นขาด้านใน']),
+B('ilium','Ilium','กระดูกปีกสะโพก',2,'ap','pelvis','hip bone ส่วนบน',['iliac crest (คลำได้ที่เอว)','ASIS','AIIS','PSIS','PIIS','iliac fossa','greater sciatic notch','ร่วมสร้าง acetabulum'],[['sacrum','Synovial: SIJ','ilium–sacrum ถ่ายน้ำหนักกระดูกสันหลัง → ขา'],['femur','Synovial','ข้อสะโพก (acetabulum)'],['ischium','เชื่อมกันเมื่อโต','triradiate cartilage ในเด็ก'],['pubis','เชื่อมกันเมื่อโต','']],[],[],['★McBurney\'s point ≈ 1/3 จาก ASIS → สะดือ = appendix']),
+B('pubis','Pubis','กระดูกหัวหน่าว',2,'ap','pelvis','hip bone ส่วนล่าง-หน้า',['superior pubic ramus','inferior pubic ramus','pubic tubercle','body'],[['pubis','Cartilaginous: pubic symphysis','2 ข้างเชื่อมกัน'],['ischium','','obturator foramen ระหว่าง ischium–pubis'],['ilium','เชื่อมกันเมื่อโต','']],['obturator canal → obturator nerve + vessels']),
+B('ischium','Ischium','กระดูกก้นกบนั่ง (ischium)',2,'ap','pelvis','hip bone ส่วนล่าง-หลัง',['ischial tuberosity (กดที่นั่ง)','ischial spine','superior / inferior ischial ramus','body'],[['pubis','','obturator foramen; obturator membrane'],['ilium','เชื่อมกันเมื่อโต','']],[],['นั่งนาน → bursa ที่ ischial tuberosity อักเสบ']),
+B('femur','Femur','กระดูกต้นขา',2,'ap','lower','ต้นขา',['head','fovea capitis','neck','greater / lesser trochanter','intertrochanteric line (หน้า)','intertrochanteric crest (หลัง)','gluteal tuberosity','pectineal line','shaft','linea aspera (หลัง)','adductor tubercle','medial / lateral epicondyle','medial / lateral condyle','intercondylar fossa','patellar surface'],[['hip','Synovial','acetabulum = ข้อสะโพก (ligament of head of femur)'],['tibia','Synovial','ข้อเข่า'],['patella','Synovial','patellar surface']],[],[],['★line = หน้า, crest = หลัง']),
+B('patella','Patella','กระดูกสะบ้า',2,'ap','lower','สามเหลี่ยม ส่วนข้อเข่า',['ฝังในเอ็น quadriceps → patellar ligament'],[['femur','Synovial','ข้อเข่า'],['tibia','patellar ligament','tibial tuberosity']]),
+B('tibia','Tibia','กระดูกหน้าแข้ง',2,'ap','lower','ขาท่อนล่าง ด้านใน (หน้าแข้ง)',['medial / lateral condyle','intercondylar eminence','tibial tuberosity (เกาะ patellar ligament)','anterior crest (คลำได้)','shaft','medial malleolus'],[['femur','Synovial','ข้อเข่า'],['fibula','proximal / distal tibiofibular joint',''],['talus','Synovial','']],[],[],['★ตาตุ่มใน = tibia, นอก = fibula']),
+B('fibula','Fibula','กระดูกน่อง',2,'ap','lower','ขาท่อนล่าง ด้านนอก ขนาน tibia',['head','neck','lateral malleolus'],[['tibia','proximal / distal tibiofibular joint',''],['talus','Synovial','']],[],[],['★ตาตุ่มใน = tibia, นอก = fibula']),
+tars('calcaneus','Calcaneus','กระดูกส้นเท้า',1,'ส้นเท้า',[['talus','','']]),tars('talus','Talus','กระดูกข้อเท้า',1,'ข้อเท้า',[['tibia','Synovial',''],['fibula','Synovial',''],['calcaneus','',''],['navicular','','']]),
+tars('navicular','Navicular','กระดูกนาวิคูลาร์',1,'กลางเท้าด้านใน',[['talus','',''],['cuneiform','','']]),tars('cuboid','Cuboid','กระดูกคิวบอยด์',1,'กลางเท้าด้านนอก',[['calcaneus','',''],['metatarsal','','']]),
+tars('cuneiform','Cuneiforms','กระดูกคูนิฟอร์ม',3,'กลางเท้า',[['navicular','',''],['metatarsal','','']]),
+B('metatarsal','Metatarsals','กระดูกฝ่าเท้า','5 ต่อข้าง','ap','lower','ฝ่าเท้า (นับ 1–5 ในออกนอก)',[],[['phalanx_f','',''],['cuneiform','',''],['cuboid','','']],[],[],['มือ–เท้า: carpals 8 / tarsals 7 · metacarpals 5 / metatarsals 5 · phalanges 14 / 14']),
+B('phalanx_f','Phalanges (foot)','กระดูกนิ้วเท้า','14 ต่อข้าง','ap','lower','นิ้วเท้า',['proximal','middle','distal'],[['metatarsal','','']])
+];
+const D=Object.fromEntries(DATA.map(d=>[d.id,d]));
+const REG={
+skull:{n:'Skull',th:'กะโหลก',info:['Skull 22 = Facial 14 + Cranial 8','Facial: nasal×2, maxilla×2, zygomatic×2, mandible×1, lacrimal×2, palatine×2, vomer×1, inferior nasal concha×2','Cranial: frontal×1, parietal×2, temporal×2, occipital×1, sphenoid×1, ethmoid×1','Sinuses: frontal, ethmoidal, sphenoidal, maxillary',PT+' แตก → middle meningeal artery → เลือดออกในกะโหลก','Hyoid: รูปตัว U ไม่เป็นข้อต่อกับกระดูกใด']},
+spine:{n:'Spine',th:'กระดูกสันหลัง',info:['Vertebrae 26: C7 · T12 · L5 · sacrum 1 · coccyx 1','โค้ง 4: cervical, thoracic, lumbar, sacral','★กินข้าวเช้า 7 โมง / เที่ยง 12 / เย็น 5 โมง = คอ 7 อก 12 เอว 5',...VG]},
+thorax:{n:'Thorax',th:'ทรวงอก',info:['Thorax = sternum + ribs + body ของ thoracic vertebrae','Ribs 12 คู่: true 1–7 · false 8–10 · floating 11–12']},
+shoulder:{n:'Shoulder girdle',th:'กระดูกไหล่',info:['ข้างละ scapula + clavicle (ยึดแขนกับกระดูกแกน)']},
+upper:{n:'Upper limb',th:'แขน',info:['Humerus · Radius · Ulna · Carpals 8 · Metacarpals 5 · Phalanges 14',CT,'★นิ้วโป้งไม่มี middle phalanx']},
+pelvis:{n:'Pelvis',th:'เชิงกราน',info:['Pelvis = hip bone×2 (ilium + ischium + pubis เชื่อมกันเมื่อโต)',...D.hip.parts,'SIJ: ilium–sacrum ถ่ายน้ำหนักกระดูกสันหลัง → ขา','Obturator canal → obturator nerve + vessels ไปต้นขาด้านใน']},
+lower:{n:'Lower limb',th:'ขา',info:['ตารางมือ–เท้า: carpals 8 / tarsals 7 · metacarpals 5 / metatarsals 5 · phalanges 14 / 14','Tarsals 7: calcaneus (ส้นเท้า), talus, navicular, cuboid, cuneiform×3']}
+};
+const JOINTS=[
+['Fibrous','เส้นใย ไม่มีช่องว่าง เคลื่อนน้อยมาก/ไม่ได้',['suture (กะโหลก)','radius–ulna ยึดด้วย interosseous membrane (radioulnar syndesmosis เคลื่อนได้เล็กน้อย)','รากฟัน–ขากรรไกร (gomphosis, periodontal ligament)'],['parietal','radius','mandible']],
+['Cartilaginous','กระดูกอ่อน ไม่มีช่องว่าง ทนแรงกดอัด เคลื่อนเล็กน้อย',['pubic symphysis','intervertebral disc'],['pubis','disc']],
+['Synovial','joint cavity + synovial fluid หล่อลื่น เคลื่อนมากรอบทิศ',['articular (hyaline) cartilage','articular capsule (fibrous capsule นอก / synovial membrane ใน)','ligament','periosteum','ตัวอย่าง: เข่า สะโพก ไหล่'],['femur','hip','humerus']]];
+const LIMB=['upper','lower','shoulder','pelvis'];
+
+/* ============ name → id mapping ============ */
+const RULES=[[/atlas|^c1(?!\d)/,'c1'],[/axis|^c2(?!\d)/,'c2'],[/^c[3-7](?!\d)|cervical/,'cervical'],[/^t(1[0-2]|[1-9])(?!\d)|thoracicvert/,'thoracic'],[/^l[1-5](?!\d)|lumbar/,'lumbar'],[/disc|intervertebral/,'disc'],[/sacrum|sacral/,'sacrum'],[/coccy/,'coccyx'],
+[/frontal/,'frontal'],[/pariet/,'parietal'],[/tempor/,'temporal'],[/occipit/,'occipital'],[/sphen/,'sphenoid'],[/ethm/,'ethmoid'],[/nasalconcha|concha|turbin/,'concha'],[/nasal/,'nasal'],[/maxill/,'maxilla'],[/zygom/,'zygomatic'],[/mandib|jaw/,'mandible'],[/lacrim/,'lacrimal'],[/palat/,'palatine'],[/vomer/,'vomer'],[/hyoid/,'hyoid'],
+[/stern|manubri|xiphoid/,'sternum'],[/rib.?(\d+)|costa|^rib/,'rib'],[/scapul/,'scapula'],[/clavic/,'clavicle'],[/humer/,'humerus'],[/radius/,'radius'],[/ulna/,'ulna'],
+[/scaphoid/,'scaphoid'],[/lunate/,'lunate'],[/triquet/,'triquetrum'],[/pisif/,'pisiform'],[/trapezium/,'trapezium'],[/trapezoid/,'trapezoid'],[/capitate/,'capitate'],[/hamate/,'hamate'],
+[/metacarp/,'metacarpal'],[/metatars/,'metatarsal'],[/(foot|toe|pedis).*phalan|phalan.*(foot|toe|pedis)|toe/,'phalanx_f'],[/phalan|finger|thumb/,'phalanx_h'],
+[/ilium|iliac/,'ilium'],[/ischi/,'ischium'],[/pubi/,'pubis'],[/hip|coxa|innomin|pelvi/,'hip'],[/femur|femor/,'femur'],[/patell/,'patella'],[/tibia/,'tibia'],[/fibul/,'fibula'],
+[/calcan/,'calcaneus'],[/talus/,'talus'],[/navic/,'navicular'],[/cuboid/,'cuboid'],[/cuneif/,'cuneiform']];
+function exactName(n){const m=n.match(/^(.*?)(?:_([LR]))?$/),b=m[1],side=(m[2]||'').toLowerCase();let id=null,v;
+  if(v=b.match(/^vert_([CTL])(\d+)$/))id=v[1]==='C'?(v[2]==='1'?'c1':v[2]==='2'?'c2':'cervical'):v[1]==='T'?'thoracic':'lumbar';
+  else if(/^disc_/.test(b))id='disc';else if(/^(rib|costal_cartilage)_\d+$/.test(b))id='rib';
+  else if(v=b.match(/^(metacarpal|metatarsal|cuneiform)_\d+$/))id=v[1];else if(v=b.match(/^(phalanx_[hf])_/))id=v[1];else if(D[b])id=b;
+  return id?{id,side}:null}
+function mapName(raw){const ex=exactName(raw);if(ex)return ex;
+  let s=raw.toLowerCase(),side='';
+  if(/left|(^|[^a-z0-9])l($|[^a-z0-9])/.test(s))side='l';else if(/right|(^|[^a-z0-9])r($|[^a-z0-9])/.test(s))side='r';
+  s=s.replace(/left|right/g,'').replace(/(^|[^a-z0-9])(l|r)(?=$|[^a-z0-9])/g,'$1').replace(/[_.\-()\s]/g,'');
+  for(const[re,id]of RULES)if(re.test(s))return{id,side};
+  return{id:null,side};
+}
+
+/* ================= THREE ================= */
+const host=document.getElementById('c');
+const R=new THREE.WebGLRenderer({antialias:true});
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.toneMapping=THREE.ACESFilmicToneMapping;R.outputColorSpace=THREE.SRGBColorSpace;R.setClearColor(0x000000,1);
+host.appendChild(R.domElement);
+const L2=new CSS2DRenderer();L2.domElement.style.cssText='position:fixed;inset:0;pointer-events:none';host.appendChild(L2.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x000000);
+const cam=new THREE.PerspectiveCamera(35,1,.01,100);
+scene.add(new THREE.HemisphereLight(0xffffff,0x202020,.7));
+const d1=new THREE.DirectionalLight(0xffffff,1.6);d1.position.set(2,3,3);scene.add(d1);
+const d2=new THREE.DirectionalLight(0xffffff,.6);d2.position.set(-3,1,-1);scene.add(d2);
+const rim=new THREE.DirectionalLight(0x9fcbff,.8);rim.position.set(0,2,-4);scene.add(rim);
+const ctl=new OrbitControls(cam,R.domElement);
+ctl.enableDamping=true;ctl.dampingFactor=.08;ctl.minPolarAngle=0;ctl.maxPolarAngle=Math.PI;ctl.rotateSpeed=.9;
+ctl.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};
+let root=null,meshes=[];const labels=new THREE.Group();scene.add(labels);
+const IVORY=new THREE.Color(0xe8e0cc),AXC=new THREE.Color(0x4aa3ff),APC=new THREE.Color(0xff5a5a),ORG=new THREE.Color(0xff9f43);
+const mat=()=>new THREE.MeshStandardMaterial({color:IVORY,roughness:.6,metalness:0});
+
+/* ============ procedural skeleton ============ */
+const V=(x,y,z)=>new THREE.Vector3(x,y,z),UP=V(0,1,0);
+function put(g,name,p,parent){const m=new THREE.Mesh(g,mat());m.name=name;if(p)m.position.copy(p);(parent||root).add(m);return m}
+function cap(a,b,r,name){const L=a.distanceTo(b),m=put(new THREE.CapsuleGeometry(r,Math.max(L-r,.001),4,10),name,a.clone().lerp(b,.5));m.quaternion.setFromUnitVectors(UP,b.clone().sub(a).normalize());return m}
+const box=(p,s,name)=>put(new THREE.BoxGeometry(s[0],s[1],s[2]),name,p);
+const sph=(p,r,name,sc)=>{const m=put(new THREE.SphereGeometry(r,16,12),name,p);if(sc)m.scale.set(...sc);return m};
+const tube=(pts,r,name)=>put(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,r,8,false),name);
+const sides=[[1,'l'],[-1,'r']];
+function procedural(){
+  root=new THREE.Group();const P=Math.PI,C=V(0,1.6,0),r=.095;
+  const shell=(name,ps,pl,ts,tl,k=1)=>{const m=put(new THREE.SphereGeometry(r*k,24,16,ps,pl,ts,tl),name,C);m.scale.set(1,1.08,1.18);m.material.side=THREE.DoubleSide;return m};
+  shell('frontal',P/4,P/2,.45,1.1,1.012);shell('parietal_l',P/2,P,0,1.05);shell('parietal_r',3*P/2,P,0,1.05);
+  shell('occipital',5*P/4,P/2,1.0,1.3,1.006);shell('temporal_l',3*P/4,P/2,1.05,.85,1.008);shell('temporal_r',7*P/4,P/2,1.05,.85,1.008);
+  box(V(0,1.535,.0),[.12,.025,.06],'sphenoid');box(V(0,1.575,.075),[.025,.03,.035],'ethmoid');box(V(0,1.535,.088),[.004,.035,.035],'vomer');
+  for(const[s,k]of sides){box(V(s*.007,1.57,.112),[.012,.03,.01],'nasal_'+k);box(V(s*.026,1.515,.098),[.045,.045,.03],'maxilla_'+k);box(V(s*.058,1.545,.088),[.035,.028,.03],'zygomatic_'+k);
+    box(V(s*.021,1.585,.098),[.008,.014,.008],'lacrimal_'+k);box(V(s*.012,1.5,.065),[.02,.006,.025],'palatine_'+k);box(V(s*.011,1.54,.095),[.006,.012,.025],'concha_'+k)}
+  tube([V(-.055,1.56,-.005),V(-.052,1.48,.03),V(0,1.455,.1),V(.052,1.48,.03),V(.055,1.56,-.005)],.011,'mandible');
+  tube([V(-.025,1.43,.03),V(0,1.428,.062),V(.025,1.43,.03)],.004,'hyoid');
+  // spine
+  const T={};let y=1.475,i=0;
+  const zc=y=>y>1.37?.0:y>1.09?-.025*Math.sin(P*(1.37-y)/.28):.012*Math.sin(P*(1.09-y)/.13);
+  const seq=[...[1,2,3,4,5,6,7].map(n=>['c'+n,.016,.013]),...Array.from({length:12},(_,n)=>['t'+(n+1),.022,.017]),...[1,2,3,4,5].map(n=>['l'+n,.027,.023])];
+  for(const[nm,sp,rd]of seq){const z=zc(y),p=V(0,y,z-.02);T[nm]=p.clone();
+    const b=put(new THREE.CylinderGeometry(rd,rd,sp*.68,14),nm,p);if(nm==='c1')b.scale.set(1,.6,1);
+    box(V(0,y-(nm[0]==='t'?.008:0),z-.02-rd-.018),[.008,sp*.6,.03],nm).rotation.x=nm[0]==='t'?.6:.2;
+    box(V(0,y,z-.02-rd*.6),[rd*3.4,sp*.4,.01],nm);
+    if(i<seq.length-1&&i>0)put(new THREE.CylinderGeometry(rd*.95,rd*.95,sp*.3,14),'disc'+i,V(0,y-sp/2,z-.02));
+    y-=sp;i++}
+  const sac=put(new THREE.ConeGeometry(.05,.12,3),'sacrum',V(0,.9,-.03));sac.rotation.set(P+.35,P/6*0,0);
+  const cx=put(new THREE.ConeGeometry(.012,.04,3),'coccyx',V(0,.825,-.005));cx.rotation.x=P+.6;
+  // thorax
+  box(V(0,1.305,.112),[.05,.05,.015],'sternum');box(V(0,1.2,.118),[.036,.15,.015],'sternum');const xi=put(new THREE.ConeGeometry(.012,.035,4),'sternum',V(0,1.11,.115));xi.rotation.x=P;
+  const W=[.055,.075,.092,.104,.113,.12,.124,.124,.12,.112,.1,.085];
+  for(let n=1;n<=12;n++){const p=T['t'+n],w=W[n-1];for(const[s,k]of sides){
+    const pts=[V(s*.018,p.y,p.z-.005),V(s*w*.7,p.y-.004,p.z-.04),V(s*w,p.y-.03,p.z+.035)];
+    if(n<=7)pts.push(V(s*w*.75,p.y-.06,.085),V(s*.026,1.31-(n-1)*.025,.115));
+    else if(n<=10)pts.push(V(s*w*.8,p.y-.07,.085),V(s*w*.45,p.y-.085,.105));
+    else pts[2]=V(s*w,p.y-.035,p.z+.01);
+    tube(pts,.0045,`rib${n}_${k}`)}}
+  // shoulder + upper limb
+  for(const[s,k]of sides){
+    tube([V(s*.02,1.335,.11),V(s*.08,1.35,.095),V(s*.16,1.365,.0)],.0065,'clavicle_'+k);
+    const sh=new THREE.Shape([new THREE.Vector2(s*.05,.06),new THREE.Vector2(s*.15,.065),new THREE.Vector2(s*.06,-.1)]);
+    const sc=put(new THREE.ExtrudeGeometry(sh,{depth:.008,bevelEnabled:false}),'scapula_'+k,V(0,1.25,-.1));sc.material.side=THREE.DoubleSide;sc.rotation.y=-s*.35;
+    box(V(s*.14,1.33,-.06),[.06,.01,.015],'scapula_'+k).rotation.y=-s*.6;
+    sph(V(s*.168,1.3,-.025),.022,'humerus_'+k);cap(V(s*.175,1.29,-.025),V(s*.2,1.03,-.02),.012,'humerus_'+k);box(V(s*.2,1.03,-.02),[.05,.018,.025],'humerus_'+k);
+    cap(V(s*.218,1.015,0),V(s*.24,.78,.012),.0075,'radius_'+k);cap(V(s*.188,1.03,-.035),V(s*.208,.78,-.002),.0085,'ulna_'+k);
+    ['scaphoid','lunate','triquetrum','pisiform'].forEach((c,j)=>sph(V(s*(.24-j*.011),.765,j==3?.012:.004),.006,c+'_'+k,[1,.8,.8]));
+    ['trapezium','trapezoid','capitate','hamate'].forEach((c,j)=>sph(V(s*(.243-j*.011),.748,.004),.0062,c+'_'+k,[1,.9,.8]));
+    for(let f=0;f<5;f++){const th=f==0,x=s*(th?.255:.245-f*.0095),z=th?.02:.004,top=th?.738:.738,len=th?.035:.055-f*.003;
+      const a=V(x,top,z),b=V(x+(th?s*.006:0),top-len,z+(th?.01:0));cap(a,b,.0045,`metacarpal${f+1}_${k}`);
+      let q=b.clone();const segs=th?[['p',.03],['d',.022]]:[['p',.035-f*.002],['m',.022-f*.001],['d',.017]];
+      for(const[t,l]of segs){const e=q.clone().add(V(0,-l,th?.006:.002));cap(q.clone().add(V(0,-.002,0)),e,.0038,`phalanxhand${f+1}${t}_${k}`);q=e}}
+  }
+  // pelvis + lower limb
+  for(const[s,k]of sides){
+    const il=sph(V(s*.105,.985,-.015),.085,'ilium_'+k,[.3,.85,1]);il.rotation.y=s*.55;
+    cap(V(s*.08,.915,-.02),V(s*.07,.845,-.01),.016,'ischium_'+k);
+    cap(V(s*.085,.9,.03),V(s*.01,.875,.06),.012,'pubis_'+k);cap(V(s*.07,.85,-.005),V(s*.02,.865,.05),.007,'pubis_'+k);
+    sph(V(s*.09,.9,.005),.021,'femur_'+k);cap(V(s*.09,.9,.005),V(s*.125,.875,.0),.011,'femur_'+k);
+    cap(V(s*.125,.88,0),V(s*.098,.5,0),.015,'femur_'+k);box(V(s*.098,.495,-.005),[.06,.025,.045],'femur_'+k);
+    sph(V(s*.098,.49,.035),.016,'patella_'+k,[1,1.2,.5]);
+    box(V(s*.096,.462,-.005),[.06,.02,.045],'tibia_'+k);cap(V(s*.093,.46,0),V(s*.085,.085,0),.013,'tibia_'+k);sph(V(s*.075,.075,0),.012,'tibia_'+k);
+    cap(V(s*.13,.45,-.012),V(s*.122,.08,-.012),.0055,'fibula_'+k);sph(V(s*.122,.07,-.012),.01,'fibula_'+k);
+    box(V(s*.095,.055,0),[.032,.025,.04],'talus_'+k);box(V(s*.097,.025,-.025),[.032,.035,.06],'calcaneus_'+k);
+    box(V(s*.083,.045,.035),[.026,.018,.016],'navicular_'+k);box(V(s*.118,.03,.04),[.022,.022,.032],'cuboid_'+k);
+    [.066,.08,.095].forEach((x,j)=>box(V(s*x,.04,.055),[.013,.02,.026],`cuneiform${j+1}_${k}`));
+    for(let t=0;t<5;t++){const x=s*(.066+t*.014),a=V(x,.035,.07),b=V(x+s*t*.002,.018,.135-t*.006);cap(a,b,t==0?.007:.005,`metatarsal${t+1}_${k}`);
+      let q=b.clone();const segs=t==0?[['p',.028],['d',.02]]:[['p',.022],['m',.012],['d',.01]];
+      for(const[g,l]of segs){const e=q.clone().add(V(0,-.002,l));cap(q,e,t==0?.006:.004,`phalanxfoot${t+1}${g}_${k}`);q=e}}
+  }
+  return root;
+}
+
+/* ============ model setup ============ */
+function setModel(obj,isGlb){
+  if(root)scene.remove(root);root=obj;meshes=[];
+  if(isGlb){obj.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(obj),s=b.getSize(V()),k=1.7/(Math.max(s.y,s.x,s.z)||1);obj.scale.multiplyScalar(k);
+    obj.updateMatrixWorld(true);const b2=new THREE.Box3().setFromObject(obj),c=b2.getCenter(V());obj.position.sub(V(c.x,b2.min.y,c.z))}
+  obj.traverse(o=>{if(!o.isMesh)return;let nm=o.name||o.parent?.name||'mesh';const mp=mapName(nm);
+    if(!mp.id&&o.parent&&o.parent.name){const m2=mapName(o.parent.name);if(m2.id){Object.assign(mp,m2);nm=o.parent.name}}
+    if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();o.material=mat();if(isGlb)o.material.side=THREE.DoubleSide;
+    o.userData={key:nm,id:mp.id,side:mp.side,raw:nm};meshes.push(o)});
+  scene.add(obj);obj.updateMatrixWorld(true);viewOff();document.getElementById('load').style.display='none';
+  state={rk:null,key:null};apply();fit(true);renderPanel();
+}
+const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);
+loader.load('./skeleton.glb',g=>setModel(g.scene,true),undefined,()=>setModel(procedural(),false));
+document.getElementById('bFile').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>loader.parse(rd.result,'',g=>{setModel(g.scene,true);toast('โหลด '+f.name)},er=>toast('โหลดไม่สำเร็จ'));rd.readAsArrayBuffer(f)};
+
+/* ============ camera ============ */
+function free(){const h=innerHeight,t=document.getElementById('top').getBoundingClientRect().bottom+6,
+  b=Math.min(innerWidth<768?document.getElementById('panel').getBoundingClientRect().top-6:h,document.getElementById('stat').getBoundingClientRect().top-4);const pn=document.getElementById('panel'),r=innerWidth>=768&&!pn.classList.contains('hid')?pn.getBoundingClientRect().left-8:innerWidth;return{t,b,r,k:Math.max(.3,(b-t)/h),kw:Math.max(.3,r/innerWidth)}}
+function viewOff(){const w=innerWidth,h=innerHeight,{t,b,r}=free();cam.setViewOffset(w,h,w/2-r/2,h/2-(t+b)/2,w,h);cam.updateProjectionMatrix()}
+function frame(box3,dir,margin=.92){const F=free(),mw=margin*F.kw;margin*=F.k;
+  const c=box3.getCenter(V()),s=box3.getSize(V()),f=cam.fov*Math.PI/360;
+  const dist=Math.max((s.y/2)/Math.tan(f),(s.x/2)/(Math.tan(f)*cam.aspect)*margin/mw)/margin+s.z/2;
+  return{t:c,p:c.clone().add(dir.clone().normalize().multiplyScalar(Math.max(dist,.08)))}}
+let tw=null;
+function fly(t,p){tw={t0:performance.now(),ft:ctl.target.clone(),fp:cam.position.clone(),t,p}}
+function curDir(){return cam.position.clone().sub(ctl.target)}
+function fit(instant,dir){if(!root)return;const f=frame(new THREE.Box3().setFromObject(root),dir||(instant?V(0,0,1):curDir()));
+  if(instant){ctl.target.copy(f.t);cam.position.copy(f.p);ctl.update()}else fly(f.t,f.p)}
+function focus(list){if(!list.length)return;const b=new THREE.Box3();list.forEach(m=>b.expandByObject(m));const f=frame(b,curDir(),.6);fly(f.t,f.p)}
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{const v=b.dataset.v;
+  const dir={front:V(0,0,1),back:V(0,0,-1),side:V(1,0,0),top:V(0,1,.001),reset:V(0,0,1)}[v];
+  if(v==='reset'){state={rk:null,key:null};apply();renderPanel()}fit(false,dir)});
+function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h);L2.setSize(w,h);cam.aspect=w/h;viewOff();
+  if(root&&!state.key&&!state.rk)fit(true,curDir().lengthSq()>0?curDir():V(0,0,1))}
+addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
+
+/* ============ state / highlight ============ */
+let state={rk:null,key:null},colorMode=false,showLabels=false,quiz=null;
+const regKey=m=>{const d=D[m.userData.id];if(!d)return null;return d.reg+(LIMB.includes(d.reg)&&m.userData.side?'|'+m.userData.side:'')};
+const inReg=(m,rk)=>{const[r,s]=rk.split('|'),d=D[m.userData.id];return d&&d.reg===r&&(!s||m.userData.side===s||!m.userData.side)};
+function active(){if(state.key)return meshes.filter(m=>m.userData.key===state.key);if(state.rk)return meshes.filter(m=>inReg(m,state.rk));return[]}
+function apply(){const A=new Set(active());
+  for(const m of meshes){const d=D[m.userData.id],M=m.material;
+    M.color.copy(colorMode&&d?(d.g==='ax'?AXC:APC):IVORY);
+    const on=A.has(m),dim=A.size&&!on;M.emissive.copy(on?ORG:new THREE.Color(0));M.emissiveIntensity=on?.55:0;
+    M.transparent=dim;M.opacity=dim?.25:1;M.depthWrite=!dim;M.needsUpdate=true}
+  buildLabels();crumb()}
+function selectRegion(rk,go=true){state={rk,key:null};apply();renderPanel();if(go)focus(active())}
+function selectKey(key,go=true){const m=meshes.find(x=>x.userData.key===key);if(!m)return;
+  state={rk:state.rk||regKey(m),key};apply();renderPanel();if(go)focus(active())}
+function selectId(id){const d=D[id];if(!d)return;const side=state.rk?.split('|')[1];
+  const m=meshes.find(x=>x.userData.id===id&&(!side||x.userData.side===side))||meshes.find(x=>x.userData.id===id);
+  const al={ilium:'hip',ischium:'hip',pubis:'hip'}[id],am=!m&&al&&(meshes.find(x=>x.userData.id===al&&(!side||x.userData.side===side))||meshes.find(x=>x.userData.id===al));
+  if(am){state.rk=regKey(am);selectKey(am.userData.key);renderPanel(id)}else if(m){state.rk=regKey(m);selectKey(m.userData.key)}else{state={rk:d.reg,key:null};apply();renderPanel(id)}}
+
+/* ============ tap / raycast ============ */
+const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null,nPtr=0;
+R.domElement.addEventListener('pointerdown',e=>{nPtr++;down=nPtr===1?{x:e.clientX,y:e.clientY,t:performance.now()}:null;tw=null});
+R.domElement.addEventListener('pointermove',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>=8)down=null});
+const up=e=>{nPtr=Math.max(0,nPtr-1);if(!down||e.type!=='pointerup')return down=null;
+  const ok=Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<300;down=null;if(ok)tap(e.clientX,e.clientY)};
+R.domElement.addEventListener('pointerup',up);R.domElement.addEventListener('pointercancel',up);
+function tap(x,y){ptr.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ptr,cam);
+  const vis=state.key||state.rk?[...active(),...meshes]:meshes;
+  const hit=ray.intersectObjects(meshes,false).sort((a,b)=>(a.object.material.opacity<1)-(b.object.material.opacity<1)||a.distance-b.distance)[0];
+  const m=hit?.object;
+  if(quiz){if(m)quizCheck(m);return}
+  if(!m){if(state.key){state.key=null;apply();renderPanel();focus(active())}else if(state.rk)selectRegion(null,false),fit(false);return}
+  if(!m.userData.id){state={rk:null,key:m.userData.key};apply();renderPanel();focus(active());return}
+  const rk=regKey(m);if(state.rk&&inReg(m,state.rk))selectKey(m.userData.key);else selectRegion(rk)}
+
+/* ============ labels ============ */
+// [u medial→lateral, v bottom→top, w back→front] ในกรอบ bounding box ของ node
+const LM={femur:{'head':[0,.97,.5],'neck':[.25,.94,.55],'greater':[1,.95,.4],'intertrochanteric line':[.6,.9,1],'intertrochanteric crest':[.6,.9,0],'gluteal':[.7,.8,0],'pectineal':[.4,.85,.2],'shaft':[.5,.5,.8],'linea aspera':[.5,.5,0],'adductor':[0,.12,.3],'medial / lateral epicondyle':[0,.07,.5],'medial / lateral condyle':[1,.03,.3],'intercondylar':[.5,.02,0],'patellar surface':[.5,.06,1],'fovea':[0,1,.5]},
+humerus:{'head':[0,.96,.4],'anatomical':[.2,.94,.5],'surgical':[.4,.88,.5],'greater':[1,.97,.6],'lesser':[.5,.95,1],'intertubercular':[.7,.93,1],'shaft':[.8,.6,.5],'capitulum':[1,.03,.9],'trochlea':[0,.02,.7],'olecranon fossa':[.5,.08,0],'coronoid fossa':[.4,.08,1],'radial fossa':[.8,.08,1],'medial / lateral epicondyle':[0,.06,.5]},
+tibia:{'medial / lateral condyle':[0,.97,.5],'intercondylar':[.5,1,.5],'tibial tuberosity':[.6,.9,1],'anterior crest':[.5,.6,1],'shaft':[.5,.45,.5],'medial malleolus':[0,0,.5]},
+fibula:{'head':[.5,1,.5],'neck':[.5,.94,.5],'lateral malleolus':[1,0,.5]},
+radius:{'head':[.5,1,.5],'neck':[.5,.95,.5],'radial tuberosity':[0,.88,.5],'shaft':[.6,.5,.5],'styloid':[1,0,.5]},
+ulna:{'olecranon':[.5,1,0],'trochlear':[.5,.95,1],'coronoid':[.6,.9,1],'radial notch':[1,.92,.7],'head':[.5,.03,.5],'styloid':[.2,0,.3]},
+scapula:{'หลัง':[.6,.85,0],'หน้า':[.7,.9,1],'อื่น':[.5,0,.3]},
+hip:{'Acetabulum':[1,.45,.5],'Obturator':[.6,.2,.8]},ilium:{'iliac crest':[.7,1,.4],'ASIS':[1,.8,1],'PSIS':[.2,.75,0]},
+sternum:{'manubrium':[.5,.9,1],'sternomanubrial':[.5,.78,1],'body':[.5,.45,1],'xiphoid':[.5,0,1]},
+temporal:{'petrous':[0,.5,.4],'tympanic':[1,.35,.5],'squamous':[1,.9,.5],'mastoid':[1,.1,.1]},occipital:{'foramen magnum':[.5,0,.8],'external occipital':[.5,.5,0]}};
+function lmPos(id,part,b,side){const t=LM[id];if(!t)return null;const k=Object.keys(t).find(k=>part.toLowerCase().startsWith(k.toLowerCase()));if(!k)return null;
+  const[u,v,w]=t[k],s=b.getSize(V()),x=side==='r'?b.max.x-u*s.x:side==='l'?b.min.x+u*s.x:b.min.x+.5*s.x;return V(x,b.min.y+v*s.y,b.min.z+w*s.z)}
+function lbl(t,p,dx=0,dy=0){const e=document.createElement('div');const i=document.createElement('div');i.className='lbl';i.textContent=t;i.style.transform=`translate(${dx}%,${dy}px)`;e.appendChild(i);const o=new CSS2DObject(e);o.position.copy(p);labels.add(o)}
+function buildLabels(){labels.children.slice().forEach(o=>{o.element.remove();labels.remove(o)});if(!showLabels||!root)return;
+  const A=active(),ctr=l=>new THREE.Box3().setFromObject(l[0]).getCenter(V());
+  if(state.key){const d=D[A[0]?.userData.id],b=new THREE.Box3();A.forEach(m=>b.expandByObject(m));const c=b.getCenter(V()),s=b.getSize(V());
+    const ps=d?.parts.length?d.parts:[d?.en||state.key];ps.forEach((t,i)=>lbl(t.split(/[:(]/)[0].trim(),lmPos(A[0].userData.id,t,b,A[0].userData.side)||V(c.x+(i%2?-1:1)*(s.x/2+.01),b.max.y-(ps.length>1?i/(ps.length-1):.5)*s.y,c.z+s.z/2),i%2?-55:55,((i%4)-1.5)*7))}
+  else if(state.rk){const seen=new Set;A.forEach(m=>{const k=m.userData.id+m.userData.side;if(seen.has(k))return;seen.add(k);lbl(D[m.userData.id].en,ctr([m]))})}
+  else for(const r in REG){const l=meshes.filter(m=>D[m.userData.id]?.reg===r);if(!l.length)continue;const b=new THREE.Box3();l.forEach(m=>b.expandByObject(m));lbl(REG[r].n,b.getCenter(V()))}}
+
+/* ============ UI ============ */
+const $=s=>document.querySelector(s),body=$('#body'),esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+const ul=(h,a)=>a&&a.length?`<h4>${h}</h4><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+const kv=(k,v)=>`<div class="kv"><b>${k}</b><span>${esc(v)}</span></div>`;
+const regName=rk=>{if(!rk)return'';const[r,s]=rk.split('|');return REG[r].n+(s?(s==='l'?' (ซ้าย)':' (ขวา)'):'')};
+function crumb(){const d=state.key&&meshes.find(m=>m.userData.key===state.key);
+  $('#crumb').innerHTML=`<a href="#" data-c="all">ทั้งตัว</a>`+(state.rk?` › <a href="#" data-c="reg">${regName(state.rk)}</a>`:'')+(d?` › <span style="color:#fff">${esc(D[d.userData.id]?.en||d.userData.raw)}</span>`:'')}
+$('#crumb').onclick=e=>{const c=e.target.dataset.c;if(!c)return;e.preventDefault();if(c==='all'){state={rk:null,key:null};apply();renderPanel();fit(false)}else selectRegion(state.rk)};
+function boneHTML(d,raw){
+  if(!d)return`<h2>${esc(raw)}<small>mesh ที่ไม่ได้ map กับ DATA</small></h2>`;
+  return`<h2>${d.en}<small>${d.th}</small></h2>`+kv('จำนวน',d.n)+kv('กลุ่ม',d.g==='ax'?'Axial':'Appendicular')+kv('ตำแหน่ง',d.loc)+
+  ul('ส่วนประกอบ',d.parts)+(d.con.length?`<h4>เชื่อมกับ / ข้อต่อ</h4><ul>${d.con.map(([t,j,n])=>`<li><a href="#" data-go="${t}">${D[t]?.en||t}</a>${j?' — <b>'+esc(j)+'</b>':''}${n?' · '+esc(n):''}</li>`).join('')}</ul>`:'')+
+  ul('สิ่งที่ลอดผ่าน',d.pass)+ul('คลินิก',d.clin)+(d.tip.length?`<h4>Tip</h4>${d.tip.map(t=>`<div class="tip">${esc(t.startsWith('★')?t:'★'+t)}</div>`).join('')}`:'')}
+function renderPanel(forceId){let h='';
+  if(forceId)h=boneHTML(D[forceId]);
+  else if(state.key){const m=meshes.find(x=>x.userData.key===state.key);h=boneHTML(D[m?.userData.id],m?.userData.raw)+(m&&/\d/.test(m.userData.key)&&D[m.userData.id]?`<p style="color:#9a9a9a">ชิ้น: ${esc(m.userData.key)}</p>`:'')}
+  else if(state.rk){const[r]=state.rk.split('|'),ids=DATA.filter(d=>d.reg===r);
+    h=`<h2>${regName(state.rk)}<small>${REG[r].th}</small></h2><div class="chips">${ids.map(d=>`<button data-go="${d.id}">${d.en}</button>`).join('')}</div>`+ul('สรุป',REG[r].info)}
+  else h=`<h2>Human Skeleton<small>โครงกระดูกมนุษย์ 206 ชิ้น</small></h2>`+ul('ภาพรวม',['Axial 80: skull, auditory ossicles, hyoid, ribs, sternum, vertebrae','Appendicular 126: shoulder girdle, upper extremity, hip bone, lower extremity','osteoBlast = สร้างกระดูก · osteoClast = สลายกระดูก'])+
+    `<h4>วิธีใช้</h4><ul><li>1 นิ้วหมุน · pinch ซูม · 2 นิ้ว pan</li><li>แตะครั้งแรก = เลือกบริเวณ · แตะซ้ำ = เลือกชิ้น</li></ul>`;
+  body.innerHTML=h;body.scrollTop=0;if(innerWidth<768&&panel.dataset.lv==='0'&&(state.rk||state.key||forceId))setLv(1)}
+function jointsPanel(){state={rk:null,key:null};apply();body.innerHTML=`<h2>Joints<small>ข้อต่อ</small></h2>`+JOINTS.map(([n,desc,ex,go])=>`<h4>${n}</h4><p>${esc(desc)}</p><ul>${ex.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="chips">${go.map(g=>`<button data-go="${g}">${D[g].en}</button>`).join('')}</div>`).join('');if(innerWidth<768)setLv(1)}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;e.preventDefault();$('#res').style.display='none';selectId(g.dataset.go)});
+
+const row2=$('#row2');
+[['skull','Skull'],['spine','Spine'],['thorax','Thorax'],['shoulder','Shoulder'],['upper','Upper limb'],['pelvis','Pelvis'],['lower','Lower limb'],['joints','Joints']].forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>k==='joints'?jointsPanel():selectRegion(k);row2.appendChild(b)});
+const tg=(t,f)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>f(b);row2.appendChild(b);return b};
+tg('Labels',b=>{showLabels=!showLabels;b.classList.toggle('on',showLabels);buildLabels()});
+tg('Axial/Appendicular',b=>{colorMode=!colorMode;b.classList.toggle('on',colorMode);apply()});
+const qb=tg('Quiz',b=>{if(quiz){quiz=null;b.classList.remove('on');b.textContent='Quiz';renderPanel();return}quiz={s:0,n:0};b.classList.add('on');state={rk:null,key:null};apply();nextQ()});
+function nextQ(){const ids=[...new Set(meshes.map(m=>m.userData.id).filter(Boolean))];if(!ids.length)return;quiz.t=ids[Math.random()*ids.length|0];
+  qb.textContent=`Quiz ${quiz.s}/${quiz.n}`;body.innerHTML=`<h2>Quiz<small>แตะกระดูกให้ถูก</small></h2><div class="tip" style="font-size:18px">แตะ: <b>${D[quiz.t].en}</b> (${D[quiz.t].th})</div><p>คะแนน ${quiz.s} / ${quiz.n}</p><button id="skip">ข้าม</button>`;$('#skip').onclick=()=>{quiz.n++;nextQ()}}
+function quizCheck(m){quiz.n++;const ok=m.userData.id===quiz.t;if(ok)quiz.s++;
+  toast(ok?'✓ ถูกต้อง':'✗ นี่คือ '+(D[m.userData.id]?.en||m.userData.raw));
+  state={rk:null,key:ok?m.userData.key:null};if(!ok){const t=meshes.filter(x=>x.userData.id===quiz.t);state.key=t[0]?.userData.key}apply();setTimeout(()=>{if(quiz){state={rk:null,key:null};apply();nextQ()}},1100)}
+let tt;function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',1100)}
+
+// search
+const q=$('#q'),res=$('#res');
+q.oninput=()=>{const s=q.value.trim().toLowerCase();if(!s){res.style.display='none';return}
+  const hits=DATA.filter(d=>(d.en+' '+d.th+' '+d.id+' '+d.parts.join(' ')).toLowerCase().includes(s)).slice(0,20);
+  res.innerHTML=hits.map(d=>`<div data-go="${d.id}">${d.en} <small>${d.th}</small></div>`).join('')||'<div><small>ไม่พบ</small></div>';res.style.display='block'};
+q.onblur=()=>setTimeout(()=>res.style.display='none',200);
+
+// panel: bottom sheet / side panel
+const panel=$('#panel'),LV=[.22,.5,.88];panel.dataset.lv='0';
+function setLv(i){panel.dataset.lv=i;if(innerWidth<768)panel.style.height=LV[i]*100+'dvh';setTimeout(viewOff,280)}
+const hd=$('#handle');let dr=null;
+hd.addEventListener('pointerdown',e=>{dr={y:e.clientY,h:panel.getBoundingClientRect().height,t:performance.now()};panel.classList.add('drag');hd.setPointerCapture(e.pointerId)});
+hd.addEventListener('pointermove',e=>{if(!dr)return;panel.style.height=Math.min(innerHeight*.92,Math.max(innerHeight*.12,dr.h+dr.y-e.clientY))+'px'});
+hd.addEventListener('pointerup',e=>{if(!dr)return;panel.classList.remove('drag');const f=panel.getBoundingClientRect().height/innerHeight;
+  if(Math.abs(e.clientY-dr.y)<6){setLv((+panel.dataset.lv+1)%3)}else{let b=0;LV.forEach((v,i)=>{if(Math.abs(v-f)<Math.abs(LV[b]-f))b=i});setLv(b)}dr=null});
+$('#hide').onclick=()=>{const h=panel.classList.toggle('hid');document.body.classList.toggle('ph',h);$('#hide').textContent=h?'‹':'›';setTimeout(()=>{viewOff();if(!state.key&&!state.rk)fit(false)},280)};
+addEventListener('resize',()=>{if(innerWidth>=768)panel.style.height='';else setLv(+panel.dataset.lv)});
+['pointerdown','touchstart','touchmove','wheel'].forEach(t=>[panel,$('#top'),$('#views')].forEach(el=>el.addEventListener(t,e=>e.stopPropagation(),{passive:true})));
+
+// lock screen gestures
+document.addEventListener('touchmove',e=>{if(!e.target.closest('#body,#res,#row2'))e.preventDefault()},{passive:false});
+['gesturestart','gesturechange','gestureend','dblclick'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+
+/* ============ loop ============ */
+window.__dbg=()=>({miss:DATA.filter(d=>!meshes.some(m=>m.userData.id===d.id)).map(d=>d.id),unm:meshes.filter(m=>!m.userData.id).map(m=>m.name),cam:cam.position.toArray(),t:ctl.target.toArray(),n:meshes.length,f:free(),b:root&&new THREE.Box3().setFromObject(root)});
+R.setAnimationLoop(()=>{if(tw){let k=Math.min(1,(performance.now()-tw.t0)/650);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+  ctl.target.lerpVectors(tw.ft,tw.t,k);cam.position.lerpVectors(tw.fp,tw.p,k);if(k>=1)tw=null}
+  ctl.update();R.render(scene,cam);L2.render(scene,cam)});
+</script>
+</body>
+</html>
