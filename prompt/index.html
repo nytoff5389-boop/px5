@@ -92,8 +92,17 @@ a{color:var(--ac)}
 </div>
 
 <div class="pane" id="t-antigravity">
-<span class="tag y">push · เปิด PR · merge ได้ (ผ่าน git + gh)</span><span class="tag n">แอปบนคอมพิวเตอร์ ไม่มีบน iPad</span>
+<span class="tag y">push · เปิด PR · merge ได้</span><span class="tag y">ใช้ผ่าน Safari บน iPad/iPhone ได้</span>
 <p><b>Google Antigravity</b> (IDE ที่มีเอเจนต์ AI ในตัว)</p>
+<p><b>แบบที่ 1 · ผ่าน Safari (iPad / iPhone)</b></p>
+<ol>
+<li>เปิด Safari เข้าเว็บ Antigravity แล้วล็อกอินด้วยบัญชี Google</li>
+<li>(แนะนำ) กดปุ่มแชร์ → <b>เพิ่มไปยังหน้าจอโฮม</b> จะเปิดเต็มจอเหมือนแอป</li>
+<li>เชื่อม GitHub ตามที่หน้าเว็บให้กด (Connect / Sign in with GitHub) → อนุญาตบนหน้า GitHub → เลือก repo</li>
+<li>เปิดโปรเจกต์จาก repo นั้น แล้ววาง prompt จากไฟล์นี้ในแผงเอเจนต์ เอเจนต์จะ commit → push → เปิด PR → merge ให้เอง</li>
+</ol>
+<div class="note">ถ้าเปิดผ่าน Safari แล้วเป็นหน้าควบคุมระยะไกลของแอปบนคอมพิวเตอร์ (remote / companion) ต้องเปิด Antigravity บนคอมพิวเตอร์ค้างไว้ และตั้งค่า GitHub ที่เครื่องคอมพิวเตอร์ตามแบบที่ 2</div>
+<p style="margin-top:14px"><b>แบบที่ 2 · แอปบนคอมพิวเตอร์</b></p>
 <ol>
 <li>ติดตั้ง Antigravity บนคอมพิวเตอร์ (Mac / Windows / Linux) แล้วล็อกอินด้วยบัญชี Google</li>
 <li>ติดตั้ง <b>Git</b> และ <b>GitHub CLI</b> แล้วเปิด Terminal ใน Antigravity พิมพ์ <code>gh auth login</code> เลือก GitHub.com → HTTPS → ล็อกอินผ่านเบราว์เซอร์ (เช็กได้ด้วย <code>gh auth status</code>)</li>
