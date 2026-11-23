@@ -502,6 +502,22 @@ function navToggle() {
   const h = document.body.classList.toggle('navhide'); LS('hn-navhide', h ? '1' : '0'); toast(h ? 'ซ่อนแถบสารบัญ' : 'แสดงแถบสารบัญ', h ? 'กดปุ่ม ☰ มุมซ้ายบนเพื่อเปิดอีกครั้ง' : '');
 }
 if (LS('hn-navhide') === '1') document.body.classList.add('navhide');
+// แถบมุมมอง: ซ่อน/แสดง
+const vb = $('#viewbar');
+function setVB(h, quiet) { vb.classList.toggle('hid', h); LS('hn-vbhide', h ? '1' : '0'); setTimeout(() => { invalidate(); viewOff(); frame(visibleList()); }, 20); if (!quiet) toast(h ? 'ซ่อนแถบมุมมอง' : 'แสดงแถบมุมมอง', h ? 'กด "มุมมอง" ด้านล่างเพื่อเปิดอีกครั้ง' : ''); }
+if (LS('hn-vbhide') === '1') vb.classList.add('hid');
+$('#vbHide').onclick = e => { e.stopPropagation(); setVB(true); };
+$('#vbShow').onclick = e => { e.stopPropagation(); setVB(false); };
+// โหมดเต็มจอ: ซ่อนสารบัญ + เครื่องมือ + มุมมอง ในครั้งเดียว
+function syncFocusBtn() { const all = vb.classList.contains('hid') && dock.classList.contains('hid') && (document.body.classList.contains('navhide') || innerWidth < 1100); $('#focusBtn').classList.toggle('on', all); }
+$('#focusBtn').onclick = () => {
+  const on = !$('#focusBtn').classList.contains('on');
+  document.body.classList.toggle('navhide', on && innerWidth >= 1100); document.body.classList.remove('navopen'); LS('hn-navhide', on ? '1' : '0');
+  dock.classList.toggle('hid', on); LS('hn-dockhide', on ? '1' : '0'); setVB(on, true);
+  setTimeout(() => { placeDock(dock.offsetTop); syncFocusBtn(); }, 30);
+  toast(on ? 'โหมดเต็มจอ' : 'แสดงแถบทั้งหมด', on ? 'ซ่อนสารบัญ เครื่องมือ และมุมมอง · กดปุ่มเดิมเพื่อแสดงกลับ' : '');
+};
+setInterval(syncFocusBtn, 800);
 let toastT = 0;
 function toast(t, sub = '') { const e = $('#toast'); e.innerHTML = `<b>${esc(t)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`; e.classList.remove('show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('show'), 2200); }
 // ripple ตอนกดปุ่ม
