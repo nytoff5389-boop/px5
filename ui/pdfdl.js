@@ -14,14 +14,17 @@
     link:svg('<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'),out:svg('<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>')};
 
   function list(){
-    var L=[];
+    var L=[], cur=-1;
     try{ if(APP==='anatomy') L=BOOK.pdf.map(function(x){return {f:'anatomy/'+x.f,n:'Anatomy '+x.n,mb:x.mb,name:'Anatomy-BI112-'+x.f.split('/').pop()};}); }catch(e){}
     try{ if(APP==='calc') L=CHAPTERS.filter(function(c){return c.ready&&c.pdf;}).map(function(c){return {f:'calc/'+c.pdf.f,n:'calc บทที่ '+c.id+(c.name?' '+c.name:''),mb:c.pdf.mb,name:'calc-PHT111-ch'+c.id+'.pdf'};}); }catch(e){}
     if(APP==='bio') L=[{f:'bio/pdf/ch1.pdf',n:'Biochem บทที่ 1 คาร์โบไฮเดรต',mb:4.1,name:'Biochem-PHB104-ch1.pdf'},{f:'bio/pdf/ch2.pdf',n:'Biochem บทที่ 2 ลิพิดส์',mb:6.1,name:'Biochem-PHB104-ch2.pdf'}];
-    if(APP==='home'){ L=[{f:'chem/pdf/ch1.pdf',n:'เคมีฟิสิกส์ บทที่ 1 ปริมาณสารสัมพันธ์',mb:3.3,name:'PHB102-Physical-Chemistry-ch1.pdf'},{f:'chem/pdf/ws1-6.pdf',n:'แบบฝึกหัดเคมีฟิสิกส์ บทที่ 1 ถึง 6',mb:0.5,name:'PHB102-Worksheet-ch1-6.pdf'}];
-      if(/^#\/pages\/ws/.test(location.hash)) L.reverse(); }
+    if(APP==='home'){ var P=window.PCH||{1:{n:'ปริมาณสารสัมพันธ์',pdf:'chem/pdf/ch1.pdf',mb:3.3}};
+      L=Object.keys(P).map(function(k){ return {f:P[k].pdf,n:'เคมีฟิสิกส์ บทที่ '+k+' '+P[k].n,mb:P[k].mb,name:'PHB102-Physical-Chemistry-ch'+k+'.pdf'}; });
+      L.push({f:'chem/pdf/ws1-6.pdf',n:'แบบฝึกหัดเคมีฟิสิกส์ บทที่ 1 ถึง 6',mb:0.5,name:'PHB102-Worksheet-ch1-6.pdf'});
+      var hm=/^#\/pages\/(ws|chem(\d?))/.exec(location.hash);
+      if(hm) cur=hm[1]==='ws'?L.length-1:(+hm[2]||1)-1; }
     /* เอาเล่มที่กำลังอ่านขึ้นก่อน */
-    var cur=-1; try{ if(APP==='calc'){ var c=pageCh(ST.bookPage||1); cur=L.findIndex(function(x){return /ch(\d+)\.pdf$/.exec(x.f)[1]==c;}); } }catch(e){}
+    try{ if(APP==='calc'){ var c=pageCh(ST.bookPage||1); cur=L.findIndex(function(x){return /ch(\d+)\.pdf$/.exec(x.f)[1]==c;}); } }catch(e){}
     try{ if(APP==='bio'){ var m=/#\/book\/(\d)/.exec(location.hash); if(m) cur=+m[1]-1; } }catch(e){}
     if(cur>0){ var t=L.splice(cur,1)[0]; L.unshift(t); }
     return L.map(function(x){ x.u=new URL(x.f,ROOT).href; return x; });

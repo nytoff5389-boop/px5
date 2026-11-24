@@ -593,3 +593,16 @@ body.focus .page{max-width:none;padding:0}
 @media (max-width:640px){.srow{flex-wrap:wrap;gap:10px 12px}.srow .grow{flex:1;min-width:0}.srow .ac{width:100%}.srow .ac .btn{flex:1}.hd h1{font-size:23px}}
 @media (max-width:860px){.tabbar{grid-template-columns:repeat(4,1fr)}}
 .nav a span{flex-direction:row}
+/* เคมีฟิสิกส์: รายการหัวข้อข้อสอบแยกตามบท */
+.chxs{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.chx{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.chx>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.chx>summary::-webkit-details-marker{display:none}
+.chx>summary .n{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--pri-s);color:var(--pri-d);font-weight:600}
+.chx>summary .grow{display:flex;flex-direction:column;min-width:0}
+.chx>summary b{font-weight:600;font-size:15px}
+.chx>summary small{color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chx>summary>svg{flex:none;width:18px;height:18px;color:var(--muted);transition:transform .2s}
+.chx[open]>summary>svg{transform:rotate(90deg)}
+.chx .lst{padding:0 10px 12px}
+.chx .item.all{background:var(--pri-s)}

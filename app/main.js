@@ -31,9 +31,9 @@ const SUBJ={
   calc:{id:'calc',code:'PHT111',name:'calc',th:'การคำนวณทางเภสัชกรรม',en:'Pharmaceutical Calculations',img:'ui/img/b-calc1.jpg',
     desc:'สรุปและฝึกคำนวณทางเภสัชกรรม บทที่ 1 เลขโรมันและเลขนัยสำคัญ บทที่ 2 มาตรชั่งและตวง และบทที่ 3 วิธีแบ่งส่วน Aliquot method มีทั้งข้อสอบทฤษฎี แบบฝึกหัดจากชีทและสไลด์ และโจทย์สุ่มไม่จำกัด',
     ch:3,chU:'บท',pages:54,qz:'ปรนัยและเติมคำตอบ',read:'calc/?tab=book',exam:'calc/?tab=quiz',home:'calc/'},
-  chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'เคมีฟิสิกส์',th:'เคมีฟิสิกส์',en:'บทที่ 1 ปริมาณสารสัมพันธ์ (Stoichiometry)',img:'ui/img/b-chem1.jpg',
-    desc:'เคมีฟิสิกส์ (Physical Chemistry) บทที่ 1 ปริมาณสารสัมพันธ์ ครบทั้งโมล ความเข้มข้น สูตรเคมี การดุลสมการ สารกำหนดปริมาณ และ %yield ข้อสอบเป็นปรนัยทั้งหมด',
-    ch:1,chU:'บท',pages:28,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'},
+  chem:{id:'chem',code:'PHB102',name:'Physical Chemistry',tab:'เคมีฟิสิกส์',th:'เคมีฟิสิกส์',en:'บทที่ 1 ถึง 6 ปริมาณสารสัมพันธ์ สารเชิงซ้อน จลนศาสตร์ สมดุลเคมี สมดุลวัฏภาค ไฟฟ้าเคมี',img:'ui/img/b-chem1.jpg',
+    desc:'เคมีฟิสิกส์ (Physical Chemistry) 6 บท: ปริมาณสารสัมพันธ์ สารประกอบเชิงซ้อน จลนศาสตร์เคมี สมดุลเคมี สมดุลวัฏภาค และไฟฟ้าเคมี สมุดสรุปครบทุกบท ข้อสอบเป็นปรนัยทั้งหมด สร้างจากสไลด์สอน',
+    ch:6,chU:'บท',pages:104,qz:'ปรนัยล้วน สุ่มได้ไม่จำกัด',read:'#/pages/chem',exam:'#/exams',home:'#/library'},
   bio:{id:'bio',code:'PHB104',name:'Biochemistry',tab:'Biochem',th:'ชีวเคมี',en:'คาร์โบไฮเดรต และลิพิดส์',img:'ui/img/b-bio2.jpg',
     desc:'ชีวเคมี (Biochemistry) บทที่ 1 เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต และบทที่ 2 ลิพิดส์ ข้อสอบมาจากเนื้อหาในสไลด์เรียน เน้นความจำ มีวิเคราะห์เล็กน้อย พร้อมโจทย์โครงสร้างกรดไขมัน นับคาร์บอน นับพันธะคู่ และเรียกชื่อแบบ Delta Omega และ n',
     ch:2,chU:'บท',pages:49,qz:'ปรนัย และโจทย์โครงสร้างกรดไขมัน',read:'bio/#/book/1',exam:'bio/#/exam',home:'bio/'}
@@ -44,9 +44,13 @@ const AN_PG=[3,13,35,67,93,110,123];
 const SEC_EN={intro:'Introduction',mol:'The Mole',conc:'Concentration of Solutions',formula:'Chemical Formula',equation:'Balancing Equations',reaction:'Limiting Reagent',yield:'Percent Yield'};
 const CREDITS=window.PHOTO_CREDITS||[];
 
+function bkId(n){ return n>1?'chem'+n:'chem'; }
+function chPg(n){ return n>1?((DB.chem.pgs||{})[n]||0):(DB.chem.pg||0); }
+function chMax(n){ return n>1?((DB.chem.pgm||{})[n]||0):(DB.chem.pgMax||0); }
+const pgHref=t=>{ const T=CHEM_TOPICS[t]; return '#/pages/'+bkId(T.ch||1)+'/'+T.pg; };
 function stats(){
   const a=J('anatomeow.v1'), c=J('jinoon.v1'), z=c.qz||{}, ch=DB.chem, bi=J('payap.bio.v1'), bm=bi.pgMax||{}, rdB=Math.max(0,(((bm[1]||1)-1)+((bm[2]||1)-1))/47);
-  const rdA=Math.max(0,((a.bookPage||1)-1)/134), rdC=Math.max(0,((c.bookPage||1)-1)/33), rdX=Math.max(0,((ch.pgMax||1)-1)/27);
+  const rdA=Math.max(0,((a.bookPage||1)-1)/134), rdC=Math.max(0,((c.bookPage||1)-1)/33), rdX=Math.max(0,[1,2,3,4,5,6].reduce((t,n)=>t+Math.max(0,chMax(n)-1),0)/98);
   const mk=(ans,ok,rd,goal)=>({ans:ans||0,ok:ok||0,acc:ans?Math.round(ok/ans*100):null,rd:Math.round(rd*100),done:Math.round((rd*.5+Math.min(1,(ans||0)/goal)*.5)*100),
     ready:Math.round((rd*.3+(ans?ok/ans:0)*Math.min(1,(ans||0)/goal)*.7)*100)});
   return {anatomy:mk(a.answered,a.correct,rdA,200),calc:mk(z.ans,z.ok,rdC,60),chem:mk(ch.ans,ch.ok,rdX,80),bio:mk(bi.ans,bi.ok,rdB,120)};
@@ -62,7 +66,7 @@ const pills=()=>{ const AB=books(1), cnt=k=>k==='all'?AB.length:AB.filter(b=>b.s
 function toast(t){ $$('.toast').forEach(x=>x.remove()); const d=document.createElement('div'); d.className='toast'; d.setAttribute('role','status'); d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 function confirmDlg(title,msg,yes,cb){ const d=document.createElement('div'); d.className='dlg'; d.innerHTML=`<div class="card bx" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button class="btn sec" data-n>ยกเลิก</button><button class="btn" data-y>${esc(yes)}</button></div></div>`;
   document.body.appendChild(d); d.addEventListener('click',e=>{ if(e.target===d||e.target.closest('[data-n]')) d.remove(); else if(e.target.closest('[data-y]')){ d.remove(); cb(); } }); $('[data-y]',d).focus(); }
-const expHTML=(q,open)=>`<details class="exp" ${open?'open':''}><summary>${ic('lightbulb')}<span>เฉลยละเอียด (Explanation)</span>${ic('chevron_right')}</summary><ol>${[].concat(q.exp||[]).map(e=>`<li>${chemTxt(e)}</li>`).join('')}</ol>${CHEM_TOPICS[q.t]?`<p class="src">อ้างอิงหนังสือหน้า ${CHEM_TOPICS[q.t].pg} · <a href="#/pages/chem/${CHEM_TOPICS[q.t].pg}">เปิดอ่านหน้านี้</a></p>`:''}</details>`;
+const expHTML=(q,open)=>`<details class="exp" ${open?'open':''}><summary>${ic('lightbulb')}<span>เฉลยละเอียด (Explanation)</span>${ic('chevron_right')}</summary><ol>${[].concat(q.exp||[]).map(e=>`<li>${chemTxt(e)}</li>`).join('')}</ol>${CHEM_TOPICS[q.t]?`<p class="src">อ้างอิงสมุดบทที่ ${CHEM_TOPICS[q.t].ch||1} หน้า ${CHEM_TOPICS[q.t].pg} · <a href="${pgHref(q.t)}">เปิดอ่านหน้านี้</a></p>`:''}</details>`;
 
 /* ---------- โครงหลัก ---------- */
 const NAV=[['','house','หน้าหลัก','Overview'],['library','library','อ่านหนังสือ','Study Library'],['exams','clipboard_check','ทำข้อสอบ','Practice Exams'],['progress','chart_no_axes_column','ความก้าวหน้า','Progress & Analytics']];
@@ -109,7 +113,8 @@ function books(all){
   L.push({s:'calc',code:'PHT111',no:'02',t:'มาตรชั่งและตวงทางเภสัชกรรม',short:'มาตรชั่งและตวง',en:'Weights & measures · Metric, Apothecary, Avoirdupois, Household',kind:'บทที่ 2',img:B+'calc2.jpg',read:'calc/?tab=book&page=17',exam:'calc/?tab=quiz&ch=2'});
   L.push({s:'calc',code:'PHT111',no:'03',t:'วิธีแบ่งส่วน Aliquot method',short:'Aliquot method',en:'Aliquot method · Sensitivity requirement, factor & diluent',kind:'บทที่ 3',img:B+'calc3.jpg',read:'calc/?tab=book&page=35',exam:'calc/?tab=quiz&ch=3'});
   L.push({s:'calc',code:'PHT111',no:'Q',t:'ข้อสอบคำนวณเภสัช',short:'ข้อสอบ calc',en:'Pharm calc question bank',kind:'ข้อสอบ',img:B+'calcq.jpg',read:'calc/?tab=book',exam:'calc/?tab=quiz',q:1});
-  L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams'});
+  L.push({s:'chem',code:'PHB102',no:'01',t:'ปริมาณสารสัมพันธ์ บทที่ 1',short:'ปริมาณสารสัมพันธ์',en:'Physical Chemistry · Stoichiometry',kind:'บทที่ 1',img:B+'chem1.jpg',read:'#/pages/chem',exam:'#/exams/1'});
+  [2,3,4,5,6].forEach(n=>{ const c=PCH[n]; L.push({s:'chem',code:'PHB102',no:pad(n),t:c.n+' บทที่ '+n,short:c.n,en:'Physical Chemistry · '+c.en,kind:'บทที่ '+n,desc:c.desc,img:B+'chem'+n+'.jpg',read:'#/pages/chem'+n,exam:'#/exams/'+n}); });
   L.push({s:'chem',code:'PHB102',no:'W',t:'แบบฝึกหัด',short:'แบบฝึกหัด',en:'Physical Chemistry · Worksheets บทที่ 1–6',kind:'เล่มพิเศษ',desc:'ใบงานแบบฝึกหัดเคมีฟิสิกส์ บทที่ 1 ถึง 6: ปริมาณสัมพันธ์ สารประกอบเชิงซ้อน Chemical Kinetics สมดุลเคมี สมดุลวัฏภาค และไฟฟ้าเคมี อ่านบนเว็บหรือดาวน์โหลด PDF ไปพิมพ์เขียนตอบได้',img:B+'chemw.jpg',read:'#/pages/ws',exam:'#/pages/ws',dl:1});
   L.push({s:'chem',code:'PHB102',no:'Q',t:'ข้อสอบเคมีฟิสิกส์',short:'ข้อสอบ เคมีฟิสิกส์',en:'Physical Chemistry question bank',kind:'ข้อสอบ',img:B+'chemq.jpg',read:'#/pages/chem',exam:'#/exams',q:1});
   L.push({s:'bio',code:'PHB104',no:'01',t:'เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต',short:'คาร์โบไฮเดรต',en:'Biochemistry · Carbohydrates',kind:'บทที่ 1',img:B+'bio1.jpg',read:'bio/#/book/1',exam:'bio/#/exam'});
@@ -121,7 +126,7 @@ function contBtn(){ const m=contCard(stats()).match(/<a class="btn lg" href="([^
 function contCard(st){
   const l=DB.last; let s,t,sub,href,p,btn='อ่านต่อ';
   if(l&&l.k==='read'&&CHEM_SECTIONS.find(x=>x.id===l.sec)){ const c=CHEM_SECTIONS.find(x=>x.id===l.sec); s=SUBJ.chem; t=c.t; sub='ปริมาณสารสัมพันธ์ · หัวข้อ '+(CHEM_SECTIONS.indexOf(c)+1)+' จาก '+CHEM_SECTIONS.length; href='#/read/chem/'+c.id; p=st.chem.rd; }
-  else if(l&&l.k==='pages'){ s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='เคมีฟิสิกส์ PHB102 · อ่านถึงหน้า '+(DB.chem.pg||1)+' จาก 28'; href='#/pages/chem'; p=st.chem.rd; }
+  else if(l&&l.k==='pages'){ const n=l.ch>1&&PCH[l.ch]?l.ch:1, c=PCH[n]; s=SUBJ.chem; t=c.n+' บทที่ '+n; sub='เคมีฟิสิกส์ PHB102 · อ่านถึงหน้า '+(chPg(n)||1)+' จาก '+c.pages; href='#/pages/'+bkId(n); p=st.chem.rd; }
   else if(l&&l.k==='app'&&SUBJ[l.id]){ s=SUBJ[l.id]; t=s.th; sub=s.code+' · '+s.name; href=l.href||s.read; p=st[l.id].done; btn=l.mode==='exam'?'ทำข้อสอบต่อ':'อ่านต่อ'; }
   else { s=SUBJ.chem; t='ปริมาณสารสัมพันธ์ บทที่ 1'; sub='เคมีฟิสิกส์ · PHB102 · หนังสือ 28 หน้า'; href='#/pages/chem'; p=st.chem.rd; btn='เริ่มอ่าน'; }
   return `<div class="card cont"><div class="th" style="background-image:url(${s.img})"></div><div><span class="tag">${s.code}</span><h3>${esc(t)}</h3><p class="sub" style="font-size:13.5px">${esc(sub)}</p><div class="bar"><i style="width:${p}%"></i></div><p class="pc">คืบหน้า <b class="num">${p}%</b></p></div>
@@ -168,6 +173,7 @@ function vLibrary(v){
   if(show('chem')) h+=`<section class="group">${gh('chem',`<a class="btn sec sm" href="#/pages/chem">${ic('book_open')}เปิดหนังสือ</a>`)}<div class="lst">
     <a class="item" href="#/pages/chem"><span class="n">${ic('book_open')}</span><div class="grow"><h3>หนังสือ บทที่ 1 ปริมาณสารสัมพันธ์</h3><p>สมุดสรุปฉบับเต็ม 28 หน้า${DB.chem.pg>1?' · อ่านถึงหน้า '+DB.chem.pg:''}</p></div>${ic('chevron_right','ch')}</a>
     ${CHEM_SECTIONS.map((c,i)=>`<a class="item" href="#/pages/chem/${c.pg}"><span class="n ${(DB.chem.pgMax||0)>=c.pg?'dn':''}">${i+1}</span><div class="grow"><h3>${esc(c.t)}</h3><p>เปิดหนังสือที่หน้า ${c.pg}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
+    ${[2,3,4,5,6].map(n=>`<a class="item" href="#/pages/chem${n}"><span class="n ${chMax(n)>=PCH[n].pages?'dn':''}">${n}</span><div class="grow"><h3>หนังสือ บทที่ ${n} ${esc(PCH[n].n)}</h3><p>${esc(PCH[n].en)} · ${PCH[n].pages} หน้า${chPg(n)>1?' · อ่านถึงหน้า '+chPg(n):''}</p></div>${ic('chevron_right','ch')}</a>`).join('')}
     <a class="item" href="#/pages/ws"><span class="n">${ic('file_text')}</span><div class="grow"><h3>แบบฝึกหัด (เล่มพิเศษ)</h3><p>ใบงานบทที่ 1–6 · ${WS.n} หน้า · ดูออนไลน์หรือดาวน์โหลด PDF</p></div>${ic('chevron_right','ch')}</a>
     <a class="item" href="#/read/chem/intro"><span class="n">${ic('list')}</span><div class="grow"><h3>สรุปย่อแบบข้อความ</h3><p>เวอร์ชันพิมพ์ใหม่ อ่านบนมือถือง่าย ปรับขนาดตัวอักษรได้</p></div>${ic('chevron_right','ch')}</a></div></section>`;
   if(show('bio')) h+=`<section class="group">${gh('bio')}<div class="lst"><a class="item" href="bio/#/book/1" data-app="bio" data-mode="read"><span class="n">1</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของคาร์โบไฮเดรต</h3><p>Monosaccharides, Oligosaccharides, Polysaccharides และ Complex carbohydrate · 21 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/book/2" data-app="bio" data-mode="read"><span class="n">2</span><div class="grow"><h3>เคมีและหน้าที่ทางชีวภาพของลิพิดส์</h3><p>Fatty acids, Triglyceride, Phospholipids, Eicosanoids, Steroids และ Lipoproteins · 28 หน้า</p></div>${ic('chevron_right','ch')}</a><a class="item" href="bio/#/exam" data-app="bio" data-mode="exam"><span class="n">${ic('clipboard_check')}</span><div class="grow"><h3>ข้อสอบชีวเคมี</h3><p>ข้อสอบจากสไลด์เรียน และโจทย์โครงสร้างกรดไขมัน</p></div>${ic('chevron_right','ch')}</a></div></section>`;
@@ -176,18 +182,18 @@ function vLibrary(v){
 
 /* ---------- อ่านสรุป (โหมดโฟกัส) ---------- */
 const WS={n:27,pdf:'chem/pdf/ws1-6.pdf',name:'PHB102-Worksheet-ch1-6.pdf',mb:0.5,ch:[['บทที่ 1 ปริมาณสัมพันธ์',1],['บทที่ 2 สารประกอบเชิงซ้อน',14],['บทที่ 3 Chemical Kinetics',17],['บทที่ 4 สมดุลเคมี',21],['บทที่ 5 สมดุลวัฏภาค',24],['บทที่ 6 ไฟฟ้าเคมี',25]]};
-function rbar(sec,mode,ws){ const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
+function rbar(sec,mode,ws,cn){ cn=cn||1; const CB=PCH[cn]; const R=DB.rd, bm=sec&&DB.bm.sec.includes(sec.id);
   if(ws) return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
     <div class="tt"><b>แบบฝึกหัด เคมีฟิสิกส์</b><small id="pgno">PHB102 · ${WS.n} หน้า</small></div>
     <button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้า" title="ขยายหรือย่อหน้า">${ic('zoom_in')}</button><a class="btn sm" href="${WS.pdf}" download="${WS.name}">${ic('download')}ดาวน์โหลด</a></div>`;
   return `<div class="fbar"><a class="ibtn" href="#/library" aria-label="กลับคลังหนังสือ">${ic('arrow_left')}</a>
-    <div class="tt"><b>${esc(sec?sec.t:'ปริมาณสารสัมพันธ์ บทที่ 1')}</b><small id="pgno">PHB102 · ${sec?'สรุปย่อ':'หนังสือ 28 หน้า'}</small></div>
-    <div class="seg"><button class="${mode==='pages'?'on':''}" data-act="rmode" data-v="pages">หนังสือ</button><button class="${mode==='read'?'on':''}" data-act="rmode" data-v="read">สรุปย่อ</button></div>
+    <div class="tt"><b>${esc(sec?sec.t:CB.n+' บทที่ '+cn)}</b><small id="pgno">PHB102 · ${sec?'สรุปย่อ':'หนังสือ '+CB.pages+' หน้า'}</small></div>
+    ${cn>1?'':`<div class="seg"><button class="${mode==='pages'?'on':''}" data-act="rmode" data-v="pages">หนังสือ</button><button class="${mode==='read'?'on':''}" data-act="rmode" data-v="read">สรุปย่อ</button></div>`}
     ${mode==='read'?`<span class="dv hm"></span><button class="ibtn" data-act="fs" data-v="-1" aria-label="ลดขนาดตัวอักษร" title="ลดขนาดตัวอักษร">${ic('a_arrow_down')}</button><button class="ibtn" data-act="fs" data-v="1" aria-label="เพิ่มขนาดตัวอักษร" title="เพิ่มขนาดตัวอักษร">${ic('a_arrow_up')}</button>
     <button class="ibtn hm ${R.lh>1.8?'on':''}" data-act="lh" aria-label="ระยะบรรทัด" title="ระยะบรรทัด">${ic('align_justify')}</button>
     <button class="ibtn hm ${R.warm?'on':''}" data-act="warm" aria-label="พื้นกระดาษขาวหรือกระดาษอุ่น" title="สลับพื้นขาว / กระดาษอุ่น">${ic(R.warm?'sun':'file_text')}</button>
     <button class="ibtn ${bm?'on':''}" data-act="bmsec" data-v="${sec.id}" aria-label="บุ๊กมาร์กหัวข้อนี้" title="บุ๊กมาร์ก">${ic(bm?'bookmark_check':'bookmark')}</button>`
-    :`<button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้าหนังสือ" title="ขยายหรือย่อหน้าหนังสือ">${ic('zoom_in')}</button><a class="ibtn" href="chem/pdf/ch1.pdf" download="PHB102-Physical-Chemistry-ch1.pdf" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</a>`}</div>`; }
+    :`<button class="ibtn" data-act="pzoom" aria-label="ขยายหรือย่อหน้าหนังสือ" title="ขยายหรือย่อหน้าหนังสือ">${ic('zoom_in')}</button><a class="ibtn" href="${CB.pdf}" download="PHB102-Physical-Chemistry-ch${cn}.pdf" aria-label="ดาวน์โหลด PDF" title="ดาวน์โหลด PDF">${ic('download')}</a>`}</div>`; }
 function vRead(v,subj,id){
   const i=Math.max(0,CHEM_SECTIONS.findIndex(x=>x.id===id)), c=CHEM_SECTIONS[i], R=DB.rd, prev=CHEM_SECTIONS[i-1], next=CHEM_SECTIONS[i+1];
   v.dataset.title=c.t; DB.chem.sec=c.id; save();
@@ -208,16 +214,19 @@ function vRead(v,subj,id){
 }
 function vPages(v,subj,pg){
   if(subj==='ws') return vWS(v,pg);
-  v.dataset.title='หนังสือ เคมีฟิสิกส์'; DB.last={k:'pages'}; save();
-  const start=Math.max(1,Math.min(28,+pg||DB.chem.pg||1));
-  v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages')}
-    <div class="pjump" aria-label="ข้ามไปหัวข้อ">${CHEM_SECTIONS.map(c=>`<button class="chip" data-act="pgo" data-v="${c.pg}">${esc(c.t.replace(/\s*\(.*\)/,''))}</button>`).join('')}<button class="chip" data-act="pgo" data-v="27">เฉลยโจทย์ฝึก</button></div>
-    <div class="pgs">${Array.from({length:28},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="chem/book/p-${String(i+1).padStart(3,'0')}.webp?r=2" alt="หนังสือเคมีฟิสิกส์ บทที่ 1 หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / 28</figcaption></figure>`).join('')}</div></div>`;
+  const cn=+String(subj||'').replace(/^chem/,'')||1, CB=PCH[cn]||PCH[1], N=CB.pages, ch=DB.chem;
+  v.dataset.title='หนังสือ เคมีฟิสิกส์'+(cn>1?' บทที่ '+cn:''); DB.last={k:'pages',ch:cn}; save();
+  const start=Math.max(1,Math.min(N,+pg||chPg(cn)||1));
+  const chips=cn===1?CHEM_SECTIONS.map(c=>[c.t.replace(/\s*\(.*\)/,''),c.pg]).concat([['เฉลยโจทย์ฝึก',27]]):CB.toc;
+  v.innerHTML=`<div class="rd ${DB.rd.wide?'wide':''}">${rbar(null,'pages',0,cn)}
+    <div class="pjump" aria-label="ข้ามไปหัวข้อ">${chips.map(c=>`<button class="chip" data-act="pgo" data-v="${c[1]}">${esc(c[0])}</button>`).join('')}</div>
+    <div class="pgs">${Array.from({length:N},(_,i)=>`<figure id="pg${i+1}" data-p="${i+1}"><img src="${CB.dir}/p-${String(i+1).padStart(3,'0')}.webp${cn===1?'?r=2':''}" alt="หนังสือเคมีฟิสิกส์ บทที่ ${cn} หน้า ${i+1}" loading="${Math.abs(i+1-start)<2?'eager':'lazy'}" decoding="async" width="1600" height="2264"><figcaption>${i+1} / ${N}</figcaption></figure>`).join('')}</div></div>`;
   return ()=>{ const figs=$$('.pgs figure'), lab=$('#pgno'); let tk=0;
     const jump=n=>{ const f=figs[n-1]; if(f) scrollTo(0,f.getBoundingClientRect().top+scrollY-84); };
     if(start>1){ jump(start); setTimeout(()=>jump(start),60); }
     const spy=()=>{ tk=0; let cur=1; const mid=innerHeight*.4; for(let i=0;i<figs.length;i++){ if(figs[i].getBoundingClientRect().top<mid) cur=i+1; else break; }
-      if(cur!==DB.chem.pg){ DB.chem.pg=cur; DB.chem.pgMax=Math.max(DB.chem.pgMax||1,cur); save(); } if(lab) lab.textContent='PHB102 · หน้า '+cur+' จาก 28'; };
+      if(cur!==chPg(cn)){ if(cn===1){ ch.pg=cur; ch.pgMax=Math.max(ch.pgMax||1,cur); } else { (ch.pgs=ch.pgs||{})[cn]=cur; ch.pgm=ch.pgm||{}; ch.pgm[cn]=Math.max(ch.pgm[cn]||1,cur); } save(); }
+      if(lab) lab.textContent='PHB102 · หน้า '+cur+' จาก '+N; };
     const on=()=>{ if(!tk) tk=setTimeout(spy,160); };
     addEventListener('scroll',on,{passive:true}); setTimeout(spy,300); cleanup.push(()=>{ removeEventListener('scroll',on); clearTimeout(tk); });
     vPages.jump=jump; };
@@ -239,13 +248,16 @@ function vWS(v,pg){
 }
 
 /* ---------- ทำข้อสอบ ---------- */
-function vExams(v){
-  v.dataset.title='ทำข้อสอบ'; const C=DB.cfg, st=stats(), T=CHEM_TOPICS, nw=DB.chem.wrong.length;
+function vExams(v,a){
+  v.dataset.title='ทำข้อสอบ'; const C=DB.cfg, st=stats(), T=CHEM_TOPICS, nw=DB.chem.wrong.length, op=Math.max(1,Math.min(6,+a||1));
+  const tch=n=>Object.keys(T).filter(k=>(T[k].ch||1)===n);
   let h=`${pills()}<div class="ph"><h1>ทำข้อสอบ</h1><p>จัดชุดโจทย์ตามระดับและหัวข้อ ทำต่อเนื่องไม่รู้จบ</p></div>`;
-  if(show('chem')) h+=`<section class="group" style="margin-top:8px"><div class="gh"><div class="th" style="background-image:url(${SUBJ.chem.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>เคมีฟิสิกส์</h2><span class="tag">PHB102</span></div><p>บทที่ 1 ปริมาณสารสัมพันธ์ · ปรนัยทั้งหมด ไม่มีข้อเขียน · สุ่มตัวเลขใหม่ทุกครั้ง${st.chem.acc!=null?' · แม่นยำ '+st.chem.acc+'%':''}</p></div></div>
+  if(show('chem')) h+=`<section class="group" style="margin-top:8px"><div class="gh"><div class="th" style="background-image:url(${SUBJ.chem.img})"></div><div class="grow"><div class="row" style="gap:8px"><h2>เคมีฟิสิกส์</h2><span class="tag">PHB102</span></div><p>บทที่ 1 ถึง 6 · ปรนัยทั้งหมด สร้างจากสไลด์สอน · สุ่มตัวเลขใหม่ทุกครั้ง${st.chem.acc!=null?' · แม่นยำ '+st.chem.acc+'%':''}</p></div></div>
    <div class="cfg"><div class="card"><h2>จัดชุดโจทย์</h2><p style="color:var(--ink-2);font-size:13.5px;margin:4px 0 12px">เลือกระดับและหัวข้อที่อยากฝึก โจทย์สุ่มตัวเลขใหม่ทุกข้อ ทำต่อเนื่องไม่รู้จบ ตอบแล้วเห็นเฉลยทันที อยากหยุดเมื่อไรกดจบและดูผล</p>
      <button class="btn lg" style="width:100%" data-act="bd">${ic('play')}จัดชุดโจทย์</button>
-     <div class="lst" style="margin-top:14px">${Object.keys(T).map((k,i)=>`<button class="item" data-act="start" data-v="tp:${k}"><span class="n num">${i+1}</span><div class="grow"><h3>${esc(T[k].n)}</h3><p>${esc(T[k].d)}</p></div>${ic('chevron_right','ch')}</button>`).join('')}</div></div>
+     <div class="chxs">${[1,2,3,4,5,6].map(n=>{ const ks=tch(n); return `<details class="chx" id="exch${n}" ${n===op?'open':''}><summary><span class="n num">${n}</span><span class="grow"><b>บทที่ ${n} ${esc(PCH[n].n)}</b><small>${ks.length} หัวข้อ · ${esc(PCH[n].en)}</small></span>${ic('chevron_right','ch')}</summary>
+       <div class="lst"><button class="item all" data-act="start" data-v="ch:${n}"><span class="n">${ic('play')}</span><div class="grow"><h3>ทำทั้งบทที่ ${n}</h3><p>คละทุกหัวข้อในบทนี้ ทำต่อเนื่องไม่รู้จบ</p></div>${ic('chevron_right','ch')}</button>
+       ${ks.map((k,i)=>`<button class="item" data-act="start" data-v="tp:${k}"><span class="n num">${n}.${i+1}</span><div class="grow"><h3>${esc(T[k].n)}</h3><p>${esc(T[k].d)}</p></div>${ic('chevron_right','ch')}</button>`).join('')}</div></details>`; }).join('')}</div></div>
     <div class="quick"><button class="item" data-act="start" data-v="sheet"><span class="n">${ic('file_text')}</span><div class="grow"><h3>ชีทท้ายบท</h3><p>โจทย์ในชีท และดุลสมการ ตัวเลขตรงตามชีท</p></div>${ic('chevron_right','ch')}</button>
      <button class="item" data-act="start" data-v="mock"><span class="n">${ic('timer')}</span><div class="grow"><h3>สอบจำลอง</h3><p>คละทุกหัวข้อ จับเวลา เฉลยตอนส่ง</p></div>${ic('chevron_right','ch')}</button>
      <button class="item" data-act="start" data-v="concept"><span class="n">${ic('lightbulb')}</span><div class="grow"><h3>ทฤษฎีล้วน</h3><p>นิยาม คำย่อ และข้อควรจำ ไม่ต้องคำนวณ</p></div>${ic('chevron_right','ch')}</button>
@@ -253,6 +265,7 @@ function vExams(v){
   const extc=k=>{ const s=SUBJ[k]; return `<a class="item" href="${s.exam}" data-app="${k}" data-mode="exam"><span class="n" style="background:var(--bg) center/cover;background-image:url(${s.img})"></span><div class="grow"><h3>${esc(s.th)} <span class="tag" style="margin-left:6px">${s.code}</span></h3><p>${esc(s.qz)}${st[k].ans?' · ทำไปแล้ว '+st[k].ans+' ข้อ แม่นยำ '+st[k].acc+'%':' · ยังไม่ได้เริ่ม'}</p></div>${ic('chevron_right','ch')}</a>`; };
   if(show('anatomy')||show('calc')||show('bio')) h+=`<div class="sec-h"><div><h2>ข้อสอบวิชาอื่น</h2><p>เปิดคลังข้อสอบของแต่ละวิชา</p></div></div><div class="lst">${['bio','anatomy','calc'].filter(show).map(extc).join('')}</div>`;
   v.innerHTML=h;
+  if(a) return ()=>{ const d=$('#exch'+op); if(d) setTimeout(()=>scrollTo(0,d.getBoundingClientRect().top+scrollY-80),30); };
 }
 let QZ=null, tmr=0;
 try{ QZ=JSON.parse(sessionStorage.getItem('payap.qz')); }catch(e){}
@@ -261,6 +274,7 @@ function startQuiz(kind){
   const C=DB.cfg; let qs=[], title='', mode=C.mode, timer=!!C.timer;
   if(/^tp:/.test(kind)){ const t=kind.slice(3); return startInf([t],DB.cfg.lv,CHEM_TOPICS[t].n+' · ระดับ'+({mix:'ผสม',easy:'ง่าย',mid:'ปานกลาง',hard:'ยาก'})[DB.cfg.lv]); }
   if(kind==='concept') return startInf(['concept'],'mix','ทฤษฎีล้วน');
+  if(/^ch:/.test(kind)){ const n=+kind.slice(3), tps=Object.keys(CHEM_TOPICS).filter(k=>(CHEM_TOPICS[k].ch||1)===n); return startInf(tps,DB.cfg.lv||'mix','บทที่ '+n+' '+PCH[n].n); }
   if(kind==='custom'){ qs=genSet(C.topic,C.lv,C.n); title=(C.topic==='all'?'คละทุกหัวข้อ':CHEM_TOPICS[C.topic].n)+' · '+({mix:'คละระดับ',easy:'ง่าย',mid:'ปานกลาง',hard:'ยาก'})[C.lv]; }
   else if(kind==='sheet'){ qs=sheetSet(); title='ชีทท้ายบท 39 ข้อ'; }
   else if(kind==='mock'){ qs=genSet('all','mix',30); title='สอบจำลอง 30 ข้อ'; mode='end'; timer=true; }
@@ -274,7 +288,7 @@ function startQuiz(kind){
 }
 const mkQ=q=>({t:q.t,lv:q.lv,stem:q.stem,opts:q.opts,ans:q.ans,exp:q.exp,tag:q.tag||'',pick:null,flag:false,rec:false});
 function openBD(){ const T=CHEM_TOPICS, sv=DB.bd||{};
-  PKBuilder.open({eyebrow:'เคมีฟิสิกส์ PHB102',chapters:[{id:1,n:'ปริมาณสารสัมพันธ์'}],topics:Object.keys(T).map(k=>({id:k,ch:1,n:T[k].n})),ch:sv.ch||[],tp:sv.tp||[],lv:DB.cfg.lv,
+  PKBuilder.open({eyebrow:'เคมีฟิสิกส์ PHB102',chapters:[1,2,3,4,5,6].map(n=>({id:n,n:PCH[n].n})),topics:Object.keys(T).map(k=>({id:k,ch:T[k].ch||1,n:T[k].n})),ch:sv.ch||[],tp:sv.tp||[],lv:DB.cfg.lv,
     onSave:st=>{ DB.bd={ch:st.ch.slice(),tp:st.tp.slice()}; DB.cfg.lv=st.lv; save(); },onStart:o=>startInf(o.tps,o.lv,o.title)}); }
 function startInf(tps,lv,title){ QZ={title,mode:'instant',timer:!!DB.cfg.timer,kind:'inf',inf:{tps,lv},cdeck:[],qs:[],i:0,el:0}; const q=moreQ(); if(!q){ QZ=null; toast('ยังไม่มีข้อสอบในชุดนี้'); return; }
   QZ.qs.push(q); keepQZ(); if(route()[0]==='quiz') render(); else location.hash='#/quiz'; }
@@ -369,7 +383,9 @@ function palette(){
   NAV.forEach(n=>idx.push({t:n[2],s:n[3],h:'#/'+n[0],i:n[1]}));
   idx.push({t:'แบบฝึกหัด เคมีฟิสิกส์ บทที่ 1–6',s:'PHB102 · ดูและดาวน์โหลด PDF',h:'#/pages/ws',i:'file_text',g:'PHB102'});
   CHEM_SECTIONS.forEach(c=>{ idx.push({t:c.t,s:'PHB102 · หนังสือหน้า '+c.pg,h:'#/pages/chem/'+c.pg,i:'book_open',g:'PHB102',x:c.html.replace(/<[^>]+>/g,' ')}); });
-  Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
+  Object.keys(CHEM_TOPICS).forEach(k=>idx.push({t:'ข้อสอบ '+CHEM_TOPICS[k].n,s:'บทที่ '+(CHEM_TOPICS[k].ch||1)+' · '+CHEM_TOPICS[k].d,act:'topic:'+k,i:'clipboard_check',g:'PHB102'}));
+  [2,3,4,5,6].forEach(n=>{ idx.push({t:'สมุดเคมีฟิสิกส์ บทที่ '+n+' '+PCH[n].n,s:'PHB102 · '+PCH[n].en+' · '+PCH[n].pages+' หน้า',h:'#/pages/chem'+n,i:'book_open',g:'PHB102',x:PCH[n].desc});
+    PCH[n].toc.forEach(c=>idx.push({t:c[0]+' (บทที่ '+n+')',s:'PHB102 · สมุดหน้า '+c[1],h:'#/pages/chem'+n+'/'+c[1],i:'book_open',g:'PHB102'})); });
   idx.push({t:'ชีทท้ายบท 39 ข้อ',s:'PHB102 · ข้อสอบ',act:'sheet',i:'file_text',g:'PHB102'},{t:'สมุดสรุปปริมาณสารสัมพันธ์ 28 หน้า',s:'PHB102 · หน้าหนังสือ',h:'#/pages/chem',i:'file_text',g:'PHB102'});
   idx.push({t:'สมุดชีวเคมี บทที่ 1 คาร์โบไฮเดรต',s:'PHB104 · Monosaccharide Disaccharide Polysaccharide · 21 หน้า',h:'bio/#/book/1',i:'book_open',g:'PHB104',app:'bio'},{t:'สมุดชีวเคมี บทที่ 2 ลิพิดส์',s:'PHB104 · กรดไขมัน ไตรกลีเซอไรด์ ฟอสโฟลิพิด สเตียรอยด์ · 28 หน้า',h:'bio/#/book/2',i:'book_open',g:'PHB104',app:'bio'},{t:'ข้อสอบชีวเคมี Biochem',s:'PHB104 · คาร์โบไฮเดรต ลิพิดส์ โครงสร้างกรดไขมัน Delta Omega n',h:'bio/#/exam',i:'clipboard_check',g:'PHB104',app:'bio'});
   AN_CH.forEach((c,i)=>idx.push({t:'บทที่ '+(i+1)+' '+c[0],s:c[1],h:'anatomy/?tab=learn&ch='+(i+1),i:'graduation_cap',g:'BI112',app:'anatomy'}));
@@ -378,7 +394,7 @@ function palette(){
   document.body.appendChild(d); const inp=$('input',d), rs=$('.rs',d); let cur=0, res=[];
   const draw=()=>{ const q=inp.value.trim().toLowerCase(); res=(q?idx.filter(x=>(x.t+' '+x.s+' '+(x.g||'')).toLowerCase().includes(q)).concat(idx.filter(x=>x.x&&x.x.toLowerCase().includes(q)&&!(x.t+' '+x.s).toLowerCase().includes(q))):idx).slice(0,14); cur=Math.min(cur,Math.max(0,res.length-1));
     rs.innerHTML=res.length?res.map((x,i)=>`<a href="${x.h||'#/exams'}" data-i="${i}" class="${i===cur?'on':''}">${ic(x.i)}<div><b>${esc(x.t)}</b><small>${esc(x.s)}</small></div>${x.g?`<span class="tag">${x.g}</span>`:''}</a>`).join(''):`<div class="no">ไม่พบสิ่งที่ค้นหา ลองใช้คำอื่น เช่น โมล, กระดูก, เลขโรมัน</div>`; };
-  const pickR=x=>{ d.remove(); if(x.act){ if(/^topic:/.test(x.act)){ DB.cfg.topic=x.act.slice(6); save(); startQuiz('custom'); } else startQuiz(x.act); } else { if(x.app) lastApp(x.app,x.h,/quiz|learn|exam/.test(x.h)?'exam':'read'); location.href=x.h; } };
+  const pickR=x=>{ d.remove(); if(x.act){ if(/^topic:/.test(x.act)){ startQuiz('tp:'+x.act.slice(6)); } else startQuiz(x.act); } else { if(x.app) lastApp(x.app,x.h,/quiz|learn|exam/.test(x.h)?'exam':'read'); location.href=x.h; } };
   inp.addEventListener('input',()=>{cur=0;draw();});
   d.addEventListener('keydown',e=>{ if(e.key==='Escape') d.remove(); else if(e.key==='ArrowDown'){cur=Math.min(res.length-1,cur+1);draw();e.preventDefault();} else if(e.key==='ArrowUp'){cur=Math.max(0,cur-1);draw();e.preventDefault();} else if(e.key==='Enter'&&res[cur]){ e.preventDefault(); pickR(res[cur]); } });
   d.addEventListener('click',e=>{ if(e.target===d){ d.remove(); return; } const a=e.target.closest('[data-i]'); if(a){ e.preventDefault(); pickR(res[+a.dataset.i]); } });
