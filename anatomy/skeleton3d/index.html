@@ -8,14 +8,14 @@
 <meta name="theme-color" content="#000000">
 <title>HUMnoi</title>
 <script>/* อัปเดตอัตโนมัติ: ถ้ามีเวอร์ชันใหม่บนเว็บ ให้โหลดหน้าใหม่ทันที (กัน Safari จำหน้าเก่า) */
-window.HN_BUILD='1795691048';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
+window.HN_BUILD='1795691728';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#000;--s1:#0d0d0f;--s2:#151518;--s3:#1d1d21;--line:#26262b;--line2:#34343a;
-  --tx:#ececee;--tx2:#a2a2aa;--tx3:#6e6e76;--ac:#ff9f43;--ac2:rgba(255,159,67,.14);--ax:#4aa3ff;--ap:#ff6b6b;
-  --hd:56px;--nav:264px;--pn:372px;--r:10px;
+  --tx:#ececee;--tx2:#a2a2aa;--tx3:#6e6e76;--ac:#ff9000;--ac2:rgba(255,144,0,.15);--ax:#4aa3ff;--ap:#ff6b6b;
+  --hd:130px;--nav:264px;--pn:372px;--r:10px;
   --f:"Inter","IBM Plex Sans Thai",-apple-system,"Sukhumvit Set",system-ui,sans-serif;
   --st:env(safe-area-inset-top);--sb:env(safe-area-inset-bottom);--sl:env(safe-area-inset-left);--sr:env(safe-area-inset-right);
 }
@@ -28,25 +28,47 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 
 /* ---------- layout ---------- */
 #app{position:fixed;inset:0;display:grid;grid-template-columns:var(--nav) 1fr var(--pn);grid-template-rows:calc(var(--hd) + var(--st)) minmax(0,1fr);grid-template-areas:"hd hd hd" "nav stage panel"}
-#hd{grid-area:hd;display:flex;align-items:center;gap:12px;padding:var(--st) calc(16px + var(--sr)) 0 calc(16px + var(--sl));border-bottom:1px solid var(--line);background:var(--s1);z-index:20}
+#hd{grid-area:hd;display:flex;flex-direction:column;padding-top:var(--st);background:#000;z-index:20;min-width:0}
 #nav{grid-area:nav;border-right:1px solid var(--line);background:var(--s1);padding:10px 10px calc(24px + var(--sb)) calc(10px + var(--sl));min-height:0}
 #stage{grid-area:stage;position:relative;overflow:hidden;background:#000;min-height:0}
 #panel{grid-area:panel;border-left:1px solid var(--line);background:var(--s1);display:flex;flex-direction:column;min-height:0;z-index:15}
 
 /* ---------- header ---------- */
-.brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
-.brand b{font:700 19px/1 Inter,sans-serif;letter-spacing:-.02em}.brand b span{background:var(--ac);color:#000;border-radius:4px;padding:0 4px 1px;margin-left:2px}
-.brand small{color:var(--tx3);font-size:12px}
-#menu{display:flex;width:36px;height:36px;border-radius:8px;align-items:center;justify-content:center;border:1px solid var(--line2);flex:none}
-#menu svg{width:18px;height:18px}
-.search{position:relative;flex:1;max-width:420px;margin-left:auto}
-#q{width:100%;height:36px;border-radius:8px;border:1px solid var(--line2);background:var(--s2);color:var(--tx);font:inherit;font-size:16px;padding:0 12px 0 34px;outline:none;-webkit-user-select:text;user-select:text}
+.hd-top{height:28px;flex:none;display:flex;align-items:center;gap:22px;padding:0 calc(18px + var(--sr)) 0 calc(18px + var(--sl));background:#000;font-size:12.5px;white-space:nowrap;overflow:hidden}
+.ht-b{font:800 13px/1 Inter,sans-serif;color:#fff;letter-spacing:.01em}.ht-b span{color:var(--ac)}
+.ht-l{display:flex;gap:16px;min-width:0;overflow:hidden}
+.ht-l button,.ht-l a{color:#a9a9a9;font-weight:600;font-size:12.5px;text-decoration:none;padding:4px 0}.ht-l button:hover,.ht-l a:hover{color:#fff}
+.hd-top small{margin-left:auto;color:#8a8a8a;font-size:12px}
+.hd-main{height:60px;flex:none;display:flex;align-items:center;gap:16px;padding:0 calc(18px + var(--sr)) 0 calc(18px + var(--sl));background:#1b1b1b}
+.brand{display:inline-flex;align-items:center;gap:3px;font:800 30px/1 Inter,sans-serif;letter-spacing:-.035em;white-space:nowrap;flex:none}
+.brand .l1{color:#fff}.brand .l2{background:var(--ac);color:#000;border-radius:5px;padding:2px 6px 4px}
+.search{position:relative;flex:1;min-width:0;max-width:520px;margin:0 auto;display:flex;height:36px}
+#q{flex:1;min-width:0;height:36px;border-radius:4px 0 0 4px;border:0;background:#fff;color:#111;font:inherit;font-size:16px;padding:0 12px;outline:none;-webkit-user-select:text;user-select:text}
+#q::placeholder{color:#8d8d8d}
 @media (min-width:760px){#q{font-size:14px}}
-#q:focus{border-color:var(--ac)}
-.search svg{position:absolute;left:11px;top:10px;width:16px;height:16px;color:var(--tx3)}
+.sbtn{width:64px;flex:none;height:36px;border-radius:0 4px 4px 0;background:var(--ac);color:#000;display:flex;align-items:center;justify-content:center}.sbtn svg{width:19px;height:19px}
 #res{position:absolute;top:42px;left:0;right:0;max-height:60dvh;background:var(--s2);border:1px solid var(--line2);border-radius:var(--r);padding:4px;box-shadow:0 16px 40px rgba(0,0,0,.6);z-index:40}
 #res button{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:6px}#res button:hover{background:var(--s3)}
 #res small{display:block;color:var(--tx3);font-size:12px}#res p{margin:8px 10px;color:var(--tx3)}
+.hbtn{height:34px;padding:0 12px;border-radius:4px;background:#2f2f2f;color:#ddd;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;flex:none;white-space:nowrap}.hbtn svg{width:16px;height:16px}
+.hd-nav{height:42px;flex:none;display:flex;align-items:stretch;justify-content:center;gap:4px;padding:0 calc(12px + var(--sr)) 0 calc(12px + var(--sl));background:#0c0c0c;border-top:1px solid #1f1f1f;border-bottom:1px solid #1f1f1f;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.hd-nav::-webkit-scrollbar{display:none}
+.hd-nav button{position:relative;display:inline-flex;align-items:center;gap:7px;padding:0 18px;color:#fff;font:700 13px/1 Inter,"IBM Plex Sans Thai",sans-serif;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;flex:none;transition:background .15s}
+.hd-nav button svg{width:15px;height:15px;color:#9a9a9a}.hd-nav button .car{width:9px;height:6px;color:#fff}
+.hd-nav button:hover,.hd-nav button.open{background:#262626}
+.hd-nav button.on svg{color:var(--ac)}
+.hd-nav button.on:after{content:"";position:absolute;left:14px;right:14px;bottom:6px;height:3px;border-radius:2px;background:var(--ac)}
+.hd-nav .nbook{color:var(--ac)}
+#dd{position:fixed;z-index:45;min-width:240px;max-width:min(340px,calc(100vw - 16px));max-height:62dvh;overflow:auto;background:#1b1b1b;border:1px solid #2a2a2a;border-top:0;box-shadow:0 18px 40px rgba(0,0,0,.65);padding:4px 0;animation:ddin .16s ease-out}
+@keyframes ddin{from{opacity:0;transform:translateY(-4px)}}
+#dd[hidden]{display:none}
+#dd .dh{padding:10px 16px 4px;color:var(--ac);font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+#dd button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 16px;color:#eee;font-weight:600;font-size:14px;border-top:1px solid #242424}
+#dd button:hover,#dd button.cur{background:#2a2a2a}#dd button.cur{box-shadow:inset 3px 0 0 var(--ac)}
+#dd button small{margin-left:auto;color:#8d8d8d;font-weight:500;font-size:12px;white-space:nowrap}
+#dd button.sub{padding-left:30px;font-weight:500}
+#menu{display:flex;width:36px;height:36px;border-radius:4px;align-items:center;justify-content:center;background:#2f2f2f;color:#ddd;flex:none}
+#menu svg{width:18px;height:18px}
 .tools{display:flex;align-items:center;gap:8px}
 .tbtn{height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line2);color:var(--tx2);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;font-size:13px;font-weight:500;text-decoration:none}
 .tbtn svg{width:16px;height:16px;flex:none}
@@ -96,8 +118,8 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #viewbar .vb-show{display:none}
 #viewbar.hid>*{display:none!important}#viewbar.hid>.vb-show{display:inline-flex!important;color:var(--tx);font-weight:600;font-size:13px}
 #viewbar.hid{padding:3px}
-#focusBtn{flex:none}#focusBtn.on{background:var(--ac);color:#111;border-color:var(--ac)}
-@media (max-width:759px){#focusBtn .tx{display:none}#focusBtn{padding:0 9px}}
+#focusBtn{flex:none}#focusBtn.on{background:var(--ac);color:#000}
+@media (max-width:759px){#focusBtn .tx{display:none}#focusBtn{padding:0 8px}}
 #viewbar .vb-t{font-size:11px;color:var(--tx3);padding:0 8px 0 6px;white-space:nowrap}
 #viewbar button{position:relative;overflow:hidden;min-height:40px;padding:0 13px;border-radius:9px;font-size:14px;font-weight:500;color:var(--tx);white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:transform .12s,background .15s}
 #viewbar button svg{width:15px;height:15px}
@@ -191,10 +213,7 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #pbody footer{margin-top:18px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--tx3)}
 
 /* ---------- muscle mode ---------- */
-.modeseg{flex:none;height:38px}.modeseg button{display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13.5px}
-.modeseg svg{width:16px;height:16px}.modeseg button.on{background:var(--ac);color:#1a1006;box-shadow:none}
 body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode-mus) #tPeel{display:none}
-body.mode-mus .brand b span{background:#ff6b5a}
 .pinleg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:6px 0 10px;font-size:12.5px;color:var(--tx2)}.pinleg span{display:inline-flex;align-items:center;gap:6px}.pinleg i{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .acts{display:flex;flex-wrap:wrap;gap:6px}.acts span{background:rgba(255,107,90,.12);border:1px solid rgba(255,107,90,.35);color:#ffc2b8;border-radius:8px;padding:5px 10px;font-size:13.5px}
 .mparts button.po b{color:#5ee088}.mparts button.pi b{color:#7aa9ff}.mparts button.ph b{color:#ffd34d}
@@ -204,7 +223,6 @@ body.mode-mus .brand b span{background:#ff6b5a}
 .hint{font-size:12px;color:var(--tx3);margin-top:6px!important}
 .peelnote{display:flex;align-items:center;justify-content:space-between;gap:8px}.peelnote button{min-height:34px;padding:0 12px;border-radius:8px;background:var(--ac);color:#1a1006;font-weight:700}
 .facts .mu{color:#ff9b8c;border-color:rgba(255,107,90,.4)}h2 .sd{font-size:15px;color:var(--tx2);font-weight:500}
-@media (max-width:759px){.modeseg span{display:none}.modeseg button{padding:0 10px}}
 /* ---------- notebook ---------- */
 #book{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.96);display:flex;flex-direction:column}
 #book.in{animation:bin .28s cubic-bezier(.2,.8,.3,1) both}#book.out{animation:bin .2s reverse both}
@@ -271,15 +289,18 @@ body.mode-mus .brand b span{background:#ff6b5a}
   body.navopen #nav{transform:none}
   #scrim{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.5)}
   body.navopen #scrim{display:block}
-  .brand small{display:none}
+  .hd-top small{display:none}
 }
 @media (max-width:899px){ :root{--pn:320px} #viewbar .vb-t{display:none} #viewbar button{padding:0 10px} }
 @media (max-width:759px){
-  :root{--hd:56px}
+  :root{--hd:98px}
+  .hd-top{display:none}.hd-main{height:56px;gap:10px;padding:0 calc(10px + var(--sr)) 0 calc(10px + var(--sl))}
+  .brand{font-size:23px}.brand .l2{padding:1px 5px 3px}.sbtn{width:44px}
+  .hd-nav{justify-content:flex-start;padding:0 4px}.hd-nav button{padding:0 12px;font-size:12.5px}.hd-nav button.on:after{left:10px;right:10px}
+  #dd{left:8px!important;right:8px;max-width:none}
   .lbl{font-size:11.5px;padding:4px 7px}
   #dock{top:auto;bottom:calc(30dvh + 66px);transform:none;right:8px;padding:6px 4px}.dk{width:60px;min-height:58px}.dk span{font-size:12px}.dk svg{width:21px;height:21px}.dk-t{display:none}
   #app{grid-template-columns:1fr;grid-template-areas:"hd" "stage"}
-  #hd{gap:8px}.brand b{font-size:17px}
   .search{max-width:none}
   #panel{position:fixed;left:0;right:0;bottom:0;height:30dvh;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;transition:height .25s;box-shadow:0 -12px 40px rgba(0,0,0,.5)}
   #panel.drag{transition:none}
@@ -324,7 +345,7 @@ body.mode-mus .brand b span{background:#ff6b5a}
 /* หน้าดาวน์โหลด: เริ่มโหลดไฟล์โมเดลทันทีที่เปิดหน้า (ระหว่างกรอกรหัสก็โหลดอยู่เบื้องหลัง)
    แล้วส่งข้อมูลให้ app.js ใช้ต่อ ไม่ต้องโหลดซ้ำ */
 (function () {
-  var F = [{ k: 'skel', u: 'skeleton.glb?v=1795691048', sz: 4122980, li: 'spS' }, { k: 'mus', u: 'muscles.glb?v=1795691048', sz: 2333912, li: 'spM' }];
+  var F = [{ k: 'skel', u: 'skeleton.glb?v=1795691728', sz: 4122980, li: 'spS' }, { k: 'mus', u: 'muscles.glb?v=1795691728', sz: 2333912, li: 'spM' }];
   var $ = function (i) { return document.getElementById(i); }, got = {}, tot = 0, appReady = false, musOk = false, closed = false, t0 = Date.now();
   F.forEach(function (f) { tot += f.sz; got[f.k] = 0; });
   var mb = function (b) { return (b / 1048576).toFixed(1); };
@@ -405,13 +426,26 @@ body.mode-mus .brand b span{background:#ff6b5a}
 </script>
 <div id="app">
   <header id="hd">
-    <button id="menu" aria-label="แสดง/ซ่อนสารบัญ" title="แสดง/ซ่อนสารบัญ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-    <div class="brand"><b>HUM<span>noi</span></b><small id="brandSub">ระบบกระดูกโครงร่าง · บทที่ 3</small></div>
-    <div class="seg modeseg" id="modeSeg" role="tablist" aria-label="เลือกเนื้อหา"><button data-mode="bone" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4a2 2 0 1 0-3 2.6L15.4 17a2 2 0 1 0 2.6 3 2 2 0 1 0 1.4-2.6L9 7a2 2 0 0 0-1-3z"/></svg><span>กระดูก</span></button><button data-mode="mus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19c2-6 3-9 7-11 3-1.5 5 0 6 2-2 0-3 1-4 3-2 4-5 6-9 6z"/><path d="M9 14c1.5-1 3-1.5 5-1.5" stroke-opacity=".55"/></svg><span>กล้ามเนื้อ</span></button></div>
-    <button id="focusBtn" class="tbtn press" title="ซ่อนแถบทั้งหมด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tx">เต็มจอ</span></button>
-    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" placeholder="ค้นหา เช่น femur, pterion, ซี่โครง" autocomplete="off" enterkeyhint="search"><div id="res" class="scroll" hidden></div></div>
+    <div class="hd-top">
+      <b class="ht-b">HUM<span>noi</span> ANATOMY</b>
+      <nav class="ht-l"><button data-go="bone">กระดูก</button><button data-go="mus">กล้ามเนื้อ</button><button data-bk="1">สมุดสรุปกระดูก</button><button data-bk="1:1">สไลด์ EP.1</button><button data-bk="2:1">สไลด์ EP.2</button><a href="../../prompt/">Prompt ปักหมุด</a></nav>
+      <small id="brandSub">ระบบกระดูกโครงร่าง · บทที่ 3</small>
+    </div>
+    <div class="hd-main">
+      <button id="menu" aria-label="แสดง/ซ่อนสารบัญ" title="แสดง/ซ่อนสารบัญ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <button class="brand" id="brand" aria-label="หน้าแรก"><span class="l1">HUM</span><span class="l2">noi</span></button>
+      <form class="search" id="sform" onsubmit="return false"><input id="q" placeholder="ค้นหา เช่น femur, biceps, ซี่โครง" autocomplete="off" enterkeyhint="search"><button type="submit" class="sbtn" aria-label="ค้นหา"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg></button><div id="res" class="scroll" hidden></div></form>
+      <button id="focusBtn" class="hbtn press" title="ซ่อนแถบทั้งหมด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tx">เต็มจอ</span></button>
+    </div>
+    <div class="hd-nav scroll" id="modeSeg" role="tablist" aria-label="เลือกเนื้อหา">
+      <button data-mode="bone" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4a2 2 0 1 0-3 2.6L15.4 17a2 2 0 1 0 2.6 3 2 2 0 1 0 1.4-2.6L9 7a2 2 0 0 0-1-3z"/></svg><span>กระดูก</span></button>
+      <button data-mode="mus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19c2-6 3-9 7-11 3-1.5 5 0 6 2-2 0-3 1-4 3-2 4-5 6-9 6z"/><path d="M9 14c1.5-1 3-1.5 5-1.5" stroke-opacity=".55"/></svg><span>กล้ามเนื้อ</span></button>
+      <button data-dd="sec" class="ddb"><span>หมวดหมู่</span><svg class="car" viewBox="0 0 10 6"><path d="M0 0h10L5 6z" fill="currentColor"/></svg></button>
+      <button data-dd="les" class="ddb"><span>บทเรียน</span><svg class="car" viewBox="0 0 10 6"><path d="M0 0h10L5 6z" fill="currentColor"/></svg></button>
+      <button data-dd="book" class="nbook"><span>สมุด / สไลด์</span></button>
+    </div>
   </header>
+<div id="dd" class="scroll" hidden></div>
   <nav id="nav" class="scroll"></nav>
   <main id="stage">
     <canvas id="cvs"></canvas><svg id="lines"></svg><div id="labels"></div>
@@ -435,6 +469,6 @@ body.mode-mus .brand b span{background:#ff6b5a}
 </div>
 <div id="scrim"></div>
 <div id="book" hidden><div class="bar"><div class="bt"><b id="btitle">สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" id="bpdf" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
-<script type="module" src="app.js?v=1795691048"></script>
+<script type="module" src="app.js?v=1795691728"></script>
 </body>
 </html>
