@@ -56,6 +56,7 @@ dialog label{display:block;margin:10px 0 4px;font-size:13px;color:var(--mute)}
     <label class="g" style="cursor:pointer;padding:9px;border:1px solid var(--line);border-radius:10px">📎<input type="file" id="att" accept="image/*" hidden></label>
     <textarea id="txt" placeholder="พิมพ์บทพูด… ใช้ *การกระทำ* ได้ / Enter ส่ง, Shift+Enter ขึ้นบรรทัด"></textarea>
     <button>ส่ง</button>
+    <button type="button" id="ai" style="display:none;white-space:nowrap" title="ให้ AI พิมพ์ตอบเป็นตัวละครที่เลือก">✨ AI ตอบ</button>
   </form>
 </main>
 
@@ -118,6 +119,20 @@ $('#cf').onsubmit=e=>{e.preventDefault();const name=$('#fn').value.trim();if(!na
   if(editing)Object.assign(editing,d);else{const c={id:'c'+Date.now(),...d};S.chars.push(c);S.cur=c.id}
   save();$('#dlg').close();renderChars();renderLog()};
 renderChars();renderLog();
+(async()=>{
+  const sample=await window.claude?.use?.('sample');if(!sample)return;
+  const b=$('#ai');b.style.display='';
+  b.onclick=async()=>{
+    const c=get(S.cur);
+    const cast=S.chars.map(x=>`- ${x.name}: ${x.tag||''} ${x.bio||''}`).join('\n');
+    const hist=S.msgs.slice(-30).map(m=>`${get(m.c).name}: ${m.t}${m.img?' [แนบรูป]':''}`).join('\n');
+    const prompt=`คุณกำลังเล่น role play ภาษาไทย\nตัวละครทั้งหมด:\n${cast||'(ยังไม่มี)'}\n\nบทสนทนาล่าสุด:\n${hist||'(ยังไม่เริ่ม)'}\n\nเขียนข้อความถัดไปในนามของ "${c.name}"${c.id==='nar'?' (ผู้บรรยาย เล่าฉาก/บรรยากาศ)':` (นิสัย: ${c.bio||c.tag||'ไม่ระบุ'})`} ยาว 1-4 ประโยค ใส่ท่าทางใน *ดอกจัน* ได้ ตอบเฉพาะเนื้อความ ห้ามใส่ชื่อนำหน้า`;
+    b.disabled=true;b.textContent='กำลังคิด…';
+    try{const r=await sample(prompt,{cache:false,modelTier:'quick'});const t=r.text.trim().replace(new RegExp('^'+c.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*[:：]\\s*'),'');if(t){S.msgs.push({c:c.id,t,at:Date.now()});save();renderLog()}}
+    catch(e){if(e.code==='not_granted')b.style.display='none';else alert(e.code==='rate_limited'?'ใช้บ่อยเกินไป รอสักครู่นะ':'AI ตอบไม่ได้: '+(e.message||e.code))}
+    finally{b.disabled=false;b.textContent='✨ AI ตอบ'}
+  };
+})();
 </script>
 </body>
 </html>
