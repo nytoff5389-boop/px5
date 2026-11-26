@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#000000">
 <title>HUMnoi</title>
 <script>/* อัปเดตอัตโนมัติ: ถ้ามีเวอร์ชันใหม่บนเว็บ ให้โหลดหน้าใหม่ทันที (กัน Safari จำหน้าเก่า) */
-window.HN_BUILD='1795691728';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
+window.HN_BUILD='1795691861';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -271,14 +271,7 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
 .sp-bar{position:relative;height:5px;border-radius:9px;background:var(--s3);overflow:hidden}
 .sp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:9px;background:var(--ac);transition:width .25s}
 .sp-bar.wait i{width:30%!important;animation:spwait 1.1s ease-in-out infinite}@keyframes spwait{from{left:-30%}to{left:100%}}
-.sp-row{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:13px;color:var(--tx2)}.sp-row b{color:#fff;font-variant-numeric:tabular-nums}
-.sp-list{list-style:none;margin:26px 0 0;padding:0;text-align:left;display:grid;gap:9px}
-.sp-list li{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--tx3);transition:color .2s}
-.sp-list li i{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line2);flex:none;position:relative}
-.sp-list li small{margin-left:auto;color:var(--tx3);font-variant-numeric:tabular-nums}
-.sp-list li.run{color:var(--tx)}.sp-list li.run i{border-color:var(--ac);border-top-color:transparent;animation:sprot .8s linear infinite}@keyframes sprot{to{transform:rotate(360deg)}}
-.sp-list li.ok{color:var(--tx)}.sp-list li.ok i{background:var(--ac);border-color:var(--ac)}
-.sp-list li.ok i:after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.sp-row{margin-top:12px;text-align:center;font-size:14px}.sp-row b{color:#fff;font-variant-numeric:tabular-nums}
 #spErr{margin-top:18px;color:#ff7a6b;font-size:13px}#spErr button{margin-top:10px;height:38px;padding:0 18px;border-radius:3px;background:var(--ac);color:#000;font-weight:600}
 /* ---------- responsive ---------- */
 #scrim{display:none}
@@ -332,12 +325,7 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
     <div class="logo"><span class="l1">HUM</span><span class="l2">noi</span></div>
     <p class="sp-sub">3D Anatomy · กระดูกและกล้ามเนื้อ</p>
     <div class="sp-bar wait" id="spBar"><i></i></div>
-    <div class="sp-row"><span id="spTx">กำลังเตรียมระบบ…</span><b id="spPct"></b></div>
-    <ul class="sp-list">
-      <li id="spS"><i></i>โครงกระดูก 3D<small></small></li>
-      <li id="spM"><i></i>กล้ามเนื้อ 3D<small></small></li>
-      <li id="spR"><i></i>จัดเตรียมโมเดลและหมุดชี้<small></small></li>
-    </ul>
+    <div class="sp-row"><b id="spPct"></b></div>
     <div id="spErr" hidden></div>
   </div>
 </div>
@@ -345,7 +333,7 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
 /* หน้าดาวน์โหลด: เริ่มโหลดไฟล์โมเดลทันทีที่เปิดหน้า (ระหว่างกรอกรหัสก็โหลดอยู่เบื้องหลัง)
    แล้วส่งข้อมูลให้ app.js ใช้ต่อ ไม่ต้องโหลดซ้ำ */
 (function () {
-  var F = [{ k: 'skel', u: 'skeleton.glb?v=1795691728', sz: 4122980, li: 'spS' }, { k: 'mus', u: 'muscles.glb?v=1795691728', sz: 2333912, li: 'spM' }];
+  var F = [{ k: 'skel', u: 'skeleton.glb?v=1795691861', sz: 4122980 }, { k: 'mus', u: 'muscles.glb?v=1795691861', sz: 2333912 }];
   var $ = function (i) { return document.getElementById(i); }, got = {}, tot = 0, appReady = false, musOk = false, closed = false, t0 = Date.now();
   F.forEach(function (f) { tot += f.sz; got[f.k] = 0; });
   var mb = function (b) { return (b / 1048576).toFixed(1); };
@@ -357,7 +345,6 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
     var ll = $('lkLoad'); if (ll) ll.textContent = p >= 100 ? 'โหลดโมเดลเสร็จแล้ว · พร้อมใช้งาน' : 'กำลังโหลดโมเดลเบื้องหลัง ' + p + '% (' + mb(g) + ' / ' + mb(tot) + ' MB)';
   }
   function dl(f) {
-    var li = $(f.li); li.className = 'run'; $('spTx').textContent = 'กำลังดาวน์โหลด' + li.childNodes[1].textContent + '…';
     return fetch(f.u).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       var n = +r.headers.get('content-length'); if (n && !r.headers.get('content-encoding') && n !== f.sz) { tot += n - f.sz; f.sz = n; }
@@ -369,20 +356,19 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
           parts.push(x.value); len += x.value.length; got[f.k] = Math.min(len, f.sz); paint(); return pump();
         });
       })();
-    }).then(function (b) { got[f.k] = f.sz; paint(); li.className = 'ok'; li.lastChild.textContent = mb(b.byteLength) + ' MB'; return b; });
+    }).then(function (b) { got[f.k] = f.sz; paint(); return b; });
   }
   function fail(e) {
     var el = $('spErr'); el.hidden = false; el.innerHTML = 'โหลดโมเดลไม่สำเร็จ (' + (e && e.message || e) + ')<br>ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่<br><button type="button" onclick="location.reload()">ลองใหม่</button>';
-    $('spTx').textContent = 'เกิดข้อผิดพลาด';
   }
   var skel = dl(F[0]);
   var mus = skel.then(function () { return dl(F[1]); }, function () { return null; });
-  mus.then(function () { musOk = true; check(); }, function () { musOk = true; $('spM').className = ''; check(); });
-  skel.then(function () { $('spR').className = 'run'; $('spTx').textContent = 'กำลังเตรียมโมเดล…'; }, fail);
+  mus.then(function () { musOk = true; check(); }, function () { musOk = true; check(); });
+  skel.catch(fail);
   function locked() { var l = $('lock'); return l && !l.hidden; }
   function check() {
-    if (closed || !appReady || !musOk || locked()) { if (appReady && !musOk) $('spTx').textContent = 'กำลังดาวน์โหลดกล้ามเนื้อ 3D…'; return; }
-    closed = true; $('spR').className = 'ok'; $('spTx').textContent = 'พร้อมแล้ว'; $('spPct').textContent = '100%';
+    if (closed || !appReady || !musOk || locked()) return;
+    closed = true; $('spBar').firstChild.style.width = '100%'; $('spPct').textContent = '100%';
     setTimeout(function () { var s = $('loading'); s.classList.add('done'); setTimeout(function () { s.remove(); }, 480); }, Math.max(350, 900 - (Date.now() - t0)));
   }
   window.HN_PRE = { skel: skel, mus: mus, musDone: function () { return musOk; } };
@@ -469,6 +455,6 @@ body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode
 </div>
 <div id="scrim"></div>
 <div id="book" hidden><div class="bar"><div class="bt"><b id="btitle">สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" id="bpdf" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
-<script type="module" src="app.js?v=1795691728"></script>
+<script type="module" src="app.js?v=1795691861"></script>
 </body>
 </html>

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795691728';
-import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795691728';
+import { DATA, SECS, LESSONS } from './data.js?v=1795691861';
+import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795691861';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -92,7 +92,7 @@ const st = { peel: false, peeled: new Set(), boneCtx: true, lstyle: LSTYLE, scop
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
 const PRE = window.HN_PRE, SPL = window.HN_SPLASH;
-Promise.all([fetch('landmarks.json?v=1795691728').then(r => r.json()).catch(() => LMJ), PRE ? PRE.skel.then(b => loader.parseAsync(b, '')) : loader.loadAsync('skeleton.glb?v=1795691728')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795691861').then(r => r.json()).catch(() => LMJ), PRE ? PRE.skel.then(b => loader.parseAsync(b, '')) : loader.loadAsync('skeleton.glb?v=1795691861')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => prepMesh(o, meshes));
   boneMeshes = meshes.slice();
@@ -105,7 +105,7 @@ const musColor = id => { let h = 0; for (const c of id) h = (h * 31 + c.charCode
 function loadMuscles() {
   if (musLoading) return musLoading;
   if (!(PRE && PRE.musDone())) toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
-  musLoading = Promise.all([fetch('m_landmarks.json?v=1795691728').then(r => r.json()), (PRE ? PRE.mus.then(b => b ? loader.parseAsync(b, '') : loader.loadAsync('muscles.glb?v=1795691728')) : loader.loadAsync('muscles.glb?v=1795691728'))]).then(([lm, g]) => {
+  musLoading = Promise.all([fetch('m_landmarks.json?v=1795691861').then(r => r.json()), (PRE ? PRE.mus.then(b => b ? loader.parseAsync(b, '') : loader.loadAsync('muscles.glb?v=1795691861')) : loader.loadAsync('muscles.glb?v=1795691861'))]).then(([lm, g]) => {
     Object.assign(LMJ.landmarks, lm.landmarks); musRoot = g.scene; scene.add(musRoot); musRoot.updateMatrixWorld(true);
     musRoot.traverse(o => prepMesh(o, musMeshes)); musMeshes.forEach(m => { m.userData.mus = true; m.renderOrder = 1; });
   });
