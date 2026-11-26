@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Role Play Chat</title>
 <style>
-:root{--bg:#f6f4fb;--panel:#fff;--ink:#1d1b26;--mute:#6b6880;--line:#e4e0ef;--acc:#7c4dff;--bub:#efeaff}
-@media (prefers-color-scheme:dark){:root{--bg:#14121b;--panel:#1e1b28;--ink:#ece9f5;--mute:#9a96ad;--line:#2f2b3d;--acc:#a78bfa;--bub:#2a2440}}
+:root{--bg:#fff0f6;--panel:#fff;--ink:#3a1d2c;--mute:#a0607e;--line:#fbd0e3;--acc:#ff5fa2;--bub:#ffe1ee}
+@media (prefers-color-scheme:dark){:root{--bg:#2a1420;--panel:#3a1c2c;--ink:#ffe6f1;--mute:#e2a3c0;--line:#5a2a42;--acc:#ff7eb6;--bub:#4a2338}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Noto Sans Thai",sans-serif;height:100dvh;display:flex}
 aside{width:280px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
@@ -42,7 +42,7 @@ dialog label{display:block;margin:10px 0 4px;font-size:13px;color:var(--mute)}
 </head>
 <body>
 <aside id="side">
-  <h2>🎭 ตัวละคร</h2>
+  <h2>🌸 ตัวละคร</h2>
   <div id="chars"></div>
   <div style="padding:10px;display:grid;gap:6px">
     <button id="add">+ สร้างตัวละคร</button>
@@ -66,7 +66,7 @@ dialog label{display:block;margin:10px 0 4px;font-size:13px;color:var(--mute)}
   <label>ชื่อ</label><input id="fn" required maxlength="40">
   <label>สถานะ / คำโปรย</label><input id="ft" maxlength="80">
   <label>ประวัติ / นิสัย</label><textarea id="fb" rows="4"></textarea>
-  <label>สีชื่อ</label><input type="color" id="fc" value="#7c4dff" style="height:40px;padding:2px">
+  <label>สีชื่อ</label><input type="color" id="fc" value="#ff5fa2" style="height:40px;padding:2px">
   <div class="row"><button type="button" class="g" id="del">ลบ</button><button type="button" class="g" id="cancel">ยกเลิก</button><button id="save">บันทึก</button></div>
 </form></dialog>
 
@@ -106,7 +106,7 @@ $('#txt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preve
 $('#clear').onclick=()=>{if(confirm('ล้างข้อความทั้งหมด?')){S.msgs=[];save();renderLog()}};
 
 let editing=null,img=null;
-function openDlg(c){editing=c;img=c?.img||null;$('#fn').value=c?.name||'';$('#ft').value=c?.tag||'';$('#fb').value=c?.bio||'';$('#fc').value=c?.color||'#7c4dff';$('#del').style.display=c?'':'none';pv();$('#dlg').showModal()}
+function openDlg(c){editing=c;img=c?.img||null;$('#fn').value=c?.name||'';$('#ft').value=c?.tag||'';$('#fb').value=c?.bio||'';$('#fc').value=c?.color||'#ff5fa2';$('#del').style.display=c?'':'none';pv();$('#dlg').showModal()}
 function pv(){$('#pv').outerHTML=img?`<img class="av" id="pv" src="${img}">`:`<div class="av" id="pv" style="background:${$('#fc').value}">${esc(($('#fn').value||'?')[0])}</div>`;$('#pv').onclick=()=>$('#pic').click()}
 $('#pic').onchange=async e=>{const f=e.target.files[0];if(f){img=await shrink(f,256);pv()}e.target.value=''};
 $('#fn').oninput=$('#fc').oninput=()=>{if(!img)pv()};
