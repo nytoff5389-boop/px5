@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795689128';
-import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795689128';
+import { DATA, SECS, LESSONS } from './data.js?v=1795691861';
+import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795691861';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -91,19 +91,21 @@ const st = { peel: false, peeled: new Set(), boneCtx: true, lstyle: LSTYLE, scop
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795689128').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795689128')]).then(([lm, g]) => {
+const PRE = window.HN_PRE, SPL = window.HN_SPLASH;
+Promise.all([fetch('landmarks.json?v=1795691861').then(r => r.json()).catch(() => LMJ), PRE ? PRE.skel.then(b => loader.parseAsync(b, '')) : loader.loadAsync('skeleton.glb?v=1795691861')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => prepMesh(o, meshes));
   boneMeshes = meshes.slice();
-  $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
-}).catch(e => { $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
+  buildNav(); route(location.hash, true);
+  if (SPL) requestAnimationFrame(() => SPL.ready()); else { $('#loading')?.classList.add('done'); setTimeout(() => $('#loading')?.remove(), 400); }
+}).catch(e => { if (SPL) SPL.error(e); else if ($('#loading')) $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
 // สีกล้ามเนื้อ: แต่ละมัดคนละสี (แยกมัด) / สีกล้ามเนื้อจริง
 const MUS_REAL = new THREE.Color(0xb5483f), MUS_PAL = ['#e5604f', '#f0a04b', '#e8c547', '#7cc47f', '#4fb3c9', '#5b8def', '#9b7bea', '#e56fb3', '#d9785b', '#6fd1a7', '#c7a5f2', '#f2b880'];
 const musColor = id => { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return new THREE.Color(MUS_PAL[h % MUS_PAL.length]); };
 function loadMuscles() {
   if (musLoading) return musLoading;
-  toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
-  musLoading = Promise.all([fetch('m_landmarks.json?v=1795689128').then(r => r.json()), loader.loadAsync('muscles.glb?v=1795689128')]).then(([lm, g]) => {
+  if (!(PRE && PRE.musDone())) toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
+  musLoading = Promise.all([fetch('m_landmarks.json?v=1795691861').then(r => r.json()), (PRE ? PRE.mus.then(b => b ? loader.parseAsync(b, '') : loader.loadAsync('muscles.glb?v=1795691861')) : loader.loadAsync('muscles.glb?v=1795691861'))]).then(([lm, g]) => {
     Object.assign(LMJ.landmarks, lm.landmarks); musRoot = g.scene; scene.add(musRoot); musRoot.updateMatrixWorld(true);
     musRoot.traverse(o => prepMesh(o, musMeshes)); musMeshes.forEach(m => { m.userData.mus = true; m.renderOrder = 1; });
   });
@@ -129,13 +131,13 @@ async function setMode(m) {
   if (m === MODE) return;
   if (m === 'mus') { try { await loadMuscles(); } catch (e) { toast('โหลดกล้ามเนื้อไม่สำเร็จ', e.message); return; } }
   MODE = m; LESS = m === 'mus' ? MLESSONS : LESSONS; meshes = m === 'mus' ? musMeshes : boneMeshes;
-  document.body.classList.toggle('mode-mus', m === 'mus'); $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  document.body.classList.toggle('mode-mus', m === 'mus'); $('#brandSub').textContent = m === 'mus' ? 'ระบบกล้ามเนื้อ · บทที่ 4' : 'ระบบกระดูกโครงร่าง · บทที่ 3'; $$('#modeSeg [data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   st.hist = []; st.peeled.clear(); st.peel = false; st.interior = false;
   boneMeshes.forEach(b => { b.userData.ck = null; if (m === 'mus') { b.material = boneCtxMat; b.visible = st.boneCtx; } else { b.material = b.userData_mat; b.visible = true; } });
   musMeshes.forEach(x => { x.visible = m === 'mus'; x.userData.ck = null; });
   buildNav();
 }
-$$('#modeSeg button').forEach(b => b.onclick = async () => {
+$$('#modeSeg [data-mode]').forEach(b => b.onclick = async () => {
   if (b.dataset.mode === MODE) return; await setMode(b.dataset.mode); openScope(rootSec(), { nohist: 1 });
   toast(MODE === 'mus' ? 'โหมดกล้ามเนื้อ' : 'โหมดกระดูก', MODE === 'mus' ? 'หมุดเขียว = Origin · หมุดฟ้า = Insertion · แดง = ชื่อมัด' : 'โครงกระดูก 206 ชิ้น');
 });
@@ -805,6 +807,40 @@ res.addEventListener('pointerdown', e => {
   if (h.k === 's') openScope(h.id); else if (h.k === 'l') openLesson(h.id); else { openEntry(h.id, null, {}); if (h.part) setTimeout(() => setFocus(h.part), 100); }
 });
 q.onblur = () => setTimeout(() => res.hidden = true, 150);
+
+/* ---------- แถบเมนูบน (ดรอปดาวน์ หมวดหมู่ / บทเรียน) ---------- */
+const ddEl = $('#dd');
+function ddClose() { ddEl.hidden = true; $$('#modeSeg .open').forEach(b => b.classList.remove('open')); }
+function ddOpen(btn, kind) {
+  if (!ddEl.hidden && btn.classList.contains('open')) { ddClose(); return; }
+  ddClose(); let html = '';
+  const it = (attr, id, t, s, sub, cur) => `<button ${attr}="${id}" class="${sub ? 'sub' : ''}${cur ? ' cur' : ''}"><span>${esc(t)}</span>${s ? `<small>${esc(s)}</small>` : ''}</button>`;
+  if (kind === 'sec') {
+    const list = MODE === 'mus' ? MSECS : SECS;
+    html = `<div class="dh">${MODE === 'mus' ? 'หมวดกล้ามเนื้อ' : 'หมวดกระดูก'}</div>` + list.map(s => it('data-s', s.id, s.t, s.s, s.parent, st.scope === s.id && !st.entry && !st.lesson)).join('');
+  } else if (kind === 'les') {
+    html = `<div class="dh">บทเรียน${MODE === 'mus' ? 'ระบบกล้ามเนื้อ' : 'ระบบกระดูก'}</div>` + LESS.map(l => it('data-l', l.id, l.t, pgRef(l.pg[0]).lab, 0, st.lesson === l.id)).join('') +
+      `<div class="dh">${MODE === 'mus' ? 'บทเรียนระบบกระดูก' : 'บทเรียนระบบกล้ามเนื้อ'}</div>` + (MODE === 'mus' ? LESSONS : MLESSONS).map(l => it('data-l', l.id, l.t, pgRef(l.pg[0]).lab)).join('');
+  } else {
+    const bt = bookTarget();
+    html = `<div class="dh">เปิดหน้าที่เกี่ยวข้อง</div>` + (bt.pg ? it('data-b', bt.pg, bt.name || 'หน้านี้', pgRef(bt.pg).lab, 0, 1) : '') +
+      `<div class="dh">เปิดตั้งแต่หน้าแรก</div>` + it('data-b', '1', 'สมุดสรุป Anatomy เล่ม 2 (กระดูก)', '32 หน้า') + it('data-b', '1:1', 'สไลด์ระบบกล้ามเนื้อ EP.1', '81 หน้า') + it('data-b', '2:1', 'สไลด์ระบบกล้ามเนื้อ EP.2', '73 หน้า');
+  }
+  ddEl.innerHTML = html; ddEl.hidden = false; btn.classList.add('open');
+  const r = btn.getBoundingClientRect(); ddEl.style.top = r.bottom + 'px'; ddEl.style.left = Math.max(8, Math.min(innerWidth - ddEl.offsetWidth - 8, r.left)) + 'px';
+  ddEl.querySelector('.cur')?.scrollIntoView({ block: 'nearest' });
+}
+$$('#modeSeg [data-dd]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); ddOpen(b, b.dataset.dd); }));
+ddEl.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; ddClose();
+  if (b.dataset.s) openScope(b.dataset.s); else if (b.dataset.l) openLesson(b.dataset.l); else if (b.dataset.b) openBook(b.dataset.b, b.querySelector('span').textContent);
+});
+addEventListener('pointerdown', e => { if (!ddEl.hidden && !e.target.closest('#dd,[data-dd]')) ddClose(); }, true);
+addEventListener('resize', ddClose);
+$$('.ht-l [data-go]').forEach(b => b.onclick = () => $(`#modeSeg [data-mode="${b.dataset.go}"]`).click());
+$$('.ht-l [data-bk]').forEach(b => b.onclick = () => openBook(b.dataset.bk, ''));
+$('#brand').onclick = () => openScope(rootSec());
+$('#sform').addEventListener('submit', () => { const s = norm(q.value.trim()), H = res._h || [], i = Math.max(0, H.findIndex(h => h.k === 'e' && norm(h.t).startsWith(s))), f = !res.hidden && $$('#res button')[i]; if (f) f.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); else q.focus(); });
 
 /* ---------- notebook viewer ---------- */
 let NB = 32, bookPg = 1, zoom = 1, bookId = 'bone';
