@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795689128';
-import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795689128';
+import { DATA, SECS, LESSONS } from './data.js?v=1795691048';
+import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795691048';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -91,19 +91,21 @@ const st = { peel: false, peeled: new Set(), boneCtx: true, lstyle: LSTYLE, scop
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795689128').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795689128')]).then(([lm, g]) => {
+const PRE = window.HN_PRE, SPL = window.HN_SPLASH;
+Promise.all([fetch('landmarks.json?v=1795691048').then(r => r.json()).catch(() => LMJ), PRE ? PRE.skel.then(b => loader.parseAsync(b, '')) : loader.loadAsync('skeleton.glb?v=1795691048')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
   root.traverse(o => prepMesh(o, meshes));
   boneMeshes = meshes.slice();
-  $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
-}).catch(e => { $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
+  buildNav(); route(location.hash, true);
+  if (SPL) requestAnimationFrame(() => SPL.ready()); else { $('#loading')?.classList.add('done'); setTimeout(() => $('#loading')?.remove(), 400); }
+}).catch(e => { if (SPL) SPL.error(e); else if ($('#loading')) $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
 // สีกล้ามเนื้อ: แต่ละมัดคนละสี (แยกมัด) / สีกล้ามเนื้อจริง
 const MUS_REAL = new THREE.Color(0xb5483f), MUS_PAL = ['#e5604f', '#f0a04b', '#e8c547', '#7cc47f', '#4fb3c9', '#5b8def', '#9b7bea', '#e56fb3', '#d9785b', '#6fd1a7', '#c7a5f2', '#f2b880'];
 const musColor = id => { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return new THREE.Color(MUS_PAL[h % MUS_PAL.length]); };
 function loadMuscles() {
   if (musLoading) return musLoading;
-  toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
-  musLoading = Promise.all([fetch('m_landmarks.json?v=1795689128').then(r => r.json()), loader.loadAsync('muscles.glb?v=1795689128')]).then(([lm, g]) => {
+  if (!(PRE && PRE.musDone())) toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
+  musLoading = Promise.all([fetch('m_landmarks.json?v=1795691048').then(r => r.json()), (PRE ? PRE.mus.then(b => b ? loader.parseAsync(b, '') : loader.loadAsync('muscles.glb?v=1795691048')) : loader.loadAsync('muscles.glb?v=1795691048'))]).then(([lm, g]) => {
     Object.assign(LMJ.landmarks, lm.landmarks); musRoot = g.scene; scene.add(musRoot); musRoot.updateMatrixWorld(true);
     musRoot.traverse(o => prepMesh(o, musMeshes)); musMeshes.forEach(m => { m.userData.mus = true; m.renderOrder = 1; });
   });
@@ -129,7 +131,7 @@ async function setMode(m) {
   if (m === MODE) return;
   if (m === 'mus') { try { await loadMuscles(); } catch (e) { toast('โหลดกล้ามเนื้อไม่สำเร็จ', e.message); return; } }
   MODE = m; LESS = m === 'mus' ? MLESSONS : LESSONS; meshes = m === 'mus' ? musMeshes : boneMeshes;
-  document.body.classList.toggle('mode-mus', m === 'mus'); $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  document.body.classList.toggle('mode-mus', m === 'mus'); $('#brandSub').textContent = m === 'mus' ? 'ระบบกล้ามเนื้อ · บทที่ 4' : 'ระบบกระดูกโครงร่าง · บทที่ 3'; $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   st.hist = []; st.peeled.clear(); st.peel = false; st.interior = false;
   boneMeshes.forEach(b => { b.userData.ck = null; if (m === 'mus') { b.material = boneCtxMat; b.visible = st.boneCtx; } else { b.material = b.userData_mat; b.visible = true; } });
   musMeshes.forEach(x => { x.visible = m === 'mus'; x.userData.ck = null; });
