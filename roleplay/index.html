@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Role Play Chat</title>
+<style>
+:root{--bg:#f6f4fb;--panel:#fff;--ink:#1d1b26;--mute:#6b6880;--line:#e4e0ef;--acc:#7c4dff;--bub:#efeaff}
+@media (prefers-color-scheme:dark){:root{--bg:#14121b;--panel:#1e1b28;--ink:#ece9f5;--mute:#9a96ad;--line:#2f2b3d;--acc:#a78bfa;--bub:#2a2440}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Noto Sans Thai",sans-serif;height:100dvh;display:flex}
+aside{width:280px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+aside h2{margin:0;padding:14px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+#chars{flex:1;overflow:auto;padding:8px}
+.ch{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+.ch:hover{background:var(--bub)}.ch.on{background:var(--bub);outline:2px solid var(--acc)}
+.av{width:42px;height:42px;border-radius:50%;object-fit:cover;background:var(--line);flex:none;display:grid;place-items:center;font-weight:700;color:#fff}
+.ch small{color:var(--mute);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+button{font:inherit;border:0;border-radius:10px;padding:9px 14px;background:var(--acc);color:#fff;cursor:pointer}
+button.g{background:transparent;color:var(--mute);border:1px solid var(--line)}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+header{padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:8px;align-items:center}
+header b{flex:1}
+#log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.m{display:flex;gap:10px;max-width:720px}
+.m .bd{background:var(--panel);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:8px 12px;white-space:pre-wrap;word-break:break-word}
+.m .nm{font-weight:700;font-size:13px}.m .act{color:var(--mute);font-style:italic}
+.m img.att{max-width:240px;border-radius:10px;display:block;margin-top:6px}
+.m.nar .bd{background:transparent;border:1px dashed var(--line);font-style:italic;color:var(--mute)}
+.m .x{opacity:0;font-size:12px;color:var(--mute);cursor:pointer;align-self:center}.m:hover .x{opacity:1}
+form#send{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--panel);align-items:flex-end}
+textarea,input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px;width:100%}
+#send textarea{resize:none;height:44px;max-height:140px}
+dialog{border:0;border-radius:16px;background:var(--panel);color:var(--ink);width:min(440px,92vw);padding:20px}
+dialog::backdrop{background:#0008}
+dialog label{display:block;margin:10px 0 4px;font-size:13px;color:var(--mute)}
+#pv{width:96px;height:96px;margin:auto;font-size:32px;cursor:pointer}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#menu{display:none}
+@media (max-width:700px){aside{position:fixed;inset:0 auto 0 0;z-index:5;transform:translateX(-100%);transition:.2s}aside.open{transform:none}#menu{display:inline-block}}
+</style>
+</head>
+<body>
+<aside id="side">
+  <h2>🎭 ตัวละคร</h2>
+  <div id="chars"></div>
+  <div style="padding:10px;display:grid;gap:6px">
+    <button id="add">+ สร้างตัวละคร</button>
+    <button class="g" id="clear">ล้างแชท</button>
+  </div>
+</aside>
+<main>
+  <header><button class="g" id="menu">☰</button><b id="who">เลือกตัวละครเพื่อพิมพ์</b><button class="g" id="edit">แก้โปรไฟล์</button></header>
+  <div id="log"></div>
+  <form id="send">
+    <label class="g" style="cursor:pointer;padding:9px;border:1px solid var(--line);border-radius:10px">📎<input type="file" id="att" accept="image/*" hidden></label>
+    <textarea id="txt" placeholder="พิมพ์บทพูด… ใช้ *การกระทำ* ได้ / Enter ส่ง, Shift+Enter ขึ้นบรรทัด"></textarea>
+    <button>ส่ง</button>
+  </form>
+</main>
+
+<dialog id="dlg"><form method="dialog" id="cf">
+  <h3 style="margin:0 0 8px">โปรไฟล์ตัวละคร</h3>
+  <div class="av" id="pv" title="คลิกเพื่อเลือกรูป">?</div>
+  <input type="file" id="pic" accept="image/*" hidden>
+  <label>ชื่อ</label><input id="fn" required maxlength="40">
+  <label>สถานะ / คำโปรย</label><input id="ft" maxlength="80">
+  <label>ประวัติ / นิสัย</label><textarea id="fb" rows="4"></textarea>
+  <label>สีชื่อ</label><input type="color" id="fc" value="#7c4dff" style="height:40px;padding:2px">
+  <div class="row"><button type="button" class="g" id="del">ลบ</button><button type="button" class="g" id="cancel">ยกเลิก</button><button id="save">บันทึก</button></div>
+</form></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const NAR={id:'nar',name:'ผู้บรรยาย',tag:'Narrator',color:'#888'};
+let S={chars:[],msgs:[],cur:'nar'};
+try{Object.assign(S,JSON.parse(localStorage.getItem('rp')||'{}'))}catch{}
+const save=()=>{try{localStorage.setItem('rp',JSON.stringify(S))}catch{alert('พื้นที่เก็บเต็ม ลองลบรูป/ข้อความเก่า')}};
+const all=()=>[NAR,...S.chars];
+const get=id=>all().find(c=>c.id===id)||NAR;
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=t=>esc(t).replace(/\*(.+?)\*/g,'<span class="act">$1</span>');
+function avatar(c,size){
+  if(c.img)return `<img class="av" src="${c.img}" ${size?`style="width:${size}px;height:${size}px"`:''}>`;
+  return `<div class="av" style="background:${c.color};${size?`width:${size}px;height:${size}px`:''}">${esc((c.name||'?')[0])}</div>`;
+}
+function shrink(file,max){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);r(cv.toDataURL('image/jpeg',.82))};im.src=fr.result};fr.readAsDataURL(file)})}
+
+function renderChars(){
+  $('#chars').innerHTML=all().map(c=>`<div class="ch ${c.id===S.cur?'on':''}" data-id="${c.id}">${avatar(c)}<div><b style="color:${c.color}">${esc(c.name)}</b><small>${esc(c.tag||'')}</small></div></div>`).join('');
+  const c=get(S.cur);$('#who').innerHTML=`กำลังพิมพ์เป็น: <span style="color:${c.color}">${esc(c.name)}</span>`;
+  $('#edit').style.display=c.id==='nar'?'none':'';
+}
+function renderLog(){
+  $('#log').innerHTML=S.msgs.map((m,i)=>{const c=get(m.c);return `<div class="m ${m.c==='nar'?'nar':''}">${m.c==='nar'?'':avatar(c,38)}<div class="bd">${m.c==='nar'?'':`<div class="nm" style="color:${c.color}">${esc(c.name)}</div>`}${fmt(m.t)}${m.img?`<img class="att" src="${m.img}">`:''}</div><span class="x" data-i="${i}">ลบ</span></div>`}).join('')||'<p style="color:var(--mute);text-align:center">เริ่มเรื่องได้เลย — สร้างตัวละคร แล้วสลับพิมพ์ทีละตัว</p>';
+  $('#log').scrollTop=1e9;
+}
+$('#chars').onclick=e=>{const d=e.target.closest('.ch');if(!d)return;S.cur=d.dataset.id;save();renderChars();$('#side').classList.remove('open');$('#txt').focus()};
+$('#log').onclick=e=>{if(e.target.dataset.i!=null&&confirm('ลบข้อความนี้?')){S.msgs.splice(+e.target.dataset.i,1);save();renderLog()}};
+$('#menu').onclick=()=>$('#side').classList.toggle('open');
+
+let pending=null;
+$('#att').onchange=async e=>{const f=e.target.files[0];if(f){pending=await shrink(f,800);$('#txt').placeholder='📎 แนบรูปแล้ว — พิมพ์ข้อความหรือกดส่ง'}e.target.value=''};
+$('#send').onsubmit=e=>{e.preventDefault();const t=$('#txt').value.trim();if(!t&&!pending)return;S.msgs.push({c:S.cur,t,img:pending,at:Date.now()});pending=null;$('#txt').value='';$('#txt').placeholder='พิมพ์บทพูด…';save();renderLog()};
+$('#txt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('#send').requestSubmit()}};
+$('#clear').onclick=()=>{if(confirm('ล้างข้อความทั้งหมด?')){S.msgs=[];save();renderLog()}};
+
+let editing=null,img=null;
+function openDlg(c){editing=c;img=c?.img||null;$('#fn').value=c?.name||'';$('#ft').value=c?.tag||'';$('#fb').value=c?.bio||'';$('#fc').value=c?.color||'#7c4dff';$('#del').style.display=c?'':'none';pv();$('#dlg').showModal()}
+function pv(){$('#pv').outerHTML=img?`<img class="av" id="pv" src="${img}">`:`<div class="av" id="pv" style="background:${$('#fc').value}">${esc(($('#fn').value||'?')[0])}</div>`;$('#pv').onclick=()=>$('#pic').click()}
+$('#pic').onchange=async e=>{const f=e.target.files[0];if(f){img=await shrink(f,256);pv()}e.target.value=''};
+$('#fn').oninput=$('#fc').oninput=()=>{if(!img)pv()};
+$('#add').onclick=()=>openDlg(null);
+$('#edit').onclick=()=>openDlg(get(S.cur));
+$('#cancel').onclick=()=>$('#dlg').close();
+$('#del').onclick=()=>{if(confirm('ลบตัวละครนี้?')){S.chars=S.chars.filter(c=>c!==editing);S.cur='nar';save();$('#dlg').close();renderChars();renderLog()}};
+$('#cf').onsubmit=e=>{e.preventDefault();const name=$('#fn').value.trim();if(!name)return;const d={name,tag:$('#ft').value.trim(),bio:$('#fb').value.trim(),color:$('#fc').value,img};
+  if(editing)Object.assign(editing,d);else{const c={id:'c'+Date.now(),...d};S.chars.push(c);S.cur=c.id}
+  save();$('#dlg').close();renderChars();renderLog()};
+renderChars();renderLog();
+</script>
+</body>
+</html>
