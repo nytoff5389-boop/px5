@@ -2,11 +2,18 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { DATA, SECS, LESSONS } from './data.js?v=1795447687';
+import { DATA, SECS, LESSONS } from './data.js?v=1795689128';
+import { MDATA, MSECS, MLESSONS } from './data_m.js?v=1795689128';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const D = Object.fromEntries(DATA.map(d => [d.id, d])), SEC = Object.fromEntries(SECS.map(s => [s.id, s]));
+const D = Object.fromEntries([...DATA, ...MDATA].map(d => [d.id, d])), SEC = Object.fromEntries([...SECS, ...MSECS].map(s => [s.id, s]));
+const isMus = id => typeof id === 'string' && id.startsWith('m_'), isMusSec = id => typeof id === 'string' && id.startsWith('m-'), isMusLesson = id => MLESSONS.some(l => l.id === id);
+let MODE = 'bone', LESS = LESSONS; // โหมด: กระดูก / กล้ามเนื้อ
+const rootSec = () => MODE === 'mus' ? 'm-all' : 'all', isWide = s => ['all', 'axial', 'appendicular', 'm-all'].includes(s);
+// กระดูกที่มีกล้ามเนื้อเกาะ (ใช้แสดงในแผงข้อมูลกระดูก)
+const BONE_MUS = {}; MDATA.forEach(m => m.con.forEach(([b]) => (BONE_MUS[b] = BONE_MUS[b] || []).includes(m.id) || BONE_MUS[b].push(m.id)));
+const BACK_VIEW = new Set(['m-back', 'm-glute', 'm_trapezius', 'm_latissimus_dorsi', 'm_rhomboid_minor', 'm_rhomboid_major', 'm_levator_scapulae', 'm_supraspinatus', 'm_infraspinatus', 'm_teres_major', 'm_teres_minor', 'm_triceps_brachii', 'm_biceps_femoris', 'm_semitendinosus', 'm_semimembranosus', 'm_gastrocnemius', 'm_soleus', 'm_spinalis', 'm_longissimus', 'm_iliocostalis', 'm_gluteus_maximus', 'm_gluteus_medius', 'm_gluteus_minimus', 'm_piriformis', 'm_extensor_digitorum', 'm_supinator', 'm_extensor_pollicis_longus', 'm_extensor_pollicis_brevis', 'm_tibialis_posterior']);
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const IVORY = new THREE.Color(0xe9e2d0), AXC = new THREE.Color(0x4aa3ff), APC = new THREE.Color(0xff6b6b), HI = new THREE.Color(0xff9f43);
 const LONG = ['humerus', 'radius', 'ulna', 'femur', 'tibia', 'fibula'];
@@ -14,6 +21,7 @@ const SIDE_TH = { L: 'ซ้าย', R: 'ขวา' };
 
 /* ---------- node naming ---------- */
 function parseNode(n) {
+  if (n.startsWith('m_')) { const sm = n.match(/_([LR])$/), b = sm ? n.slice(0, -2) : n, [id, head] = b.split('__'); return { id: D[id] ? id : null, side: sm ? sm[1] : '', head: head || '' }; }
   const m = n.match(/^(.*?)(?:_([LR]))?$/), b = m[1], side = m[2] || ''; let v, id = b;
   if ((v = b.match(/^vert_([CTL])(\d+)$/))) id = v[1] === 'C' ? (v[2] === '1' ? 'c1' : v[2] === '2' ? 'c2' : 'cervical') : v[1] === 'T' ? 'thoracic' : 'lumbar';
   else if (/^disc_/.test(b)) id = 'disc'; else if (/^(rib|costal_cartilage)_\d+$/.test(b)) id = 'rib';
@@ -21,8 +29,10 @@ function parseNode(n) {
   return { id: D[id] ? id : null, side };
 }
 const FING = ['นิ้วโป้ง', 'นิ้วชี้', 'นิ้วกลาง', 'นิ้วนาง', 'นิ้วก้อย'], TOE = ['นิ้วโป้งเท้า', 'นิ้วที่ 2', 'นิ้วที่ 3', 'นิ้วที่ 4', 'นิ้วก้อยเท้า'];
+const headTitle = h => h ? h.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()) : '';
 function nodeTitle(n) {
-  let v; const { side } = parseNode(n), s = side ? ` (${SIDE_TH[side]})` : '';
+  let v; const { side, id: pid, head } = parseNode(n), s = side ? ` (${SIDE_TH[side]})` : '';
+  if (isMus(pid)) return D[pid].en + (head ? ' · ' + headTitle(head) : '') + s;
   if ((v = n.match(/^vert_([CTL]\d+)/))) return v[1];
   if ((v = n.match(/^disc_([CTL]\d+)/))) return 'Disc ใต้ ' + v[1];
   if ((v = n.match(/^rib_(\d+)/))) return 'Rib ' + v[1] + s;
@@ -35,7 +45,7 @@ function nodeTitle(n) {
 function inSec(sec, id, node) {
   const d = D[id]; if (!d) return false;
   switch (sec) {
-    case 'all': return true; case 'axial': return d.g === 'ax'; case 'appendicular': return d.g === 'ap';
+    case 'all': return d.g !== 'mu'; case 'm-all': return d.g === 'mu'; case 'axial': return d.g === 'ax'; case 'appendicular': return d.g === 'ap';
     case 'skull': return ['skull', 'facial', 'cranial'].includes(d.sec);
     case 'thorax': return ['sternum', 'rib', 'thoracic'].includes(id);
     case 'upper': return d.sec === 'upper' || d.sec === 'hand';
@@ -44,7 +54,7 @@ function inSec(sec, id, node) {
     default: return d.sec === sec;
   }
 }
-const TOP = { skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine', thorax: 'thorax', shoulder: 'shoulder', upper: 'upper', hand: 'upper', pelvis: 'pelvis', lower: 'lower', foot: 'lower' };
+const TOP = { ...Object.fromEntries(MSECS.filter(s => s.id !== 'm-all').map(s => [s.id, s.id])), skull: 'skull', facial: 'skull', cranial: 'skull', spine: 'spine', thorax: 'thorax', shoulder: 'shoulder', upper: 'upper', hand: 'upper', pelvis: 'pelvis', lower: 'lower', foot: 'lower' };
 
 /* ---------- three setup ---------- */
 const stage = $('#stage'), cvs = $('#cvs');
@@ -75,20 +85,36 @@ function motion() { // ระหว่างหมุนใช้ความล
 }
 ctl.addEventListener('change', () => { need(); motion(); });
 
-let LMJ = { landmarks: {}, regions: [] }, meshes = [], byName = {}, root = null;
+let LMJ = { landmarks: {}, regions: [] }, meshes = [], byName = {}, root = null, boneMeshes = [], musMeshes = [], musRoot = null, musLoading = null;
 let LSTYLE = 'pin'; try { LSTYLE = localStorage.getItem('hn-lstyle') || 'pin'; } catch (e) { }
-const st = { lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labels: true, color: 'parts', interior: false, focus: null, hist: [] };
+const st = { peel: false, peeled: new Set(), boneCtx: true, lstyle: LSTYLE, scope: 'all', side: 'R', iso: null, entry: null, lesson: null, labels: true, color: 'parts', interior: false, focus: null, hist: [] };
 
 /* ---------- load ---------- */
 const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-Promise.all([fetch('landmarks.json?v=1795447687').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795447687')]).then(([lm, g]) => {
+Promise.all([fetch('landmarks.json?v=1795689128').then(r => r.json()).catch(() => LMJ), loader.loadAsync('skeleton.glb?v=1795689128')]).then(([lm, g]) => {
   LMJ = lm; root = g.scene; scene.add(root); root.updateMatrixWorld(true);
-  root.traverse(o => {
+  root.traverse(o => prepMesh(o, meshes));
+  boneMeshes = meshes.slice();
+  $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
+}).catch(e => { $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
+// สีกล้ามเนื้อ: แต่ละมัดคนละสี (แยกมัด) / สีกล้ามเนื้อจริง
+const MUS_REAL = new THREE.Color(0xb5483f), MUS_PAL = ['#e5604f', '#f0a04b', '#e8c547', '#7cc47f', '#4fb3c9', '#5b8def', '#9b7bea', '#e56fb3', '#d9785b', '#6fd1a7', '#c7a5f2', '#f2b880'];
+const musColor = id => { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return new THREE.Color(MUS_PAL[h % MUS_PAL.length]); };
+function loadMuscles() {
+  if (musLoading) return musLoading;
+  toast('กำลังโหลดกล้ามเนื้อ…', 'ครั้งแรกใช้เวลาสักครู่');
+  musLoading = Promise.all([fetch('m_landmarks.json?v=1795689128').then(r => r.json()), loader.loadAsync('muscles.glb?v=1795689128')]).then(([lm, g]) => {
+    Object.assign(LMJ.landmarks, lm.landmarks); musRoot = g.scene; scene.add(musRoot); musRoot.updateMatrixWorld(true);
+    musRoot.traverse(o => prepMesh(o, musMeshes)); musMeshes.forEach(m => { m.userData.mus = true; m.renderOrder = 1; });
+  });
+  return musLoading;
+}
+function prepMesh(o, list) {
     if (!o.isMesh) return; const n = o.name; const p = parseNode(n);
     if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
     o.material = o.userData_mat = new THREE.MeshStandardMaterial({ color: IVORY, roughness: .5, metalness: 0 });
     o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
-    o.userData = { n, id: p.id, side: p.side }; meshes.push(o); byName[n] = o;
+    o.userData = { n, id: p.id, side: p.side, head: p.head }; list.push(o); byName[n] = o;
     // anchor = จุดบนผิวที่ใกล้ centroid
     const pa = o.geometry.attributes.position, c = V3(), t = V3(); const step = Math.max(1, pa.count / 3000 | 0); let k = 0;
     for (let i = 0; i < pa.count; i += step) { c.add(t.fromBufferAttribute(pa, i)); k++; } c.divideScalar(k);
@@ -96,25 +122,42 @@ Promise.all([fetch('landmarks.json?v=1795447687').then(r => r.json()).catch(() =
     o.userData.anchor = o.localToWorld(t.fromBufferAttribute(pa, bi).clone()); o.userData.center = o.localToWorld(c.clone());
     const st2 = Math.max(1, pa.count / 400 | 0), sp = []; for (let i = 0; i < pa.count; i += st2) sp.push(o.localToWorld(t.fromBufferAttribute(pa, i).clone())); o.userData.samples = sp;
     const rg = o.geometry.attributes._region; if (rg) { const s = new Set(); for (let i = 0; i < rg.count; i += step) s.add(rg.getX(i)); o.userData.regions = [...s]; }
-  });
-  $('#loading').classList.add('done'); setTimeout(() => $('#loading').remove(), 400); buildNav(); route(location.hash, true);
-}).catch(e => { $('#loading').textContent = 'โหลดโมเดลไม่สำเร็จ: ' + e.message; });
+}
+// สลับโหมด กระดูก ↔ กล้ามเนื้อ
+const boneCtxMat = new THREE.MeshStandardMaterial({ color: 0xd9d2c0, roughness: .6 });
+async function setMode(m) {
+  if (m === MODE) return;
+  if (m === 'mus') { try { await loadMuscles(); } catch (e) { toast('โหลดกล้ามเนื้อไม่สำเร็จ', e.message); return; } }
+  MODE = m; LESS = m === 'mus' ? MLESSONS : LESSONS; meshes = m === 'mus' ? musMeshes : boneMeshes;
+  document.body.classList.toggle('mode-mus', m === 'mus'); $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  st.hist = []; st.peeled.clear(); st.peel = false; st.interior = false;
+  boneMeshes.forEach(b => { b.userData.ck = null; if (m === 'mus') { b.material = boneCtxMat; b.visible = st.boneCtx; } else { b.material = b.userData_mat; b.visible = true; } });
+  musMeshes.forEach(x => { x.visible = m === 'mus'; x.userData.ck = null; });
+  buildNav();
+}
+$$('#modeSeg button').forEach(b => b.onclick = async () => {
+  if (b.dataset.mode === MODE) return; await setMode(b.dataset.mode); openScope(rootSec(), { nohist: 1 });
+  toast(MODE === 'mus' ? 'โหมดกล้ามเนื้อ' : 'โหมดกระดูก', MODE === 'mus' ? 'หมุดเขียว = Origin · หมุดฟ้า = Insertion · แดง = ชื่อมัด' : 'โครงกระดูก 206 ชิ้น');
+});
 
 /* ---------- visibility / colours ---------- */
 let visCache = [], visBox = new THREE.Box3();
 function visibleList() { return visCache; }
 // ชิ้นที่ไม่ได้เลือก: ไม่ซ่อน แต่แสดงจางใส (ghost) ให้เห็นตำแหน่งในร่างกาย
 const ghostMat = new THREE.MeshStandardMaterial({ color: 0xcfd4dc, roughness: .6, transparent: true, opacity: .1, depthWrite: false });
+const ghostMusMat = new THREE.MeshStandardMaterial({ color: 0xe08a7c, roughness: .7, transparent: true, opacity: .16, depthWrite: false });
 let ghostList = [], ghostOn = true; try { ghostOn = localStorage.getItem('hn-ghost') !== '0'; } catch (e) { }
 function setVisible(pred) {
   visCache = []; ghostList = [];
   meshes.forEach(m => { const on = !!pred(m); m.visible = true; m.userData.ghost = !on;
-    if (on) { if (m.material === ghostMat) m.material = m.userData_mat; visCache.push(m); } else { m.material = ghostMat; m.visible = ghostOn; if (ghostOn) ghostList.push(m); m.renderOrder = -1; } });
+    if (m.userData.mus && st.peeled.has(m.userData.id + m.userData.side) && !(st.iso && st.iso.includes(m.userData.n))) { m.visible = false; m.userData.ghost = true; m.userData.peeled = true; return; }
+    if (on) { if (m.material === ghostMat || m.material === ghostMusMat) m.material = m.userData_mat; visCache.push(m); } else { m.material = m.userData.mus ? ghostMusMat : ghostMat; m.visible = ghostOn; if (ghostOn) ghostList.push(m); m.renderOrder = -1; } });
   if (!visCache.length) { meshes.forEach(m => { m.material = m.userData_mat; m.userData.ghost = false; }); visCache = meshes.slice(); ghostList = []; }
   visBox = boxOf(visCache);
 }
 function regionOf(name) { return LMJ.regions.findIndex(r => r[0].toLowerCase() === String(name).toLowerCase()); }
 function applyColor() {
+  if (MODE === 'mus') return applyMusColor();
   const hiReg = st.focus ? regionOf(st.focus) : -1, entryReg = st.entry && D[st.entry]?.region ? regionOf(D[st.entry].region) : -1;
   const pal = LMJ.regions.map(r => new THREE.Color(r[1])), dim = new THREE.Color(0x6d6a63), c = new THREE.Color();
   for (const m of visCache) {
@@ -136,6 +179,19 @@ function applyColor() {
   dirty = true;
 }
 
+function applyMusColor() {
+  const pal = { parts: null, axap: MUS_REAL, off: new THREE.Color(0xe9e2d0) }, single = !!st.entry;
+  for (const m of visCache) {
+    const M = m.material, id = m.userData.id; if (M.vertexColors) { M.vertexColors = false; M.needsUpdate = true; }
+    let c = id === 'm_eye_muscles' ? new THREE.Color(0xf2efe9) : (pal[st.color] || musColor(id)).clone();
+    if (st.color === 'parts' && m.userData.head) { let h = 0; for (const ch of m.userData.head) h += ch.charCodeAt(0); c.offsetHSL(0, 0, ((h % 5) - 2) * .045); }
+    const foc = st.focus && m.userData.head && headTitle(m.userData.head).toLowerCase() === String(st.focus).toLowerCase();
+    M.color.copy(foc ? HI : c); M.emissive = M.emissive || new THREE.Color(); M.emissive.set(foc ? 0x3a1c00 : 0x000000);
+    M.roughness = .62;
+  }
+  boneMeshes.forEach(b => { b.visible = st.boneCtx; });
+  dirty = true;
+}
 /* ---------- camera ---------- */
 let rectC = null, freeC = null;
 function stageRect() { return rectC || (rectC = stage.getBoundingClientRect()); }
@@ -159,7 +215,7 @@ function frame(list, dir, instant) {
   let d = (dir || cam.position.clone().sub(ctl.target)).clone(); if (!(d.lengthSq() > 1e-10) || !isFinite(d.x + d.y + d.z)) d = V3(0, 0, 1); d.normalize();
   const upv = Math.abs(d.y) > .99 ? V3(0, 0, -1) : V3(0, 1, 0), rt = V3().crossVectors(upv, d).normalize(), uu = V3().crossVectors(d, rt);
   let ex = 0, ey = 0, ez = 0; for (let i = 0; i < 8; i++) { const q = V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).sub(c); ex = Math.max(ex, Math.abs(q.dot(rt))); ey = Math.max(ey, Math.abs(q.dot(uu))); ez = Math.max(ez, Math.abs(q.dot(d))); }
-  const th = Math.tan(fov / 2), dist = Math.max(ey / (th * fh), ex / (th * cam.aspect * fw * f.r / f.w)) + ez;
+  const th = Math.tan(fov / 2), dist = (Math.max(ey / (th * fh), ex / (th * cam.aspect * fw * f.r / f.w)) + ez) * (MODE === 'mus' ? 1.18 : 1);
   if (!isFinite(dist) || dist <= 0) return;
   const p = c.clone().add(d.multiplyScalar(dist));
   ctl.minDistance = sph.radius * .3; ctl.maxDistance = dist * 4;
@@ -182,17 +238,23 @@ function nodesOfEntry(id, side) {
   return L;
 }
 function push() { st.hist.push(JSON.stringify({ scope: st.scope, side: st.side, iso: st.iso, entry: st.entry, lesson: st.lesson, interior: st.interior })); if (st.hist.length > 40) st.hist.shift(); }
-function back() { const s = st.hist.pop(); if (!s) return openScope('all', { nohist: 1 }); const o = JSON.parse(s); Object.assign(st, o); render(true); }
-function openScope(id, o = {}) { if (!o.nohist) push(); Object.assign(st, { scope: id, iso: null, entry: null, lesson: null, interior: false, focus: null }); if (o.side) st.side = o.side; render(); }
+function back() { const s = st.hist.pop(); if (!s) return openScope(rootSec(), { nohist: 1 }); const o = JSON.parse(s); Object.assign(st, o); render(true); }
+function openScope(id, o = {}) {
+  if ((isMusSec(id) ? 'mus' : 'bone') !== MODE) { setMode(isMusSec(id) ? 'mus' : 'bone').then(() => openScope(id, { ...o, nohist: 1 })); return; }
+  if (!o.nohist) push(); Object.assign(st, { scope: id, iso: null, entry: null, lesson: null, interior: false, focus: null }); if (o.side) st.side = o.side; render(); }
 function openEntry(id, node, o = {}) {
+  if ((isMus(id) ? 'mus' : 'bone') !== MODE) { setMode(isMus(id) ? 'mus' : 'bone').then(() => openEntry(id, null, { ...o, nohist: 1 })); return; }
   if (!o.nohist) push(); const d = D[id];
-  const L = node ? [byName[node]] : nodesOfEntry(id, st.side);
+  if (isMus(id) && node && byName[node]) st.side = byName[node].userData.side || st.side;
+  const L = node && !isMus(id) ? [byName[node]] : nodesOfEntry(id, st.side);
+  if (isMus(id)) L.forEach(m => st.peeled.delete(m.userData.id + m.userData.side));
   Object.assign(st, { entry: id, iso: L.length ? L.map(m => m.userData.n) : null, lesson: null, focus: null, interior: !!o.interior });
   if (!o.keepScope) { const s = Object.keys(TOP).find(k => k === d.sec); st.scope = s || st.scope; }
   render();
 }
 function openLesson(id) {
-  push(); const l = LESSONS.find(x => x.id === id); Object.assign(st, { lesson: id, entry: null, focus: null, interior: false });
+  if ((isMusLesson(id) ? 'mus' : 'bone') !== MODE) { setMode(isMusLesson(id) ? 'mus' : 'bone').then(() => openLesson(id)); return; }
+  push(); const l = LESS.find(x => x.id === id); Object.assign(st, { lesson: id, entry: null, focus: null, interior: false });
   if (l.iso) { const L = nodesOfEntry(l.iso, st.side); st.entry = l.iso; st.iso = L.map(m => m.userData.n); st.interior = !!l.interior; st.lessonKeep = 1; }
   else if (l.show) { st.iso = meshes.filter(m => l.show.some(s => m.userData.n.startsWith(s))).map(m => m.userData.n); st.entry = null; }
   else st.iso = null;
@@ -202,7 +264,7 @@ function render(fromBack) {
   const iso = st.iso && new Set(st.iso);
   setVisible(m => iso ? iso.has(m.userData.n) : inSec(st.scope, m.userData.id) && (!SEC[st.scope]?.side || !m.userData.side || m.userData.side === st.side));
   setInterior(st.interior); applyColor(); renderPanel(); renderCrumbs(); syncNav(); syncDock(); viewOff();
-  const handView = st.scope === 'hand' || (st.entry && HAND.has(st.entry));
+  const handView = st.scope === 'hand' || (st.entry && HAND.has(st.entry)) || BACK_VIEW.has(st.entry) || (!st.entry && BACK_VIEW.has(st.scope)) || (st.entry && /ด้านหลัง/.test(D[st.entry]?.sub || ''));
   frame(visibleList(), handView ? DIRS.back : DIRS.front, false); labelsDirty = true;
   const h = st.lesson ? '#lesson/' + st.lesson : st.entry ? '#bone/' + st.entry + (st.iso?.length === 1 ? '/' + st.iso[0] : '') : '#sec/' + st.scope + '/' + st.side;
   if (location.hash !== h) history.replaceState(null, '', h);
@@ -210,10 +272,10 @@ function render(fromBack) {
 function route(h, first) {
   const [k, a, b] = (h || '').replace(/^#/, '').split('/');
   if (k === 'bone' && D[a]) { if (b && byName[b]) st.side = byName[b].userData.side || st.side; openEntry(a, b && byName[b] ? b : null, { nohist: 1 }); }
-  else if (k === 'lesson' && LESSONS.find(l => l.id === a)) openLesson(a);
+  else if (k === 'lesson' && [...LESSONS, ...MLESSONS].find(l => l.id === a)) openLesson(a);
   else if (k === 'sec' && SEC[a]) { if (b) st.side = b; openScope(a, { nohist: 1 }); }
   else openScope('all', { nohist: 1 });
-  if (first) frame(visibleList(), DIRS.front, true);
+  if (first && MODE === 'bone') frame(visibleList(), DIRS.front, true);
 }
 
 /* ---------- tap / pick ---------- */
@@ -230,13 +292,16 @@ function pick(x, y) {
 }
 function tap(x, y) {
   { const r = cvs.getBoundingClientRect(); ptr.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ptr, cam); }
-  if (labelItems.length && st.lstyle === 'pin') { const h = ray.intersectObjects(labelItems.map(i => i.spr).filter(Boolean), false)[0]; if (h) return labelClick(h.object.userData.item); }
+  if (labelItems.length && st.lstyle === 'pin') { const h = ray.intersectObjects(labelItems.map(i => i.spr).filter(Boolean), false)[0]; if (h) { const it = h.object.userData.item; if (st.peel && it.id && isMus(it.id) && !st.entry) { st.peeled.add(it.id + (byName[it.node]?.userData.side || '')); syncDock(); toast('ลอกออก: ' + D[it.id].en, 'กด "คืนทุกมัด" ในแผงข้อมูลเพื่อแสดงกลับ'); return render(); } return labelClick(it); } }
   const m = pick(x, y); if (!m || !m.userData.id) return;
+  if (st.peel && m.userData.mus) { if (m.userData.tappedGhost) { m.userData.tappedGhost = false; return; } st.peeled.add(m.userData.id + m.userData.side); syncDock(); toast('ลอกออก: ' + D[m.userData.id].en, 'กด "คืนทุกมัด" ในแผงข้อมูลเพื่อแสดงกลับ'); return render(); }
   if (m.userData.tappedGhost) { m.userData.tappedGhost = false; st.side = m.userData.side || st.side; return openEntry(m.userData.id, m.userData.n, {}); }
   const { id, n, side } = m.userData;
+  if (st.peel && m.userData.mus) { st.peeled.add(id + side); toast('ลอกออก: ' + D[id].en, 'กด "คืนทุกมัด" ในแผงข้อมูลเพื่อแสดงกลับ'); return render(); }
+  if (isMus(id) && st.entry === id) return;
   if (st.iso && st.iso.length === 1) return;
   if (st.iso) return openEntry(id, n, { keepScope: 1 });
-  if (['all', 'axial', 'appendicular'].includes(st.scope)) { const top = TOP[D[id].sec]; if (top) return openScope(top, { side: side || st.side }); }
+  if (isWide(st.scope) && !st.entry) { const top = TOP[D[id].sec]; if (top) return openScope(top, { side: side || st.side }); }
   openEntry(id, n, { keepScope: 1 });
 }
 
@@ -295,7 +360,36 @@ function surfacePick(m, C, out, bias, k) { // จุดบนผิวที่�
   for (const v of m.userData.samples) { const sc = v.clone().sub(C).dot(dir) - v.distanceTo(m.userData.center) * .35; if (sc > bd) { bd = sc; p = v; } }
   return p.clone();
 }
+function muscleItems() {
+  const items = [], near = p => { let b = null, bd = 1e9; visCache.forEach(m => { const d = m.userData.center.distanceToSquared(p); if (d < bd) { bd = d; b = m; } }); return b?.userData.n; };
+  if (st.entry && isMus(st.entry)) {
+    const key = st.entry + (visCache.some(m => m.userData.side) ? '_' + st.side : ''), lm = LMJ.landmarks[key] || {}, d = D[st.entry];
+    for (const k in lm) {
+      const p = V3(...lm[k]), kind = k === 'Origin' ? 'o' : k === 'Insertion' ? 'i' : k === '__belly' ? 'b' : 'h';
+      items.push({ t: kind === 'b' ? d.en : kind === 'o' ? 'O · Origin' : kind === 'i' ? 'I · Insertion' : k, p, part: kind === 'b' ? null : k, kind, node: near(p) });
+    }
+    return items;
+  }
+  const seen = new Set();
+  if (isWide(st.scope)) { // ทั้งตัว: ป้ายบอกหมวด (ไม่ใช่ทุกมัด)
+    const groups = new Map();
+    for (const m of visCache) { const d = D[m.userData.id]; if (!d) continue; const top = TOP[d.sec] || d.sec, k = top + (SEC[top]?.side ? m.userData.side : ''); if (!groups.has(k)) groups.set(k, { top, ms: [] }); groups.get(k).ms.push(m); }
+    for (const [k, g] of groups) {
+      const c = V3(); g.ms.forEach(m => c.add(m.userData.center)); c.divideScalar(g.ms.length);
+      let best = null, bd = 1e9; g.ms.forEach(m => { const key = m.userData.id + (m.userData.side ? '_' + m.userData.side : ''), b = LMJ.landmarks[key]?.__belly; if (!b) return; const d = V3(...b).distanceToSquared(c); if (d < bd) { bd = d; best = { b, m }; } });
+      if (best) items.push({ t: SEC[g.top].t.replace(/^กล้ามเนื้อ/, ''), p: V3(...best.b), node: best.m.userData.n, id: best.m.userData.id, kind: 'b' });
+    }
+    return items;
+  }
+  for (const m of visCache) {
+    const key = m.userData.id + (m.userData.side ? '_' + m.userData.side : ''); if (seen.has(key)) continue; seen.add(key);
+    const b = LMJ.landmarks[key]?.__belly; if (!b || !D[m.userData.id]) continue;
+    items.push({ t: D[m.userData.id].en, p: V3(...b), node: m.userData.n, id: m.userData.id, kind: 'b' });
+  }
+  return items;
+}
 function landmarkItems() {
+  if (MODE === 'mus') return muscleItems();
   const items = [];
   if (st.iso && st.iso.length === 1) {
     const m = byName[st.iso[0]], n = m.userData.n, d = D[st.entry]?.node && n.startsWith(D[st.entry].node) ? D[st.entry] : D[m.userData.id];
@@ -338,6 +432,7 @@ const occ = new THREE.Raycaster(); let occDirty = true;
 const SVGNS = 'http://www.w3.org/2000/svg';
 const pinGroup = new THREE.Group(); scene.add(pinGroup);
 const NEEDLE = new THREE.CylinderGeometry(1, .35, 1, 8, 1).translate(0, .5, 0), HEADG = new THREE.SphereGeometry(1, 18, 14);
+const oMat = new THREE.MeshLambertMaterial({ color: 0x34c759, emissive: 0x06300f }), iMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6, emissive: 0x061a40 }), hMat = new THREE.MeshLambertMaterial({ color: 0xffd34d, emissive: 0x332600 });
 const needleMat = new THREE.MeshLambertMaterial({ color: 0xd8dce2 }), headMat = new THREE.MeshLambertMaterial({ color: 0xff4436, emissive: 0x330400 }), headFoc = new THREE.MeshLambertMaterial({ color: 0xff9f43, emissive: 0x3a1c00 });
 const UPY = V3(0, 1, 0), m3 = new THREE.Matrix3();
 function normalAt(mesh, p) { // normal ของจุดบนผิวที่ใกล้ p ที่สุด (world)
@@ -421,7 +516,8 @@ function buildLabelDom() {
     occDirty = true; return;
   }
   labelItems.forEach((it, i) => {
-    it.needle = new THREE.Mesh(NEEDLE, needleMat); it.head = new THREE.Mesh(HEADG, headMat); it.needle.raycast = it.head.raycast = () => { };
+    it.baseMat = it.kind === 'o' ? oMat : it.kind === 'i' ? iMat : it.kind === 'h' ? hMat : headMat;
+    it.needle = new THREE.Mesh(NEEDLE, needleMat); it.head = new THREE.Mesh(HEADG, it.baseMat); it.needle.raycast = it.head.raycast = () => { };
     pinGroup.add(it.needle, it.head); placePin(it, i);
     it.spr = textSprite(it.t, false); it.spr.userData.item = it; pinGroup.add(it.spr); sizeSprite(it);
   });
@@ -469,13 +565,13 @@ function drawLabels() {
   if (occDirty && !moving) { layoutPins(); updateOcclusion(); labelItems.forEach(it => { it.spr.material.opacity = it.hidden ? .3 : 1; it.spr.renderOrder = it.hidden ? 1 : 3; }); }
   labelItems.forEach(it => {
     const foc = !!(st.focus && st.focus === it.part);
-    if (it._foc !== foc) { it._foc = foc; it.head.material = foc ? headFoc : headMat; it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1));
+    if (it._foc !== foc) { it._foc = foc; it.head.material = foc ? headFoc : (it.baseMat || headMat); it.head.scale.setScalar(it.hr * (foc ? 1.35 : 1));
       const old = it.spr; it.spr = textSprite(it.t, foc); it.spr.userData.item = it; pinGroup.remove(old); old.material.map.dispose(); pinGroup.add(it.spr); sizeSprite(it); it.spr.renderOrder = foc ? 2 : 1; }
   });
 }
 function labelClick(it) {
   if (it.part) { setFocus(st.focus === it.part ? null : it.part); return; }
-  if (it.node) { if (['all', 'axial', 'appendicular'].includes(st.scope) && !st.iso) { const top = TOP[D[it.id].sec]; return openScope(top, { side: byName[it.node].userData.side || st.side }); } openEntry(it.id, st.iso ? it.node : null, { keepScope: 1 }); }
+  if (it.node) { if (isWide(st.scope) && !st.iso) { const top = TOP[D[it.id].sec]; return openScope(top, { side: byName[it.node].userData.side || st.side }); } openEntry(it.id, st.iso ? it.node : null, { keepScope: 1 }); }
 }
 function setFocus(name) {
   st.focus = name; applyColor(); drawLabels(); dirty = true;
@@ -485,10 +581,20 @@ function setFocus(name) {
 
 /* ---------- panel ---------- */
 const BOOK_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg>';
-const pgBtns = (pg, name) => (pg || []).length ? `<div class="bookcard"><div class="bc-ic">${BOOK_IC}</div><div class="bc-tx"><b>เปิดสมุดสรุป</b><p>กดแล้วจะเปิดไปยังหน้าที่อธิบายเกี่ยวกับ <strong>${esc(name)}</strong> ในสมุด</p><div class="bc-pg">${pg.map(p => `<button class="pg press" data-pg="${p}">หน้า ${p}</button>`).join('')}</div></div></div>` : '';
+const BOOKS = { bone: { dir: 'book/p-', n: 32, pdf: 'notebook.pdf', t: 'สมุดสรุป Anatomy เล่ม 2' }, m1: { dir: 'mbook/e1-', n: 81, pdf: 'muscle_ep1.pdf', t: 'บทที่ 4 ระบบกล้ามเนื้อ · EP.1' }, m2: { dir: 'mbook/e2-', n: 73, pdf: 'muscle_ep2.pdf', t: 'บทที่ 4 ระบบกล้ามเนื้อ · EP.2' } };
+const pgRef = p => { const v = String(p).match(/^(\d):(\d+)$/); return v ? { b: 'm' + v[1], p: +v[2], lab: `EP.${v[1]} · ${v[2]}` } : { b: 'bone', p: +p, lab: 'หน้า ' + p }; };
+const pgBtns = (pg, name) => (pg || []).length ? `<div class="bookcard"><div class="bc-ic">${BOOK_IC}</div><div class="bc-tx"><b>${MODE === 'mus' ? 'เปิดสไลด์ประกอบ' : 'เปิดสมุดสรุป'}</b><p>กดแล้วจะเปิดไปยังหน้าที่อธิบายเกี่ยวกับ <strong>${esc(name)}</strong> ${MODE === 'mus' ? 'ในสไลด์ระบบกล้ามเนื้อ' : 'ในสมุด'}</p><div class="bc-pg">${pg.map(p => `<button class="pg press" data-pg="${p}">${pgRef(p).lab}</button>`).join('')}</div></div></div>` : '';
 const sec = (t, body) => body ? `<section><h4>${t}</h4>${body}</section>` : '';
 const ul = a => a?.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+function musLegendHTML() {
+  const sw = `<div class="cswitch">${COLOR_MODES.map(c => `<button class="press" data-cmode="${c[0]}">${c[0] === 'off' ? 'ปิดสี' : modeLabel(c)}</button>`).join('')}</div>`;
+  const pins = `<div class="pinleg"><span><i style="background:#ff4436"></i>ชื่อมัด</span><span><i style="background:#34c759"></i>Origin จุดเกาะต้น</span><span><i style="background:#3b82f6"></i>Insertion จุดเกาะปลาย</span><span><i style="background:#ffd34d"></i>หัว / ส่วนของมัด</span></div>`;
+  let list = '';
+  if (st.color === 'parts' && !st.entry) { const ids = [...new Set(visCache.map(m => m.userData.id))].filter(i => D[i]); list = `<div class="legend">${ids.map(i => `<button data-go="${i}"><i style="background:#${musColor(i).getHexString()}"></i>${esc(D[i].en)}</button>`).join('')}</div>`; }
+  return sec('สีและหมุด', sw + pins + list);
+}
 function legendHTML() {
+  if (MODE === 'mus') return musLegendHTML();
   const sw = `<div class="cswitch">${COLOR_MODES.map(c => `<button class="press" data-cmode="${c[0]}">${c[0] === 'off' ? 'ปิดสี' : c[1]}</button>`).join('')}</div>`;
   if (st.color !== 'parts') return sec('สี', sw + (st.color === 'axap' ? '<div class="legend"><button><i style="background:#4aa3ff"></i>Axial · กระดูกแกน</button><button><i style="background:#ff6b6b"></i>Appendicular · ระยางค์</button></div>' : ''));
   const s = new Set(); visibleList().forEach(m => (m.userData.regions || []).forEach(r => r && s.add(r)));
@@ -500,9 +606,22 @@ function legendHTML() {
 function renderPanel() {
   let h = '';
   if (st.lesson) {
-    const l = LESSONS.find(x => x.id === st.lesson);
+    const l = LESS.find(x => x.id === st.lesson);
     h = `<header><div class="kicker">บทเรียน</div><h2>${l.t}</h2></header>${pgBtns(l.pg, l.t)}<div class="prose">${l.html}</div>`;
     if (l.iso) h += `<div class="note">กำลังแสดง ${esc(D[l.iso].en)} (${SIDE_TH[st.side]}) ${st.interior ? '· ภาพตัดภายใน' : ''}</div>`;
+  } else if (st.entry && isMus(st.entry)) {
+    const d = D[st.entry], hasMesh = !!st.iso;
+    h = `<header><div class="kicker">${esc(SEC[d.sec]?.t || '')}${d.sub ? ' · ' + esc(d.sub) : ''}</div><h2>${esc(d.en)}${hasMesh && visCache.some(m => m.userData.side) ? ` <small class="sd">(${SIDE_TH[st.side]})</small>` : ''}</h2><p class="th">${esc(d.th)}</p>
+      <div class="facts"><span><b>${esc(d.n)}</b></span><span class="mu">Skeletal muscle · กล้ามเนื้อลาย</span></div></header>${pgBtns(d.pg, d.en)}`;
+    if (!hasMesh) h += `<div class="note">โมเดล BodyParts3D ไม่มีกล้ามเนื้อนี้ — แสดงเฉพาะข้อมูล</div>`;
+    h += sec('ตำแหน่ง', `<p>${esc(d.loc)}</p>`);
+    if (d.act.length) h += sec('หน้าที่ (Action)', `<div class="acts">${d.act.map(a => `<span>${esc(a)}</span>`).join('')}</div>`);
+    if (d.parts.length) h += sec('จุดเกาะและส่วนของมัด', `<ol class="parts mparts">${d.parts.map(([a, b]) => `<li><button data-part="${esc(a)}" class="${a === 'Origin' ? 'po' : a === 'Insertion' ? 'pi' : 'ph'}"><b>${esc(a)}</b>${b ? `<span>${esc(b)}</span>` : ''}</button></li>`).join('')}</ol>`);
+    h += sec('เกาะกับกระดูก', d.con.length ? `<ul class="con">${d.con.map(([t, j, n]) => `<li><a href="#" data-go="${t}">${esc(D[t]?.en || t)}</a>${j ? `<em>${esc(j)}</em>` : ''}${n ? ` ${esc(n)}` : ''}</li>`).join('')}</ul><p class="hint">กดชื่อกระดูกเพื่อไปดูในโหมดกระดูก</p>` : '');
+    h += sec('สิ่งที่ลอดผ่าน', ul(d.pass)) + sec('คลินิก', ul(d.clin)) + (d.tip.length ? sec('Tip', d.tip.map(t => `<p class="tip">${esc(t)}</p>`).join('')) : '');
+    if (d.vid.length) h += sec('วิดีโอประกอบ (จากสไลด์)', d.vid.map(v => `<a class="vid" href="${esc(v)}" target="_blank" rel="noopener">▶ ${esc(v.replace('https://www.', ''))}</a>`).join(''));
+    if (hasMesh) h += `<button class="wide press" id="pPeel">ซ่อนมัดนี้ เพื่อดูชั้นที่ลึกกว่า</button>`;
+    h += legendHTML();
   } else if (st.entry) {
     const d = D[st.entry], single = st.iso?.length === 1 ? st.iso[0] : null;
     const title = single && !/^(humerus|femur)/.test('') ? nodeTitle(single) : d.en;
@@ -516,49 +635,65 @@ function renderPanel() {
     else if (d.parts.length) h += sec('ส่วนประกอบ', `<ol class="parts">${d.parts.map(([a, b]) => `<li><button data-part="${esc(a)}"><b>${esc(a)}</b>${b ? `<span>${esc(b)}</span>` : ''}</button></li>`).join('')}</ol>`);
     h += sec('เชื่อมกับ / ชนิดข้อต่อ', d.con.length ? `<ul class="con">${d.con.map(([t, j, n]) => `<li><a href="#" data-go="${t}">${esc(D[t]?.en || t)}</a>${j ? `<em>${esc(j)}</em>` : ''}${n ? ` ${esc(n)}` : ''}</li>`).join('')}</ul>` : '');
     h += sec('สิ่งที่ลอดผ่าน', ul(d.pass)) + sec('คลินิก', ul(d.clin)) + (d.tip.length ? sec('Tip', d.tip.map(t => `<p class="tip">${esc(t)}</p>`).join('')) : '');
+    const bm = BONE_MUS[st.entry]; if (bm) h += sec('กล้ามเนื้อที่เกาะกระดูกนี้', `<div class="chips mchips">${bm.map(i => `<button data-go="${i}">${esc(D[i].en)}</button>`).join('')}</div>`);
     h += legendHTML();
   } else {
-    const s = SEC[st.scope]; const ids = DATA.filter(d => inSec(st.scope, d.id) && !['all', 'axial', 'appendicular'].includes(st.scope));
+    const s = SEC[st.scope]; const ids = (MODE === 'mus' ? MDATA : DATA).filter(d => inSec(st.scope, d.id) && !isWide(st.scope));
     h = `<header><div class="kicker">${s.parent ? esc(SEC[s.parent].t) : 'หมวด'}</div><h2>${esc(s.t)}</h2><p class="th">${esc(s.s)}</p></header>${pgBtns(s.pg, s.t)}`;
     if (s.side) h += `<div class="seg side">${['R', 'L'].map(k => `<button data-side="${k}" class="${st.side === k ? 'on' : ''}">ข้าง${SIDE_TH[k]}</button>`).join('')}</div>`;
     h += sec('สรุปจากสมุด', ul(s.info));
-    if (ids.length) h += sec('กระดูกในหมวดนี้', `<div class="chips">${ids.map(d => `<button data-go="${d.id}">${esc(d.en)}</button>`).join('')}</div>`);
+    if (st.peeled.size && MODE === 'mus') h += `<div class="note peelnote">ลอกชั้นออกแล้ว ${st.peeled.size} มัด <button class="press" id="pUnpeel">คืนทุกมัด</button></div>`;
+    if (ids.length && MODE === 'mus') { const subs = [...new Set(ids.map(d => d.sub || ''))]; h += sec('กล้ามเนื้อในหมวดนี้', subs.map(sb => `${sb ? `<div class="subh">${esc(sb)}</div>` : ''}<div class="chips mchips">${ids.filter(d => (d.sub || '') === sb).map(d => `<button data-go="${d.id}"><i style="background:#${musColor(d.id).getHexString()}"></i>${esc(d.en)}</button>`).join('')}</div>`).join('')); }
+    else if (ids.length) h += sec('กระดูกในหมวดนี้', `<div class="chips">${ids.map(d => `<button data-go="${d.id}">${esc(d.en)}</button>`).join('')}</div>`);
+    if (s.vid) h += sec('วิดีโอประกอบ (จากสไลด์)', s.vid.map(v => `<a class="vid" href="${esc(v)}" target="_blank" rel="noopener">▶ ${esc(v.replace('https://www.', ''))}</a>`).join(''));
+    if (st.scope === 'm-all') h += sec('วิธีใช้', '<ul><li>แตะกล้ามเนื้อ → เปิดหมวดนั้น · แตะอีกครั้ง → แยกมัดออกมาดู</li><li>หมุดเขียว = Origin · หมุดฟ้า = Insertion</li><li>เครื่องมือ "ลอกชั้น": แตะมัดที่ต้องการลอกออกเพื่อดูชั้นลึก</li><li>เครื่องมือ "กระดูก": แสดง/ซ่อนโครงกระดูกด้านใน</li></ul>');
     if (['all', 'axial', 'appendicular'].includes(st.scope)) h += sec('วิธีใช้', '<ul><li>แตะส่วนใดของโครงกระดูก → เปิดหมวดนั้น · แตะอีกครั้ง → แยกชิ้นออกมาดู</li><li>ลาก 1 นิ้วหมุน · บีบซูม · 2 นิ้วเลื่อน</li><li>แตะป้ายชื่อเพื่อไฮไลต์ส่วนนั้น</li></ul>');
     h += legendHTML();
   }
-  h += `<footer>โมเดล: BodyParts3D, © The Database Center for Life Science, CC BY 4.0 · เนื้อหา: สมุดสรุป Anatomy เล่ม 2 บทที่ 3</footer>`;
+  h += `<footer>โมเดล: BodyParts3D, © The Database Center for Life Science, CC BY 4.0 · เนื้อหา: ${MODE === 'mus' ? 'สไลด์บทที่ 4 ระบบกล้ามเนื้อ (EP.1–2)' : 'สมุดสรุป Anatomy เล่ม 2 บทที่ 3'}</footer>`;
   const pb = $('#pbody'); pb.innerHTML = h; pb.scrollTop = 0; pb.classList.remove('enter'); void pb.offsetWidth; pb.classList.add('enter');
   $('#pInterior')?.addEventListener('click', toggleInterior);
+  $('#pPeel')?.addEventListener('click', () => { const e = st.entry; visCache.forEach(m => st.peeled.add(m.userData.id + m.userData.side)); toast('ลอกออก: ' + D[e].en, 'แสดงชั้นที่อยู่ลึกกว่า'); openScope(TOP[D[e].sec] || rootSec()); });
+  $('#pUnpeel')?.addEventListener('click', () => { st.peeled.clear(); render(); toast('คืนกล้ามเนื้อทุกมัดแล้ว'); });
 }
 $('#pbody').addEventListener('click', e => {
   const t = e.target.closest('[data-go],[data-part],[data-pg],[data-side],[data-cmode]'); if (!t) return; e.preventDefault();
   if (t.dataset.cmode) return setColor(t.dataset.cmode);
   if (t.dataset.go) openEntry(t.dataset.go, null, {});
   else if (t.dataset.part) setFocus(st.focus === t.dataset.part ? null : t.dataset.part);
-  else if (t.dataset.pg) openBook(+t.dataset.pg, bookTarget().name);
+  else if (t.dataset.pg) openBook(t.dataset.pg, bookTarget().name);
   else if (t.dataset.side) { st.side = t.dataset.side; openScope(st.scope, { nohist: 1 }); }
 });
 function renderCrumbs() {
-  const c = [`<button data-c="all">ทั้งตัว</button>`];
-  const s = SEC[st.scope]; if (st.scope !== 'all') { if (s.parent) c.push(`<button data-c="${s.parent}">${esc(SEC[s.parent].t)}</button>`); c.push(`<button data-c="${st.scope}">${esc(s.t)}${s.side ? ' · ' + SIDE_TH[st.side] : ''}</button>`); }
-  if (st.lesson) c.push(`<span>${esc(LESSONS.find(l => l.id === st.lesson).t)}</span>`);
-  else if (st.entry) c.push(`<span>${esc(st.iso?.length === 1 ? nodeTitle(st.iso[0]) : D[st.entry].en)}</span>`);
+  const c = [`<button data-c="${rootSec()}">${MODE === 'mus' ? 'กล้ามเนื้อทั้งตัว' : 'ทั้งตัว'}</button>`];
+  const s = SEC[st.scope]; if (st.scope !== rootSec()) { if (s.parent) c.push(`<button data-c="${s.parent}">${esc(SEC[s.parent].t)}</button>`); c.push(`<button data-c="${st.scope}">${esc(s.t)}${s.side ? ' · ' + SIDE_TH[st.side] : ''}</button>`); }
+  if (st.lesson) c.push(`<span>${esc(LESS.find(l => l.id === st.lesson).t)}</span>`);
+  else if (st.entry) c.push(`<span>${esc(isMus(st.entry) ? D[st.entry].en : st.iso?.length === 1 ? nodeTitle(st.iso[0]) : D[st.entry].en)}</span>`);
   $('#crumbs').innerHTML = (st.hist.length ? `<button class="back" id="back" aria-label="ย้อนกลับ"><b>‹</b><small>ย้อนกลับ</small></button>` : '') + c.join('<i>›</i>');
 }
 $('#crumbs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'back') return back(); openScope(b.dataset.c); });
 
 /* ---------- nav ---------- */
+let navBound = false;
 function buildNav() {
   const g = (t, items) => `<div class="ng"><div class="nt">${t}</div>${items}</div>`;
-  const si = (id, sub) => { const s = SEC[id]; const kids = ['all', 'axial', 'appendicular'].includes(id) ? [] : DATA.filter(d => id === 'thorax' ? ['sternum', 'rib'].includes(d.id) : d.sec === id);
+  const si = (id, sub) => { const s = SEC[id]; const kids = isWide(id) ? [] : (MODE === 'mus' ? MDATA : DATA).filter(d => id === 'thorax' ? ['sternum', 'rib'].includes(d.id) : d.sec === id);
     return `<div class="ni ${sub ? 'sub' : ''}" data-sec="${id}"><button class="nb" data-s="${id}"><span>${esc(s.t)}</span><small>${esc(s.s)}</small></button>${kids.length ? `<div class="kids">${kids.map(d => `<button data-e="${d.id}">${esc(d.en)}</button>`).join('')}</div>` : ''}</div>`; };
+  const lb = l => `<div class="ni"><button class="nb" data-l="${l.id}"><span>${esc(l.t)}</span><small>${esc(pgRef(l.pg[0]).lab)}</small></button></div>`;
+  if (MODE === 'mus') {
+    $('#nav').innerHTML = g('ภาพรวม', si('m-all')) + g('บทเรียน', MLESSONS.map(lb).join('')) +
+      g('ศีรษะและคอ', si('m-face') + si('m-mast') + si('m-eye') + si('m-neck')) +
+      g('ช่วงไหล่และแขน', si('m-girdle') + si('m-shoulder') + si('m-arm') + si('m-fore') + si('m-hand')) +
+      g('ลำตัว', si('m-back') + si('m-breath') + si('m-abd')) + g('สะโพกและขา', si('m-glute') + si('m-thigh') + si('m-leg'));
+  } else
   $('#nav').innerHTML =
     g('ภาพรวม', si('all')) +
-    g('บทเรียน 3.1–3.6', LESSONS.map(l => `<div class="ni"><button class="nb" data-l="${l.id}"><span>${esc(l.t)}</span><small>หน้า ${l.pg[0]}</small></button></div>`).join('')) +
+    g('บทเรียน 3.1–3.6', LESSONS.map(lb).join('')) +
     g('3.7 แกน / ระยางค์', si('axial') + si('appendicular')) +
     g('3.8 กะโหลกศีรษะ', si('skull') + si('cranial', 1) + si('facial', 1)) +
     g('3.9 กระดูกสันหลัง', si('spine')) + g('3.10 ทรวงอก', si('thorax')) +
     g('3.11 กระดูกระยางค์', si('shoulder') + si('upper') + si('hand', 1) + si('pelvis') + si('lower') + si('foot', 1));
+  if (navBound) return; navBound = true;
   $('#nav').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.s) openScope(b.dataset.s); else if (b.dataset.l) openLesson(b.dataset.l); else if (b.dataset.e) openEntry(b.dataset.e, null, {});
@@ -575,10 +710,12 @@ $('#scrim').onclick = () => document.body.classList.remove('navopen');
 
 /* ---------- tool dock ---------- */
 const COLOR_MODES = [['parts', 'แยกส่วน', 'ระบายสีแต่ละส่วนตามสมุด'], ['axap', 'แกน/ระยางค์', 'ฟ้า = กระดูกแกน (axial) · แดง = ระยางค์ (appendicular)'], ['off', 'ปิด', 'สีงาช้างทั้งหมด']];
+const MUS_CM = { parts: ['แยกมัด', 'แต่ละมัดคนละสี แยกกันชัด'], axap: ['สีจริง', 'สีกล้ามเนื้อตามธรรมชาติ'], off: ['ปิด', 'สีงาช้างทั้งหมด'] };
+const modeLabel = c => MODE === 'mus' ? MUS_CM[c[0]][0] : c[1];
 let colorMode = 'parts'; // แบบสีที่เลือกไว้ (ใช้ตอนเปิดสี)
-function setColor(c) { st.color = c; if (c !== 'off') colorMode = c; applyColor(); renderPanel(); syncDock(); const m = COLOR_MODES.find(x => x[0] === c); toast(c === 'off' ? 'ปิดสี' : 'เปิดสี: ' + m[1], m[2]); }
+function setColor(c) { st.color = c; if (c !== 'off') colorMode = c; applyColor(); renderPanel(); syncDock(); const m = COLOR_MODES.find(x => x[0] === c); toast(c === 'off' ? 'ปิดสี' : 'เปิดสี: ' + modeLabel(m), MODE === 'mus' ? MUS_CM[c][1] : m[2]); }
 function bookTarget() {
-  if (st.lesson) { const l = LESSONS.find(x => x.id === st.lesson); return { pg: l.pg[0], name: l.t }; }
+  if (st.lesson) { const l = LESS.find(x => x.id === st.lesson); return { pg: l.pg[0], name: l.t }; }
   if (st.entry) return { pg: (D[st.entry].pg || [])[0], name: D[st.entry].en };
   return { pg: (SEC[st.scope].pg || [2])[0], name: SEC[st.scope].t };
 }
@@ -589,10 +726,12 @@ function syncDock() {
   set('#tStyle', false, st.lstyle === 'pin' ? 'หมุด 3D' : 'เส้นชี้'); $('#tStyle').classList.toggle('na', !st.labels);
   $('#tStyle').querySelector('.ic-pin').style.display = st.lstyle === 'pin' ? '' : 'none'; $('#tStyle').querySelector('.ic-line').style.display = st.lstyle === 'line' ? '' : 'none';
   $$('[data-cmode]').forEach(b => b.classList.toggle('on', b.dataset.cmode === st.color));
-  set('#tColor', st.color !== 'off', st.color === 'off' ? 'ปิด' : COLOR_MODES.find(c => c[0] === st.color)[1]);
+  set('#tColor', st.color !== 'off', st.color === 'off' ? 'ปิด' : modeLabel(COLOR_MODES.find(c => c[0] === st.color)));
+  set('#tBones', st.boneCtx, st.boneCtx ? 'แสดง' : 'ซ่อน'); set('#tPeel', st.peel, st.peel ? 'แตะเพื่อลอก' : (st.peeled.size ? `ลอกแล้ว ${st.peeled.size}` : 'ปิด'));
+  $('#tGhost span').textContent = 'ส่วนอื่น';
   set('#tInterior', st.interior, st.canInterior ? (st.interior ? 'เปิด' : 'ปิด') : 'กระดูกยาว');
   $('#tInterior').classList.toggle('na', !st.canInterior);
-  const bt = bookTarget(); set('#tBook', false, bt.pg ? 'หน้า ' + bt.pg : '—');
+  const bt = bookTarget(); set('#tBook', false, bt.pg ? pgRef(bt.pg).lab : '—');
 }
 $('#tLabels').onclick = () => { st.labels = !st.labels; labelsDirty = true; frame(visibleList()); syncDock(); toast(st.labels ? 'เปิดป้ายชื่อ' : 'ปิดป้ายชื่อ', st.labels ? (st.lstyle === 'pin' ? 'แบบหมุด 3D' : 'แบบเส้นชี้') + ' · แตะชื่อเพื่อไฮไลต์' : 'ซ่อนป้ายชื่อทั้งหมด'); };
 $('#tStyle').onclick = () => {
@@ -608,6 +747,8 @@ $('#tGhost').onclick = () => {
   dirty = true; syncDock(); toast(ghostOn ? 'แสดงกระดูกส่วนอื่นแบบจาง ๆ' : 'ซ่อนกระดูกส่วนอื่น', ghostOn ? 'เห็นตำแหน่งในร่างกาย · แตะชิ้นจางเพื่อไปดู' : 'แสดงเฉพาะชิ้นที่เลือก');
 };
 $('#tBook').onclick = () => { const bt = bookTarget(); if (!bt.pg) return; openBook(bt.pg, bt.name); };
+$('#tBones').onclick = () => { st.boneCtx = !st.boneCtx; boneMeshes.forEach(b => b.visible = st.boneCtx); dirty = true; occDirty = true; syncDock(); toast(st.boneCtx ? 'แสดงโครงกระดูก' : 'ซ่อนโครงกระดูก', st.boneCtx ? 'เห็นจุดเกาะบนกระดูก' : 'ดูเฉพาะกล้ามเนื้อ'); };
+$('#tPeel').onclick = () => { st.peel = !st.peel; syncDock(); toast(st.peel ? 'โหมดลอกชั้น: เปิด' : 'โหมดลอกชั้น: ปิด', st.peel ? 'แตะกล้ามเนื้อเพื่อลอกออก ดูชั้นที่อยู่ลึกกว่า' : (st.peeled.size ? 'กด "คืนทุกมัด" ในแผงข้อมูลเพื่อแสดงกลับ' : '')); };
 const dock = $('#dock'), LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { } };
 function placeDock(y) { // y = ตำแหน่งบนสุดของแถบ (px จากบน stage)
   const r = stageRect(), h = dock.offsetHeight; y = Math.max(8, Math.min(r.height - h - 8, y)); dock.style.top = y + 'px'; dock.style.bottom = 'auto'; dock.style.transform = 'none'; return y;
@@ -654,9 +795,9 @@ const q = $('#q'), res = $('#res');
 const norm = s => String(s).toLowerCase();
 q.oninput = () => {
   const s = norm(q.value.trim()); if (!s) { res.hidden = true; return; }
-  const hits = [...SECS.filter(x => norm(x.t + ' ' + x.s).includes(s)).map(x => ({ k: 's', id: x.id, t: x.t, sub: x.s })),
-    ...LESSONS.filter(x => norm(x.t + x.html).includes(s)).map(x => ({ k: 'l', id: x.id, t: x.t, sub: 'บทเรียน' })),
-    ...DATA.filter(d => norm([d.en, d.th, d.id, d.loc, ...d.parts.map(p => p[0])].join(' ')).includes(s)).map(d => ({ k: 'e', id: d.id, t: d.en, sub: d.th + (d.parts.find(p => norm(p[0]).includes(s)) ? ' · ' + d.parts.find(p => norm(p[0]).includes(s))[0] : ''), part: d.parts.find(p => norm(p[0]).includes(s))?.[0] }))].slice(0, 30);
+  const hits = [...[...SECS, ...MSECS].filter(x => norm(x.t + ' ' + x.s).includes(s)).map(x => ({ k: 's', id: x.id, t: x.t, sub: x.s })),
+    ...[...LESSONS, ...MLESSONS].filter(x => norm(x.t + x.html).includes(s)).map(x => ({ k: 'l', id: x.id, t: x.t, sub: 'บทเรียน' })),
+    ...[...DATA, ...MDATA].filter(d => norm([d.en, d.th, d.id, d.loc, ...(d.act || []), ...(d.tip || []), d.sub || '', ...d.parts.map(p => p[0])].join(' ')).includes(s)).map(d => ({ k: 'e', id: d.id, t: d.en, sub: (isMus(d.id) ? 'กล้ามเนื้อ · ' : 'กระดูก · ') + d.th + (d.parts.find(p => norm(p[0]).includes(s)) ? ' · ' + d.parts.find(p => norm(p[0]).includes(s))[0] : ''), part: d.parts.find(p => norm(p[0]).includes(s))?.[0] }))].slice(0, 30);
   res.innerHTML = hits.map((h, i) => `<button data-i="${i}"><b>${esc(h.t)}</b><small>${esc(h.sub)}</small></button>`).join('') || '<p>ไม่พบ</p>'; res.hidden = false; res._h = hits;
 };
 res.addEventListener('pointerdown', e => {
@@ -666,9 +807,9 @@ res.addEventListener('pointerdown', e => {
 q.onblur = () => setTimeout(() => res.hidden = true, 150);
 
 /* ---------- notebook viewer ---------- */
-const NB = 32; let bookPg = 1, zoom = 1;
-function openBook(p, name) { bookPg = p; zoom = 1; const b = $('#book'); b.hidden = false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); $('#bfor').textContent = name ? 'อธิบาย ' + name : ''; showPage(); }
-function showPage() { const img = $('#bimg'); img.src = `book/p-${String(bookPg).padStart(2, '0')}.jpg`; img.style.width = (zoom * 100) + '%'; $('#bnum').textContent = `หน้า ${bookPg} / ${NB}`; $('#bscroll').scrollTop = 0; }
+let NB = 32, bookPg = 1, zoom = 1, bookId = 'bone';
+function openBook(ref, name) { const r = pgRef(ref); bookId = r.b; NB = BOOKS[bookId].n; bookPg = r.p; zoom = 1; $('#bpdf').href = BOOKS[bookId].pdf; $('#btitle').textContent = BOOKS[bookId].t; const b = $('#book'); b.hidden = false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); $('#bfor').textContent = name ? 'อธิบาย ' + name : ''; showPage(); }
+function showPage() { const img = $('#bimg'); img.src = `${BOOKS[bookId].dir}${String(bookPg).padStart(2, '0')}.jpg`; img.style.width = (zoom * 100) + '%'; $('#bnum').textContent = `หน้า ${bookPg} / ${NB}`; $('#bscroll').scrollTop = 0; }
 $('#bprev').onclick = () => { if (bookPg > 1) { bookPg--; showPage(); } };
 $('#bnext').onclick = () => { if (bookPg < NB) { bookPg++; showPage(); } };
 $('#bzin').onclick = () => { zoom = Math.min(3, zoom + .5); showPage(); };
@@ -700,4 +841,4 @@ R.setAnimationLoop(() => {
     if (k >= 1) pinTw = null; dirty = true; }
   labelItems.forEach(it => it.spr && sizeSprite(it)); R.render(scene, cam); adapt(performance.now());
 });
-window.__humnoi = { R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };
+window.__humnoi = { setMode, get mode() { return MODE; }, musMeshes: () => musMeshes, R, st, meshes, byName, cam, ctl, openEntry, openScope, setFocus, frame, visibleList, DIRS, labelItems: () => labelItems };
