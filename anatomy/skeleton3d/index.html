@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#000000">
 <title>HUMnoi</title>
 <script>/* อัปเดตอัตโนมัติ: ถ้ามีเวอร์ชันใหม่บนเว็บ ให้โหลดหน้าใหม่ทันที (กัน Safari จำหน้าเก่า) */
-window.HN_BUILD='1795447687';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
+window.HN_BUILD='1795689128';fetch('build.txt?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){t=t.trim();if(t&&t!==window.HN_BUILD){var u=new URL(location.href);if(u.searchParams.get('v')!==t){u.searchParams.set('v',t);location.replace(u.toString())}}}).catch(function(){});</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -192,6 +192,21 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .prose th,.prose td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}.prose th{color:var(--tx3);font-weight:600;font-size:12px}
 #pbody footer{margin-top:18px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--tx3)}
 
+/* ---------- muscle mode ---------- */
+.modeseg{flex:none;height:38px}.modeseg button{display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13.5px}
+.modeseg svg{width:16px;height:16px}.modeseg button.on{background:var(--ac);color:#1a1006;box-shadow:none}
+body.mode-mus #tInterior{display:none}body:not(.mode-mus) #tBones,body:not(.mode-mus) #tPeel{display:none}
+body.mode-mus .brand b span{color:#ff6b5a}
+.pinleg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:6px 0 10px;font-size:12.5px;color:var(--tx2)}.pinleg span{display:inline-flex;align-items:center;gap:6px}.pinleg i{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.acts{display:flex;flex-wrap:wrap;gap:6px}.acts span{background:rgba(255,107,90,.12);border:1px solid rgba(255,107,90,.35);color:#ffc2b8;border-radius:8px;padding:5px 10px;font-size:13.5px}
+.mparts button.po b{color:#5ee088}.mparts button.pi b{color:#7aa9ff}.mparts button.ph b{color:#ffd34d}
+.mchips button{display:inline-flex;align-items:center;gap:7px}.mchips i,.legend button i{flex:none}.mchips i{width:10px;height:10px;border-radius:3px}
+.subh{font-size:12px;color:var(--tx3);margin:10px 0 6px;font-weight:600}
+.vid{display:block;font-size:13px;color:var(--ac);text-decoration:none;padding:5px 0;word-break:break-all}
+.hint{font-size:12px;color:var(--tx3);margin-top:6px!important}
+.peelnote{display:flex;align-items:center;justify-content:space-between;gap:8px}.peelnote button{min-height:34px;padding:0 12px;border-radius:8px;background:var(--ac);color:#1a1006;font-weight:700}
+.facts .mu{color:#ff9b8c;border-color:rgba(255,107,90,.4)}h2 .sd{font-size:15px;color:var(--tx2);font-weight:500}
+@media (max-width:759px){.modeseg span{display:none}.modeseg button{padding:0 10px}}
 /* ---------- notebook ---------- */
 #book{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.96);display:flex;flex-direction:column}
 #book.in{animation:bin .28s cubic-bezier(.2,.8,.3,1) both}#book.out{animation:bin .2s reverse both}
@@ -302,6 +317,7 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
   <header id="hd">
     <button id="menu" aria-label="แสดง/ซ่อนสารบัญ" title="แสดง/ซ่อนสารบัญ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     <div class="brand"><b>HUM<span>noi</span></b><small>ระบบกระดูกโครงร่าง · บทที่ 3</small></div>
+    <div class="seg modeseg" id="modeSeg" role="tablist" aria-label="เลือกเนื้อหา"><button data-mode="bone" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4a2 2 0 1 0-3 2.6L15.4 17a2 2 0 1 0 2.6 3 2 2 0 1 0 1.4-2.6L9 7a2 2 0 0 0-1-3z"/></svg><span>กระดูก</span></button><button data-mode="mus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 19c2-6 3-9 7-11 3-1.5 5 0 6 2-2 0-3 1-4 3-2 4-5 6-9 6z"/><path d="M9 14c1.5-1 3-1.5 5-1.5" stroke-opacity=".55"/></svg><span>กล้ามเนื้อ</span></button></div>
     <button id="focusBtn" class="tbtn press" title="ซ่อนแถบทั้งหมด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tx">เต็มจอ</span></button>
     <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" placeholder="ค้นหา เช่น femur, pterion, ซี่โครง" autocomplete="off" enterkeyhint="search"><div id="res" class="scroll" hidden></div></div>
@@ -317,6 +333,8 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
       <button class="dk" id="tStyle"><svg class="ic-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="15" cy="7" r="3.2" fill="currentColor" fill-opacity=".25"/><path d="M13 9.5 5 19"/><path d="M4 21h4" stroke-opacity=".5"/></svg><svg class="ic-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="6" cy="16" r="2"/><path d="M7.6 14.6 12 9h3"/><rect x="15" y="6" width="7" height="6" rx="1.5"/></svg><span>แบบชี้</span><small></small></button>
       <button class="dk" id="tGhost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5" stroke-dasharray="2 2.2" stroke-opacity=".6"/></svg><span>ส่วนอื่น</span><small></small></button>
       <button class="dk" id="tColor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3.5 9h17M3.5 15h17" stroke-opacity=".5"/></svg><span>สี</span><small></small></button>
+      <button class="dk" id="tBones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 4a2 2 0 1 0-3 2.6L15.4 17a2 2 0 1 0 2.6 3 2 2 0 1 0 1.4-2.6L9 7a2 2 0 0 0-1-3z"/></svg><span>กระดูก</span><small></small></button>
+      <button class="dk" id="tPeel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4" stroke-opacity=".6"/><path d="M4 16l8 4 8-4" stroke-opacity=".35"/></svg><span>ลอกชั้น</span><small></small></button>
       <button class="dk" id="tInterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 3c-2 0-3 2-2 4l1 2v6l-1 2c-1 2 0 4 2 4M16 3c2 0 3 2 2 4l-1 2v6l1 2c1 2 0 4-2 4"/><path d="M12 2v20" stroke-dasharray="2 2.5"/></svg><span>ภายใน</span><small></small></button>
       <button class="dk" id="tBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg><span>สมุด</span><small></small></button>
     </div>
@@ -327,7 +345,7 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
   <aside id="panel"><div id="grab"><i></i></div><div id="pbody" class="scroll"></div></aside>
 </div>
 <div id="scrim"></div>
-<div id="book" hidden><div class="bar"><div class="bt"><b>สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
-<script type="module" src="app.js?v=1795447687"></script>
+<div id="book" hidden><div class="bar"><div class="bt"><b id="btitle">สมุดสรุป Anatomy เล่ม 2</b><span id="bfor"></span></div><button class="tbtn" id="bprev" aria-label="หน้าก่อน">‹</button><span id="bnum"></span><button class="tbtn" id="bnext" aria-label="หน้าถัดไป">›</button><button class="tbtn" id="bzout" aria-label="ย่อ">−</button><button class="tbtn" id="bzin" aria-label="ขยาย">+</button><a class="tbtn" id="bpdf" href="notebook.pdf" target="_blank" rel="noopener">PDF</a><button class="tbtn close" id="bclose">ปิด ✕</button></div><div id="bscroll" class="scroll"><img id="bimg" alt="หน้าสมุด"></div></div>
+<script type="module" src="app.js?v=1795689128"></script>
 </body>
 </html>
